@@ -1,0 +1,18 @@
+{
+  "name": "CasaGroup — New construction & premium apartments",
+  "short_name": "CasaGroup",
+  "description": "CasaGroup — new construction sales, modern residential complexes, and premium apartments in Armenia.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#0C1428",
+  "theme_color": "#0C1428",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}

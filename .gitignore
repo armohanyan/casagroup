@@ -4,6 +4,7 @@ node_modules
 # output
 out
 dist
+.next
 dist-electron
 release
 web-build
@@ -33,7 +34,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .eslintcache
 .cache
 *.tsbuildinfo
-.turbo
 
 # IntelliJ based IDEs
 .idea
@@ -41,34 +41,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # macOS
 .DS_Store
 
-# Expo
-.expo/
-expo-env.d.ts
-
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.pem
-
-# Metro
-.metro-health-check*
-
 # debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
-
-# generated native folders
-ios
-android
-
-# scripts (local-only provisioning)
-scripts/
-!packages/mobile/scripts/
-packages/mobile/scripts/*
-!packages/mobile/scripts/generate-ios-certs.py

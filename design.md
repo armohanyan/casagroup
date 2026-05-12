@@ -1,4 +1,4 @@
-# LuxEstate Design System
+# CasaGroup Design System
 
 ## Inspiration
 Editorial dark luxury — large typography, full-bleed photography, generous whitespace,
