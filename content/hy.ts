@@ -14,7 +14,7 @@ export const hyTranslations: Translations = {
     faq: "FAQ",
     contact: "Կապ",
     inquire: "Ստանալ խորհրդատվություն",
-    gortsin: "Gortsin",
+    gortsin: "ԳործIN",
   },
   footer: {
     tagline:

@@ -9,7 +9,7 @@ export const en = {
     faq: "FAQ",
     contact: "Contact",
     inquire: "Get Consultation",
-    gortsin: "Gortsin",
+    gortsin: "gortsIN",
   },
   footer: {
     tagline:
