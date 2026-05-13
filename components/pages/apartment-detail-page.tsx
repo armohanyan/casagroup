@@ -1,4 +1,6 @@
-import { useParams, Link } from "wouter";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ChevronRight, BedDouble, Layers, Square, Eye, Phone, Calendar, MapPin } from "lucide-react";
 import { ProjectGallery } from "@/components/ProjectGallery";
@@ -16,7 +18,9 @@ function formatPrice(p: number) {
 }
 
 export default function ApartmentDetailPage() {
-  const { aptId, slug } = useParams<{ aptId: string; slug: string }>();
+  const params = useParams();
+  const aptId = typeof params.aptId === "string" ? params.aptId : undefined;
+  const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
   const { projects } = useProjects();
 
@@ -173,11 +177,16 @@ export default function ApartmentDetailPage() {
               <div className="mb-12">
                 <SectionTitle eyebrow={t.aptDetail.layoutEyebrow} title={t.aptDetail.layoutTitle} />
                 <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-4">
-                  <img
-                    src={apt.floorPlanImage}
-                    alt="Floor plan"
-                    className="w-full max-h-96 object-contain rounded-lg"
-                  />
+                  <div className="relative w-full min-h-[200px] h-96 max-h-96">
+                    <Image
+                      src={apt.floorPlanImage}
+                      alt="Floor plan"
+                      fill
+                      unoptimized
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      className="object-contain rounded-lg"
+                    />
+                  </div>
                 </div>
               </div>
             )}

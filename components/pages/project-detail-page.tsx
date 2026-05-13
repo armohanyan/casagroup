@@ -1,4 +1,5 @@
-import { useParams } from "wouter";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { MapPin, ChevronRight, Check } from "lucide-react";
 import { ProjectGallery } from "@/components/ProjectGallery";
@@ -7,7 +8,6 @@ import { ApartmentTable } from "@/components/ApartmentTable";
 import { ContactForm } from "@/components/ContactForm";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Link } from "wouter";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { useI18n } from "@/lib/i18n";
@@ -38,10 +38,11 @@ const PLACE_ICONS: Record<string, string> = {
 };
 
 export default function ProjectDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const params = useParams();
+  const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
   const { getBySlug } = useProjects();
-  const project = getBySlug(slug);
+  const project = slug ? getBySlug(slug) : undefined;
 
   if (!project) {
     return (

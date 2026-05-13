@@ -1,7 +1,25 @@
 import { useRef, useState } from "react";
-import { Link } from "wouter";
+import Link from "next/link";
+import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ChevronDown, Award, Shield, TrendingUp, MapPin, Plus, Minus } from "lucide-react";
+import {
+  ChevronDown,
+  Award,
+  Shield,
+  TrendingUp,
+  MapPin,
+  Plus,
+  Minus,
+  Landmark,
+  Compass,
+  Palette,
+  HardHat,
+  Megaphone,
+  Handshake,
+  Network,
+  LineChart,
+  Scale,
+} from "lucide-react";
 import { ProjectCard } from "@/components/ProjectCard";
 import { StatsSection } from "@/components/StatsSection";
 import { ContactForm } from "@/components/ContactForm";
@@ -11,6 +29,18 @@ import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 
 const WHY_ICONS = [Award, Shield, TrendingUp, MapPin];
+
+const PARTNER_ICONS = [
+  Landmark,
+  Compass,
+  Palette,
+  HardHat,
+  Megaphone,
+  Handshake,
+  Network,
+  LineChart,
+  Scale,
+];
 
 const MATERIAL_IMGS = [
   "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
@@ -40,17 +70,18 @@ export default function HomePage() {
         lang={lang}
       />
       {/* ─── HERO ─────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative h-screen min-h-[700px] overflow-hidden flex items-center">
+      <section ref={heroRef} className="relative h-screen min-h-[700px] overflow-hidden flex items-center bg-[#0C1428]">
         <motion.div
-          className="absolute inset-0 will-change-transform"
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden will-change-transform"
           style={{ y: heroY }}
         >
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1920&q=85"
             alt="Modern high-rise residential complex at dusk — CasaGroup new construction portfolio"
-            className="w-full h-full object-cover scale-110"
-            fetchPriority="high"
-            decoding="async"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0C1428]/85 via-[#0C1428]/50 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0C1428] via-transparent to-transparent" />
@@ -222,12 +253,12 @@ export default function HomePage() {
           viewport={{ once: true }}
           transition={{ duration: 1.2, ease: "easeOut" }}
         >
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1920&q=80"
             alt="Premium residential interior showcasing materials and finishes for new construction homes"
-            className="w-full h-full object-cover"
-            loading="lazy"
-            decoding="async"
+            fill
+            sizes="100vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-[#0C1428]/65" />
         </motion.div>
@@ -272,16 +303,20 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.15, duration: 0.6 }}
             >
-              <div className="h-72 rounded-xl overflow-hidden mb-5">
-                <motion.img
-                  src={MATERIAL_IMGS[i]}
-                  alt={`${mat.title} — CasaGroup new construction advisory`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  decoding="async"
+              <div className="h-72 rounded-xl overflow-hidden mb-5 relative">
+                <motion.div
+                  className="h-full w-full"
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.5 }}
-                />
+                >
+                  <Image
+                    src={MATERIAL_IMGS[i]}
+                    alt={`${mat.title} — CasaGroup new construction advisory`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover"
+                  />
+                </motion.div>
               </div>
               <p className="text-xs tracking-[0.2em] uppercase text-[#c9a96e] mb-2">{mat.title}</p>
               <p className="text-[#9a9085] text-sm">{mat.desc}</p>
@@ -325,13 +360,15 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <img
-                src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80"
-                alt="Contemporary apartment living room in a new residential complex"
-                className="rounded-xl w-full object-cover h-64 sm:h-80 lg:h-[500px]"
-                loading="lazy"
-                decoding="async"
-              />
+              <div className="relative w-full h-64 sm:h-80 lg:h-[500px] rounded-xl overflow-hidden">
+                <Image
+                  src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80"
+                  alt="Contemporary apartment living room in a new residential complex"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
               <div className="absolute -bottom-6 -left-6 bg-[#0f1e30] border border-[#2a2520] rounded-xl p-6 hidden xl:block">
                 <p className="text-xs tracking-widest uppercase text-[#5a554f] mb-1">{t.home.investGrowth}</p>
                 <p className="font-['Cormorant_Garamond'] text-3xl text-[#c9a96e]">+18%</p>
@@ -361,8 +398,8 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
             >
-              <p className="font-['Cormorant_Garamond'] text-xl sm:text-2xl text-[#c9a96e] font-light break-words">{item.value}</p>
-              <p className="text-[10px] sm:text-xs tracking-wider uppercase text-[#9a9085] mt-1">{item.label}</p>
+              <p className="font-['Cormorant_Garamond'] text-xl sm:text-2xl text-[#c9a96e] font-light break-words">{item.label}</p>
+              <p className="text-[10px] sm:text-xs tracking-wider uppercase text-[#9a9085] mt-1">{item.value}</p>
               <p className="text-[10px] sm:text-xs text-[#5a554f] mt-2">{item.desc}</p>
             </motion.div>
           ))}
@@ -402,15 +439,27 @@ export default function HomePage() {
             subtitle={t.home.partnersLead}
             centered
           />
-          <div className="flex flex-wrap justify-center gap-3 mt-12 max-w-5xl mx-auto">
-            {t.home.partnersList.map((label, i) => (
-              <span
-                key={i}
-                className="px-4 py-2 rounded-full border border-[#2a2520] text-xs text-[#9a9085] hover:border-[#c9a96e]/40 transition-colors break-words text-center max-w-[280px]"
-              >
-                {label}
-              </span>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-12 max-w-5xl mx-auto">
+            {t.home.partnersList.map((label, i) => {
+              const Icon = PARTNER_ICONS[i] ?? Landmark;
+              return (
+                <motion.div
+                  key={i}
+                  className="group relative flex items-center gap-4 bg-[#0C1428]/50 border border-[#2a2520] rounded-xl px-4 py-3.5 hover:border-[#c9a96e]/40 hover:bg-[#0C1428]/80 transition-all duration-300"
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05, duration: 0.4 }}
+                >
+                  <div className="w-10 h-10 rounded-lg border border-[#2a2520] flex items-center justify-center shrink-0 bg-[#0d1829] group-hover:border-[#c9a96e]/50 group-hover:bg-[#c9a96e]/5 transition-colors">
+                    <Icon size={16} className="text-[#c9a96e]" strokeWidth={1.5} />
+                  </div>
+                  <span className="text-sm text-[#9a9085] leading-snug group-hover:text-[#f0ece4] transition-colors break-words flex-1">
+                    {label}
+                  </span>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

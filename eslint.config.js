@@ -1,11 +1,13 @@
 import js from "@eslint/js";
+import nextEslintPlugin from "@next/eslint-plugin-next";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-	{ ignores: ["dist", ".next"] },
+	{ ignores: ["dist", ".next", "next-env.d.ts"] },
+	nextEslintPlugin.flatConfig.coreWebVitals,
 	{
 		extends: [js.configs.recommended, ...tseslint.configs.recommended],
 		files: ["**/*.{ts,tsx}"],
@@ -27,7 +29,14 @@ export default tseslint.config(
 		},
 	},
 	{
-		files: ["vite.config.ts", "vite/**/*.ts"],
+		files: ["app/layout.tsx"],
+		rules: {
+			"@next/next/no-page-custom-font": "off",
+			"react-refresh/only-export-components": "off",
+		},
+	},
+	{
+		files: ["next.config.ts"],
 		languageOptions: {
 			parserOptions: {
 				projectService: true,

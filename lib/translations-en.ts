@@ -9,6 +9,7 @@ export const en = {
     faq: "FAQ",
     contact: "Contact",
     inquire: "Get Consultation",
+    gortsin: "Gortsin",
   },
   footer: {
     tagline:
@@ -515,26 +516,22 @@ export const en = {
     ctaTitle: "Discuss your project with CasaGroup",
     ctaProjects: "View Projects",
     ctaContact: "Contact Us",
-    team: [
+    teamSections: [
       {
-        name: "CasaGroup",
-        role: "Development & Sales Platform",
-        bio: "Institutional platform for construction project development, sales, and management.",
+        sectionEyebrow: "Leadership",
+        sectionTitle: "Management",
+        members: [
+          { name: "Armen Petrosyan", role: "Founder & Managing Partner" },
+          { name: "Liana Sargsyan", role: "Head of Development & Strategy" },
+        ],
       },
       {
-        name: "CasaGroup Academy",
-        role: "Primary Market Academy",
-        bio: "Training next-generation specialists in primary market sales, investment thinking, and CRM systems.",
-      },
-      {
-        name: "gortsIN CRM/ERP",
-        role: "Technology Partner",
-        bio: "Modern management system for full sales, client, and project control in one environment.",
-      },
-      {
-        name: "Partner Network",
-        role: "Ecosystem Partners",
-        bio: "Banks, architects, designers, builders, brokers, investors, and legal advisors.",
+        sectionEyebrow: "Client success",
+        sectionTitle: "Sales & Operations",
+        members: [
+          { name: "David Hakobyan", role: "Sales Director" },
+          { name: "Mariam Grigoryan", role: "Client Relations Lead" },
+        ],
       },
     ],
   },

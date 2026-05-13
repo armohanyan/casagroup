@@ -1,11 +1,12 @@
-import { Link, useLocation } from "wouter";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Seo } from "@/components/seo/Seo";
 import { useI18n } from "@/lib/i18n";
 
 export default function NotFoundPage() {
   const { t, lang } = useI18n();
-  const [loc] = useLocation();
-  const path = loc && loc !== "*" ? loc : "/404";
+  const pathname = usePathname();
+  const path = pathname && pathname !== "" ? pathname : "/404";
   return (
     <main className="bg-[#0C1428] min-h-screen pt-32 flex flex-col items-center justify-center px-6">
       <Seo

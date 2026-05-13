@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
 import { SectionTitle } from "@/components/ui/SectionTitle";
@@ -21,12 +22,12 @@ export default function ContactPage() {
       {/* Hero */}
       <section className="relative py-28 overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1920&q=60"
             alt="CasaGroup contact — modern residential lobby reception area"
-            className="w-full h-full object-cover opacity-15"
-            loading="lazy"
-            decoding="async"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-15"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#0C1428] via-transparent to-[#0C1428]" />
         </div>
@@ -94,15 +95,17 @@ export default function ContactPage() {
 
             {/* Map placeholder */}
             <motion.div
-              className="h-52 rounded-xl overflow-hidden border border-[#2a2520] bg-[#0d1829] relative mt-8"
+              className="relative h-52 rounded-xl overflow-hidden border border-[#2a2520] bg-[#0d1829] mt-8"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
             >
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=70"
                 alt={t.contact.mapAlt}
-                className="w-full h-full object-cover opacity-40"
+                fill
+                sizes="(max-width: 1024px) 100vw, 40vw"
+                className="object-cover opacity-40"
               />
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                 <MapPin size={28} className="text-[#c9a96e]" />

@@ -3,6 +3,7 @@ import type { Project, Apartment } from "@/types";
 const STORAGE_KEY = "casagroup_projects_v1";
 
 export function loadCustomProjects(): Project[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -12,6 +13,7 @@ export function loadCustomProjects(): Project[] {
 }
 
 export function saveCustomProjects(projects: Project[]): void {
+  if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
 }
 

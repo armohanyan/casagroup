@@ -1,3 +1,5 @@
+"use client";
+
 import { I18nProvider } from "@/lib/i18n";
 import { ProjectsProvider } from "@/lib/projects-context";
 

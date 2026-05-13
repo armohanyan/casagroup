@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Link } from "wouter";
+import Image from "next/image";
+import Link from "next/link";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { StatsSection } from "@/components/StatsSection";
 import { Seo } from "@/components/seo/Seo";
@@ -26,12 +27,12 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="relative py-32 overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1920&q=70"
             alt="CasaGroup team environment and contemporary workspace"
-            className="w-full h-full object-cover opacity-15"
-            loading="lazy"
-            decoding="async"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-15"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#0C1428]/80 via-transparent to-[#0C1428]" />
         </div>
@@ -66,13 +67,15 @@ export default function AboutPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <img
-              src="https://images.unsplash.com/photo-1600573472592-401b489a3cdc?w=800&q=80"
-              alt="CasaGroup leadership collaborating on a residential development strategy"
-              className="rounded-xl w-full h-64 sm:h-80 lg:h-[500px] object-cover"
-              loading="lazy"
-              decoding="async"
-            />
+            <div className="relative w-full h-64 sm:h-80 lg:h-[500px] rounded-xl overflow-hidden">
+              <Image
+                src="https://images.unsplash.com/photo-1600573472592-401b489a3cdc?w=800&q=80"
+                alt="CasaGroup leadership collaborating on a residential development strategy"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, x: 30 }}
@@ -136,31 +139,68 @@ export default function AboutPage() {
             title={t.about.teamTitle}
             centered
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-            {t.about.team.map((member, i) => (
-              <motion.div
-                key={i}
-                className="group"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <div className="relative overflow-hidden rounded-xl mb-5 h-72">
-                  <motion.img
-                    src={TEAM_IMGS[i]}
-                    alt={member.name}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.4 }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0C1428] via-transparent to-transparent" />
+          <div className="space-y-20 mt-4">
+            {t.about.teamSections.map((section, si) => {
+              const imgOffset = t.about.teamSections
+                .slice(0, si)
+                .reduce((acc, s) => acc + s.members.length, 0);
+              return (
+                <div key={si}>
+                  <motion.div
+                    className="text-center mb-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <p className="text-[10px] sm:text-xs tracking-[0.25em] uppercase text-[#c9a96e] mb-2">
+                      {section.sectionEyebrow}
+                    </p>
+                    <h3 className="font-['Cormorant_Garamond'] font-light text-2xl sm:text-3xl text-[#f0ece4]">
+                      {section.sectionTitle}
+                    </h3>
+                  </motion.div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-12 max-w-5xl mx-auto">
+                    {section.members.map((member, mi) => {
+                      const i = imgOffset + mi;
+                      return (
+                        <motion.div
+                          key={`${si}-${mi}`}
+                          className="group"
+                          initial={{ opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: mi * 0.08 }}
+                        >
+                          <div className="relative overflow-hidden rounded-xl mb-5 h-72">
+                            <motion.div
+                              className="h-full w-full"
+                              whileHover={{ scale: 1.05 }}
+                              transition={{ duration: 0.4 }}
+                            >
+                              <Image
+                                src={TEAM_IMGS[i % TEAM_IMGS.length]}
+                                alt={member.name}
+                                fill
+                                sizes="(max-width: 640px) 100vw, 50vw"
+                                className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
+                              />
+                            </motion.div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0C1428] via-transparent to-transparent" />
+                          </div>
+                          <p className="font-['Cormorant_Garamond'] text-xl text-[#f0ece4] font-light">
+                            {member.name}
+                          </p>
+                          <p className="text-xs tracking-widest uppercase text-[#c9a96e] mt-1">
+                            {member.role}
+                          </p>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p className="font-['Cormorant_Garamond'] text-xl text-[#f0ece4] font-light">{member.name}</p>
-                <p className="text-xs tracking-widest uppercase text-[#c9a96e] mt-1 mb-3">{member.role}</p>
-                <p className="text-[#9a9085] text-xs leading-relaxed">{member.bio}</p>
-              </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

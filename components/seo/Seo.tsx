@@ -5,7 +5,6 @@ import {
   META_KEYWORDS,
   THEME_COLOR,
   absoluteUrl,
-  defaultOgImageUrl,
 } from "@/lib/site-config";
 
 export interface SeoProps {
@@ -38,6 +37,10 @@ function upsertLink(rel: string, href: string) {
   el.setAttribute("href", href);
 }
 
+function removeMeta(attr: "name" | "property", key: string) {
+  document.querySelector(`meta[${attr}="${key}"]`)?.remove();
+}
+
 export function Seo({
   title,
   description,
@@ -49,7 +52,6 @@ export function Seo({
 }: SeoProps) {
   useEffect(() => {
     const canonical = absoluteUrl(path === "" ? "/" : path.startsWith("/") ? path : `/${path}`);
-    const ogImage = image ?? defaultOgImageUrl();
     const robots = noindex
       ? "noindex, nofollow"
       : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
@@ -70,13 +72,21 @@ export function Seo({
     upsertMeta("property", "og:description", description);
     upsertMeta("property", "og:url", canonical);
     upsertMeta("property", "og:type", ogType);
-    upsertMeta("property", "og:image", ogImage);
     upsertMeta("property", "og:locale", lang === "hy" ? "hy_AM" : "en_US");
 
-    upsertMeta("name", "twitter:card", "summary_large_image");
+    if (image) {
+      const ogImage = absoluteUrl(image);
+      upsertMeta("property", "og:image", ogImage);
+      upsertMeta("name", "twitter:card", "summary_large_image");
+      upsertMeta("name", "twitter:image", ogImage);
+    } else {
+      removeMeta("property", "og:image");
+      removeMeta("name", "twitter:image");
+      upsertMeta("name", "twitter:card", "summary");
+    }
+
     upsertMeta("name", "twitter:title", fullHeadline);
     upsertMeta("name", "twitter:description", description);
-    upsertMeta("name", "twitter:image", ogImage);
   }, [title, description, path, image, lang, noindex, ogType]);
 
   return null;

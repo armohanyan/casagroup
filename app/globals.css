@@ -2,7 +2,7 @@
 
 @source "../components/**/*.tsx";
 @source "../lib/**/*.tsx";
-@source "../src/**/*.tsx";
+@source "../app/**/*.tsx";
 
 @theme {
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, X, Video } from "lucide-react";
 import { SectionTitle } from "./ui/SectionTitle";
@@ -59,10 +60,13 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
             >
               {/* Thumbnail */}
               {video.thumbnail ? (
-                <img
+                <Image
                   src={video.thumbnail}
                   alt={video.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  fill
+                  unoptimized
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-[#0d1829] to-[#162035]" />

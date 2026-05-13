@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -25,13 +26,14 @@ export function ProjectGallery({ images, title }: Props) {
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.3 }}
           >
-            <img
+            <Image
               src={img}
               alt={`${title} — interior photo ${i + 1}`}
-              className="w-full h-full object-cover"
-              loading={i === 0 ? "eager" : "lazy"}
-              decoding="async"
-              {...(i === 0 ? { fetchPriority: "high" as const } : {})}
+              fill
+              unoptimized
+              sizes={i === 0 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 50vw, 33vw"}
+              className="object-cover"
+              priority={i === 0}
             />
             <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
               <span className="text-white text-sm tracking-widest uppercase">View</span>
@@ -68,17 +70,24 @@ export function ProjectGallery({ images, title }: Props) {
             >
               <ChevronRight size={36} />
             </button>
-            <motion.img
+            <motion.div
               key={lightbox}
-              src={images[lightbox]}
-              alt={`${title} — enlarged view ${lightbox + 1}`}
-              className="max-w-5xl max-h-[85vh] object-contain rounded-lg"
+              className="relative mx-auto w-full max-w-5xl h-[min(85vh,900px)] max-h-[85vh]"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.25 }}
               onClick={(e) => e.stopPropagation()}
-            />
+            >
+              <Image
+                src={images[lightbox]}
+                alt={`${title} — enlarged view ${lightbox + 1}`}
+                fill
+                unoptimized
+                sizes="100vw"
+                className="object-contain rounded-lg"
+              />
+            </motion.div>
             <div className="absolute bottom-6 text-white/50 text-sm">
               {lightbox + 1} / {images.length}
             </div>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ProjectCard } from "@/components/ProjectCard";
 import { FilterBar, type FilterState } from "@/components/FilterBar";
@@ -47,12 +48,12 @@ export default function ProjectsPage() {
       {/* Page Header */}
       <section className="relative py-24 overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1920&q=70"
             alt="Modern apartment building facade — CasaGroup project portfolio"
-            className="w-full h-full object-cover opacity-20"
-            loading="lazy"
-            decoding="async"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-20"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#0C1428] via-transparent to-[#0C1428]" />
         </div>

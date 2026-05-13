@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import type { Project } from "@/types";
 import { MOCK_PROJECTS } from "@/data/mock";
 import { loadCustomProjects, saveCustomProjects, generateId, generateSlug } from "./store";
@@ -22,7 +22,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     saveCustomProjects(customProjects);
   }, [customProjects]);
 
-  const projects = [...MOCK_PROJECTS, ...customProjects];
+  const projects = useMemo(() => [...MOCK_PROJECTS, ...customProjects], [customProjects]);
 
   const addProject = useCallback((data: Omit<Project, "id" | "slug">): Project => {
     const id = generateId();

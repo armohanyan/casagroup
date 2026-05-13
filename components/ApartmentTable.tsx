@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Link } from "wouter";
+import Link from "next/link";
 import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import type { Apartment } from "@/types";

@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Link } from "wouter";
+import Image from "next/image";
+import Link from "next/link";
 import { MapPin, Calendar, Building2, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
@@ -46,15 +47,18 @@ export function ProjectCard({ project }: { project: Project }) {
     >
       {/* Image */}
       <div className="relative h-64 overflow-hidden">
-        <motion.img
-          src={project.images[0]}
-          alt={`${project.title} — ${project.location} new construction preview`}
-          className="w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.5 }}
-        />
+        <motion.div className="h-full w-full" whileHover={{ scale: 1.05 }} transition={{ duration: 0.5 }}>
+          {project.images[0] ? (
+            <Image
+              src={project.images[0]}
+              alt={`${project.title} — ${project.location} new construction preview`}
+              fill
+              unoptimized
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="object-cover"
+            />
+          ) : null}
+        </motion.div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f1e30] via-transparent to-transparent" />
         <div className="absolute top-4 left-4">
           <StatusBadge status={project.status} />

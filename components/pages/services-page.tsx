@@ -1,5 +1,6 @@
 import { useRef } from "react";
-import { Link } from "wouter";
+import Link from "next/link";
+import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   Search,
@@ -102,21 +103,25 @@ export default function ServicesPage() {
         lang={lang}
       />
       {/* ─── HERO ─────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative h-screen min-h-[700px] overflow-hidden flex items-end pb-28">
-        <motion.div className="absolute inset-0 will-change-transform" style={{ y: heroY }}>
-          <img
+      <section ref={heroRef} className="relative h-screen min-h-[700px] overflow-hidden flex items-center bg-[#0C1428]">
+        <motion.div
+          className="pointer-events-none absolute inset-0 z-0 overflow-hidden will-change-transform"
+          style={{ y: heroY }}
+        >
+          <Image
             src="https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?w=1920&q=85"
             alt="Business advisory meeting for real estate development and new construction sales"
-            className="w-full h-full object-cover scale-110"
-            fetchPriority="high"
-            decoding="async"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0C1428]/90 via-[#0C1428]/60 to-[#0C1428]/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0C1428] via-transparent to-[#0C1428]/30" />
         </motion.div>
 
         <motion.div
-          className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full"
+          className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 w-full shrink-0 py-8 sm:py-12"
           style={{ opacity: heroOpacity }}
         >
           <motion.p
@@ -182,17 +187,17 @@ export default function ServicesPage() {
       </section>
 
       {/* ─── OVERVIEW INTRO ──────────────────────────────────────────────── */}
-      <section className="py-28 max-w-7xl mx-auto px-6 lg:px-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="py-20 max-w-7xl mx-auto px-6 lg:px-10">
+        <div className="flex flex-col gap-14 lg:gap-16">
           <SectionTitle
             eyebrow={t.services.overviewEyebrow}
             title={t.services.overviewTitle}
             subtitle={t.services.overviewSubtitle}
           />
           <motion.div
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-stretch"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
@@ -202,14 +207,16 @@ export default function ServicesPage() {
                 <motion.a
                   key={i}
                   href={`#service-${i}`}
-                  className="bg-[#0d1829] border border-[#1e2d45] rounded-xl p-5 flex flex-col items-center text-center gap-3 hover:border-[#c9a96e]/50 transition-all cursor-pointer group"
+                  className="bg-[#0d1829] border border-[#1e2d45] rounded-xl p-5 flex h-full min-w-0 w-full flex-col items-center text-center gap-3 hover:border-[#c9a96e]/50 transition-all cursor-pointer group"
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <div className="w-10 h-10 rounded-lg border border-[#1e2d45] group-hover:border-[#c9a96e] flex items-center justify-center transition-colors">
+                  <div className="w-10 h-10 shrink-0 rounded-lg border border-[#1e2d45] group-hover:border-[#c9a96e] flex items-center justify-center transition-colors">
                     <Icon size={18} className="text-[#c9a96e]" />
                   </div>
-                  <span className="text-[10px] sm:text-xs text-[#9a9085] leading-snug line-clamp-3">{svc.title}</span>
+                  <span className="text-[10px] sm:text-xs text-[#9a9085] leading-snug min-w-0 w-full break-words">
+                    {svc.title}
+                  </span>
                 </motion.a>
               );
             })}
@@ -239,10 +246,12 @@ export default function ServicesPage() {
                     transition={{ duration: 0.8 }}
                   >
                     <div className="relative rounded-2xl overflow-hidden h-56 sm:h-72 lg:h-[420px]">
-                      <img
+                      <Image
                         src={SERVICE_HERO_IMGS[i]}
                         alt={svc.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        className="object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0C1428]/70 to-transparent" />
 
@@ -413,10 +422,12 @@ export default function ServicesPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=80"
                 alt="Advisory team"
-                className="absolute inset-0 w-full h-full object-cover rounded-2xl"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover rounded-2xl"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0d1829]/60 to-transparent rounded-2xl" />
 
@@ -454,10 +465,12 @@ export default function ServicesPage() {
       <section className="py-32 relative overflow-hidden">
         {/* Background texture */}
         <div className="absolute inset-0 opacity-10" aria-hidden>
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1920&q=50"
             alt=""
-            className="w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            className="object-cover"
           />
           <div className="absolute inset-0 bg-[#0C1428]" />
         </div>

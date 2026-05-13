@@ -6,7 +6,8 @@ import {
   DollarSign, Layers, Star, ArrowLeft, Eye,
   GripVertical, AlertTriangle, CheckCircle, Link as LinkIcon,
 } from "lucide-react";
-import { Link } from "wouter";
+import Link from "next/link";
+import Image from "next/image";
 import { Seo } from "@/components/seo/Seo";
 import { useProjects } from "@/lib/projects-context";
 import { emptyProject, emptyApartment, generateId } from "@/lib/store";
@@ -17,6 +18,28 @@ import type { Project, Apartment, ProjectStatus, ApartmentStatus } from "@/types
 type AdminView = "list" | "edit" | "new";
 
 interface Toast { id: string; msg: string; type: "success" | "error" }
+
+function RemotePreviewImage({ src, sizes }: { src: string; sizes: string }) {
+  const [visible, setVisible] = useState(true);
+  if (!visible) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-[#060d1a] px-1 text-center text-[9px] text-[#5a6a7e]">
+        Invalid URL
+      </div>
+    );
+  }
+  return (
+    <Image
+      src={src}
+      alt=""
+      fill
+      unoptimized
+      sizes={sizes}
+      className="object-cover"
+      onError={() => setVisible(false)}
+    />
+  );
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -489,8 +512,8 @@ function ProjectForm({
         {form.images[0] && (
           <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-2">
             {form.images.slice(0, 5).map((img, i) => (
-              <div key={i} className="aspect-video rounded-lg overflow-hidden border border-[#1e2d45] bg-[#060d1a]">
-                <img src={img} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+              <div key={i} className="relative aspect-video overflow-hidden rounded-lg border border-[#1e2d45] bg-[#060d1a]">
+                <RemotePreviewImage src={img} sizes="120px" />
               </div>
             ))}
           </div>
@@ -772,10 +795,8 @@ export default function AdminPage() {
                     transition={{ delay: i * 0.04 }}
                   >
                     {/* Thumb */}
-                    <div className="w-14 h-10 rounded-lg overflow-hidden bg-[#060d1a] border border-[#1e2d45] shrink-0">
-                      {p.images[0] && (
-                        <img src={p.images[0]} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                      )}
+                    <div className="relative h-10 w-14 shrink-0 overflow-hidden rounded-lg border border-[#1e2d45] bg-[#060d1a]">
+                      {p.images[0] ? <RemotePreviewImage src={p.images[0]} sizes="56px" /> : null}
                     </div>
 
                     {/* Info */}

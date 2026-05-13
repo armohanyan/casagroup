@@ -22,6 +22,7 @@ const I18nContext = createContext<I18nCtx>({
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "hy";
     try {
       const stored = localStorage.getItem("lang");
       if (stored === "en" || stored === "hy") return stored;
