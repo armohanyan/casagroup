@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit3, Save, X, ChevronDown, ChevronUp,
   Image as ImageIcon, Video, Building2, Home, MapPin,
   DollarSign, Layers, Star, ArrowLeft, Eye,
-  GripVertical, AlertTriangle, CheckCircle, Link as LinkIcon,
+  GripVertical, AlertTriangle, CheckCircle, Link as LinkIcon, Database,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Seo } from "@/components/seo/Seo";
 import { useProjects } from "@/lib/projects-context";
+import { runAirtableSetupFromAdmin } from "@/app/admin-lx9k2m/actions";
 import { emptyProject, emptyApartment, generateId } from "@/lib/store";
 import type { Project, Apartment, ProjectStatus, ApartmentStatus } from "@/types";
 
@@ -91,11 +92,12 @@ function Section({ title, children, icon: Icon }: { title: string; children: Rea
 
 // ─── Image/URL list editor ────────────────────────────────────────────────────
 
-function UrlList({ label, values, onChange, placeholder }: {
+function UrlList({ label, values, onChange, placeholder, hint }: {
   label: string;
   values: string[];
   onChange: (v: string[]) => void;
   placeholder?: string;
+  hint?: string;
 }) {
   const [input, setInput] = useState("");
   const add = () => {
@@ -105,12 +107,16 @@ function UrlList({ label, values, onChange, placeholder }: {
   return (
     <div>
       <label className={LABEL_CLS}>{label}</label>
+      {hint ? <p className="text-[10px] text-[#5a6a7e] mt-1 mb-2 leading-relaxed">{hint}</p> : null}
       <div className="flex gap-2 mb-3">
         <input
+          type="text"
+          inputMode="url"
+          autoComplete="off"
           className={INPUT_CLS}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={placeholder ?? "Paste URL…"}
+          placeholder={placeholder ?? "https://…"}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
         />
         <button type="button" onClick={add} className="px-4 py-2 bg-[#c9a96e] text-[#0C1428] rounded-lg hover:bg-[#e8d5b0] transition-colors shrink-0">
@@ -262,11 +268,13 @@ function ApartmentsEditor({ projectId, apartments, onChange }: {
                     <div className="col-span-2 md:col-span-3">
                       <UrlList label="Gallery Images" values={apt.gallery}
                         onChange={(v) => update(apt.id, { gallery: v })}
-                        placeholder="https://images.unsplash.com/…" />
+                        placeholder="https://images.unsplash.com/…"
+                        hint="HTTPS image URLs only — paste links; files are not uploaded here."
+                      />
                     </div>
                     <div className="col-span-2 md:col-span-3">
                       <Field label="Floor Plan Image URL">
-                        <input className={INPUT_CLS} value={apt.floorPlanImage} placeholder="https://…"
+                        <input type="text" inputMode="url" autoComplete="off" className={INPUT_CLS} value={apt.floorPlanImage} placeholder="https://…"
                           onChange={(e) => update(apt.id, { floorPlanImage: e.target.value })} />
                       </Field>
                     </div>
@@ -311,7 +319,12 @@ function DroneVideosEditor({ values, onChange }: {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <label className={LABEL_CLS + " mb-0"}>Drone Videos</label>
+        <div>
+          <label className={LABEL_CLS + " mb-0"}>Drone Videos</label>
+          <p className="text-[10px] text-[#5a6a7e] mt-1 leading-relaxed max-w-xl">
+            Embed and thumbnail must be HTTPS URLs (e.g. YouTube embed link). No file upload.
+          </p>
+        </div>
         <button type="button" onClick={add}
           className="flex items-center gap-2 px-3 py-1.5 bg-[#c9a96e] text-[#0C1428] rounded-lg text-xs font-medium hover:bg-[#e8d5b0] transition-colors">
           <Plus size={13} /> Add Video
@@ -334,11 +347,11 @@ function DroneVideosEditor({ values, onChange }: {
                 onChange={(e) => update(i, { title: e.target.value })} />
             </Field>
             <Field label="YouTube Embed URL">
-              <input className={INPUT_CLS} value={v.url} placeholder="https://www.youtube.com/embed/…"
+              <input type="text" inputMode="url" autoComplete="off" className={INPUT_CLS} value={v.url} placeholder="https://www.youtube.com/embed/…"
                 onChange={(e) => update(i, { url: e.target.value })} />
             </Field>
             <Field label="Thumbnail URL (optional)">
-              <input className={INPUT_CLS} value={v.thumbnail ?? ""} placeholder="https://…"
+              <input type="text" inputMode="url" autoComplete="off" className={INPUT_CLS} value={v.thumbnail ?? ""} placeholder="https://…"
                 onChange={(e) => update(i, { thumbnail: e.target.value })} />
             </Field>
           </div>
@@ -409,16 +422,20 @@ function ProjectForm({
   isNew,
 }: {
   initial: Omit<Project, "id" | "slug"> & { id?: string; slug?: string };
-  onSave: (data: Omit<Project, "id" | "slug"> & { id?: string; slug?: string }) => void;
+  onSave: (data: Omit<Project, "id" | "slug"> & { id?: string; slug?: string }) => void | Promise<void>;
   onCancel: () => void;
   isNew: boolean;
 }) {
   const [form, setForm] = useState(initial);
   const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
+  const apartmentProjectId = useMemo(() => initial.id ?? generateId(), [initial.id]);
 
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); onSave(form); }}
+      onSubmit={async (e) => {
+        e.preventDefault();
+        await onSave(form);
+      }}
       className="space-y-2"
     >
       {/* Core info */}
@@ -508,6 +525,7 @@ function ProjectForm({
           values={form.images}
           onChange={(v) => set("images", v)}
           placeholder="https://images.unsplash.com/photo-…?w=1200&q=80"
+          hint="HTTPS image URLs only — paste links; files are not uploaded here."
         />
         {form.images[0] && (
           <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-2">
@@ -607,7 +625,7 @@ function ProjectForm({
       {/* Apartments */}
       <Section title="Apartment Listings" icon={Home}>
         <ApartmentsEditor
-          projectId={form.id ?? generateId()}
+          projectId={apartmentProjectId}
           apartments={form.apartments}
           onChange={(v) => set("apartments", v)}
         />
@@ -631,11 +649,20 @@ function ProjectForm({
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const { projects, customProjects, addProject, updateProject, deleteProject } = useProjects();
+  const { projects, addProject, updateProject, deleteProject, refreshProjects } = useProjects();
   const [view, setView] = useState<AdminView>("list");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [airtableSetupRunning, setAirtableSetupRunning] = useState(false);
+  const [airtableConfigured, setAirtableConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void fetch("/api/projects/status")
+      .then((r) => r.json())
+      .then((d: { airtableConfigured?: boolean }) => setAirtableConfigured(!!d.airtableConfigured))
+      .catch(() => setAirtableConfigured(false));
+  }, []);
 
   const addToast = (msg: string, type: Toast["type"] = "success") => {
     const id = generateId();
@@ -644,24 +671,31 @@ export default function AdminPage() {
   };
 
   const editingProject = editingId ? projects.find((p) => p.id === editingId) : null;
-  const isCustom = (id: string) => customProjects.some((p) => p.id === id);
 
-  const handleSave = (data: Omit<Project, "id" | "slug"> & { id?: string; slug?: string }) => {
-    if (view === "new") {
-      addProject(data as Omit<Project, "id" | "slug">);
-      addToast("Project published successfully");
-    } else if (editingId) {
-      updateProject(editingId, data as Partial<Project>);
-      addToast("Project updated");
+  const handleSave = async (data: Omit<Project, "id" | "slug"> & { id?: string; slug?: string }) => {
+    try {
+      if (view === "new") {
+        await addProject(data as Omit<Project, "id" | "slug">);
+        addToast("Project published successfully");
+      } else if (editingId) {
+        await updateProject(editingId, data as Partial<Project>);
+        addToast("Project updated");
+      }
+      setView("list");
+      setEditingId(null);
+    } catch (e) {
+      addToast(e instanceof Error ? e.message : String(e), "error");
     }
-    setView("list");
-    setEditingId(null);
   };
 
-  const handleDelete = (id: string) => {
-    deleteProject(id);
-    setConfirmDelete(null);
-    addToast("Project deleted", "error");
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteProject(id);
+      setConfirmDelete(null);
+      addToast("Project deleted", "error");
+    } catch (e) {
+      addToast(e instanceof Error ? e.message : String(e), "error");
+    }
   };
 
   return (
@@ -760,15 +794,65 @@ export default function AdminPage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {airtableConfigured === false && (
+          <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100/90">
+            <strong className="font-medium text-amber-200">Airtable is not configured on the server.</strong>{" "}
+            New projects and edits will not sync until you set{" "}
+            <code className="text-xs bg-[#0a1628] px-1.5 py-0.5 rounded">AIRTABLE_API_KEY</code> and{" "}
+            <code className="text-xs bg-[#0a1628] px-1.5 py-0.5 rounded">AIRTABLE_BASE_ID</code>{" "}
+            (e.g. in Vercel → Environment Variables), then redeploy.
+          </div>
+        )}
         {/* LIST VIEW */}
         {view === "list" && (
           <div>
             <h1 className="sr-only">CasaGroup project listings manager</h1>
+            {/* Airtable setup (server action — works on Vercel when AIRTABLE_* env is set) */}
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-[#1e2d45] bg-[#0a1628] px-5 py-4">
+              <div className="flex gap-3 min-w-0">
+                <Database size={20} className="text-[#c9a96e] shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[#f0ece4]">Airtable setup &amp; seed</p>
+                  <p className="text-xs text-[#5a6a7e] mt-1 leading-relaxed">
+                    Creates the <span className="text-[#9a9085]">Projects</span> table and columns if needed, inserts default listings from the app, then refreshes the grid. Safe to run again (existing rows are skipped by slug).
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={airtableSetupRunning}
+                onClick={async () => {
+                  setAirtableSetupRunning(true);
+                  try {
+                    const result = await runAirtableSetupFromAdmin();
+                    if (result.ok === false) {
+                      addToast(result.error, "error");
+                      return;
+                    }
+                    const parts = [
+                      result.createdTable ? "Created table" : "Table OK",
+                      result.createdFields.length ? `+${result.createdFields.length} fields` : "",
+                      result.seeded.length ? `Seeded: ${result.seeded.join(", ")}` : "",
+                      result.skippedSeed.length ? `Skipped: ${result.skippedSeed.join(", ")}` : "",
+                    ].filter(Boolean);
+                    addToast(parts.join(" · ") || "Airtable setup finished");
+                    await refreshProjects();
+                  } catch (e) {
+                    addToast(e instanceof Error ? e.message : String(e), "error");
+                  } finally {
+                    setAirtableSetupRunning(false);
+                  }
+                }}
+                className="shrink-0 px-5 py-2.5 rounded-xl border border-[#c9a96e]/40 text-sm font-medium text-[#e8d5b0] hover:bg-[#c9a96e]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {airtableSetupRunning ? "Running…" : "Run setup & seed"}
+              </button>
+            </div>
             {/* Stats strip */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
                 { label: "Total Projects", value: projects.length },
-                { label: "Published by You", value: customProjects.length },
+                { label: "Cities", value: new Set(projects.map((p) => p.city)).size },
                 { label: "Available Units", value: projects.reduce((a, p) => a + p.availableApartmentsCount, 0) },
                 { label: "Featured", value: projects.filter((p) => p.featured).length },
               ].map((s) => (
@@ -804,9 +888,6 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium text-[#f0ece4] truncate">{p.title}</p>
                         {p.featured && <Star size={11} className="text-[#c9a96e] shrink-0" fill="#c9a96e" />}
-                        {!isCustom(p.id) && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#162035] text-[#5a6a7e] border border-[#1e2d45] shrink-0">mock</span>
-                        )}
                       </div>
                       <p className="text-xs text-[#5a6a7e] truncate">{p.location}</p>
                     </div>
@@ -837,24 +918,20 @@ export default function AdminPage() {
                           <Eye size={15} />
                         </span>
                       </Link>
-                      {isCustom(p.id) ? (
-                        <>
-                          <button
-                            onClick={() => { setEditingId(p.id); setView("edit"); }}
-                            className="p-2 text-[#3a4d63] hover:text-[#c9a96e] transition-colors"
-                          >
-                            <Edit3 size={15} />
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(p.id)}
-                            className="p-2 text-[#3a4d63] hover:text-red-400 transition-colors"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </>
-                      ) : (
-                        <span className="text-xs text-[#3a4d63] px-2">read-only</span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => { setEditingId(p.id); setView("edit"); }}
+                        className="p-2 text-[#3a4d63] hover:text-[#c9a96e] transition-colors"
+                      >
+                        <Edit3 size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDelete(p.id)}
+                        className="p-2 text-[#3a4d63] hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </motion.div>
                 ))}

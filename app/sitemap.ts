@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
 import { MOCK_PROJECTS } from "@/data/mock";
+import { getProjectsForSite } from "@/src/lib/projects-airtable";
 
 function baseUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.example.com").replace(/\/$/, "");
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = baseUrl();
   const entries: MetadataRoute.Sitemap = [];
   const now = new Date();
@@ -20,7 +21,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   }
 
-  for (const p of MOCK_PROJECTS) {
+  let projects = MOCK_PROJECTS;
+  try {
+    projects = await getProjectsForSite();
+  } catch {
+    projects = MOCK_PROJECTS;
+  }
+
+  for (const p of projects) {
     entries.push({
       url: `${base}/projects/${p.slug}`,
       lastModified: now,

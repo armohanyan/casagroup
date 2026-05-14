@@ -1,9 +1,11 @@
+"use client";
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { CheckCircle } from "lucide-react";
-import { MOCK_PROJECTS } from "@/data/mock";
 import { useI18n } from "@/lib/i18n";
+import { useProjects } from "@/lib/projects-context";
 
 interface FormData {
   fullName: string;
@@ -20,6 +22,7 @@ interface Props {
 
 export function ContactForm({ defaultProject = "", light = false }: Props) {
   const { t } = useI18n();
+  const { projects, loading: projectsLoading } = useProjects();
   const [form, setForm] = useState<FormData>({
     fullName: "",
     phone: "",
@@ -112,8 +115,8 @@ export function ContactForm({ defaultProject = "", light = false }: Props) {
           value={form.interestedProject}
           onChange={(e) => setForm({ ...form, interestedProject: e.target.value })}
         >
-          <option value="">{t.form.selectProject}</option>
-          {MOCK_PROJECTS.map((p) => (
+          <option value="">{projectsLoading ? "…" : t.form.selectProject}</option>
+          {projects.map((p) => (
             <option key={p.id} value={p.title}>{p.title}</option>
           ))}
         </select>

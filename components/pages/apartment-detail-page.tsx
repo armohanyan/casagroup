@@ -22,7 +22,7 @@ export default function ApartmentDetailPage() {
   const aptId = typeof params.aptId === "string" ? params.aptId : undefined;
   const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
-  const { projects } = useProjects();
+  const { projects, loading: projectsLoading } = useProjects();
 
   // Find apartment across all projects
   const result = (() => {
@@ -32,6 +32,14 @@ export default function ApartmentDetailPage() {
     }
     return undefined;
   })();
+
+  if (projectsLoading) {
+    return (
+      <main className="bg-[#0C1428] min-h-screen pt-32 flex items-center justify-center">
+        <p className="text-sm text-[#5a6a7e]">Loading…</p>
+      </main>
+    );
+  }
 
   if (!result) {
     return (

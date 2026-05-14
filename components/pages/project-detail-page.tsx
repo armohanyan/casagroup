@@ -41,8 +41,16 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
-  const { getBySlug } = useProjects();
+  const { getBySlug, loading: projectsLoading } = useProjects();
   const project = slug ? getBySlug(slug) : undefined;
+
+  if (projectsLoading) {
+    return (
+      <main className="bg-[#0C1428] min-h-screen pt-32 flex items-center justify-center">
+        <p className="text-sm text-[#5a6a7e]">Loading…</p>
+      </main>
+    );
+  }
 
   if (!project) {
     return (
