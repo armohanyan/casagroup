@@ -96,11 +96,11 @@ export default function ProjectDetailPage() {
       {/* ─── HEADER ─────────────────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-10">
         <motion.div
-          className="flex flex-col md:flex-row md:items-end md:justify-between gap-6"
+          className="flex min-w-0 flex-col gap-6 md:flex-row md:items-end md:justify-between"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <div>
+          <div className="min-w-0">
             <StatusBadge status={project.status} />
             <h1
               className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] mt-3 leading-tight"
@@ -113,7 +113,7 @@ export default function ProjectDetailPage() {
               {project.location}
             </div>
           </div>
-          <div className="text-right">
+          <div className="w-full shrink-0 pt-2 md:w-auto md:pt-0 md:text-right">
             <p className="text-xs tracking-widest uppercase text-[#5a554f] mb-1">{t.projectDetail.startingFrom}</p>
             <p className="font-['Cormorant_Garamond'] text-4xl text-[#c9a96e]">
               {formatPrice(project.startingPrice)}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMediaQuery } from "@/lib/use-media-query";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
@@ -10,36 +11,44 @@ interface Props {
 
 export function ProjectGallery({ images, title }: Props) {
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const canFineHover = useMediaQuery("(hover: hover) and (pointer: fine)");
 
   const prev = () => setLightbox((i) => (i !== null ? (i - 1 + images.length) % images.length : null));
   const next = () => setLightbox((i) => (i !== null ? (i + 1) % images.length : null));
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {images.map((img, i) => (
-          <motion.div
-            key={i}
-            className={`relative overflow-hidden rounded-lg cursor-pointer ${i === 0 ? "col-span-2 row-span-2" : ""}`}
-            style={{ height: i === 0 ? "480px" : "230px" }}
-            onClick={() => setLightbox(i)}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Image
-              src={img}
-              alt={`${title} — interior photo ${i + 1}`}
-              fill
-              unoptimized
-              sizes={i === 0 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 50vw, 33vw"}
-              className="object-cover"
-              priority={i === 0}
-            />
-            <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-              <span className="text-white text-sm tracking-widest uppercase">View</span>
-            </div>
-          </motion.div>
-        ))}
+      <div className="min-w-0 overflow-x-clip">
+        <div className="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-3">
+          {images.map((img, i) => (
+            <motion.div
+              key={i}
+              className={`relative cursor-pointer overflow-hidden rounded-lg ${i === 0 ? "col-span-2 row-span-2" : ""}`}
+              style={{
+                height:
+                  i === 0
+                    ? "clamp(220px, min(55vw, 55dvh), 480px)"
+                    : "clamp(120px, min(28vw, 28dvh), 230px)",
+              }}
+              onClick={() => setLightbox(i)}
+              whileHover={canFineHover ? { scale: 1.02 } : undefined}
+              transition={{ duration: 0.3 }}
+            >
+              <Image
+                src={img}
+                alt={`${title} — interior photo ${i + 1}`}
+                fill
+                unoptimized
+                sizes={i === 0 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 50vw, 33vw"}
+                className="object-cover"
+                priority={i === 0}
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity hover:opacity-100">
+                <span className="text-sm tracking-widest text-white uppercase">View</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Lightbox */}

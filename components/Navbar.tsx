@@ -210,7 +210,7 @@ export function Navbar() {
               role="dialog"
               aria-modal="true"
               aria-label="Site navigation"
-              className="fixed bottom-0 right-0 top-20 z-[45] flex w-[min(100%,22rem)] max-w-[100vw] flex-col border-l border-[#1e2d4a] bg-[#0C1428] shadow-2xl"
+              className="fixed bottom-0 right-0 top-20 z-[45] flex w-[min(100%,22rem)] max-w-full flex-col border-l border-[#1e2d4a] bg-[#0C1428] shadow-2xl"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}

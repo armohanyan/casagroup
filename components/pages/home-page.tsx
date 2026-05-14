@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -27,6 +27,7 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { Seo } from "@/components/seo/Seo";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
+import { useMediaQuery } from "@/lib/use-media-query";
 
 const WHY_ICONS = [Award, Shield, TrendingUp, MapPin];
 
@@ -58,8 +59,13 @@ export default function HomePage() {
     target: heroRef,
     offset: ["start start", "end start"],
   });
-  const heroY = useTransform(heroScroll, [0, 1], ["0%", "30%"]);
+  const narrowViewport = useMediaQuery("(max-width: 768px)");
+  const heroY = useTransform(
+    heroScroll,
+    useCallback((p: number) => `${narrowViewport ? 0 : p * 30}%`, [narrowViewport]),
+  );
   const heroOpacity = useTransform(heroScroll, [0, 0.8], [1, 0]);
+  const canFineHover = useMediaQuery("(hover: hover) and (pointer: fine)");
 
   return (
     <main className="bg-[#0C1428] min-h-screen">
@@ -70,7 +76,10 @@ export default function HomePage() {
         lang={lang}
       />
       {/* ─── HERO ─────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative h-screen min-h-[700px] overflow-hidden flex items-center bg-[#0C1428]">
+      <section
+        ref={heroRef}
+        className="relative flex h-[100svh] items-center overflow-hidden bg-[#0C1428] md:h-screen md:min-h-[700px]"
+      >
         <motion.div
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden will-change-transform"
           style={{ y: heroY }}
@@ -306,7 +315,7 @@ export default function HomePage() {
               <div className="h-72 rounded-xl overflow-hidden mb-5 relative">
                 <motion.div
                   className="h-full w-full"
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={canFineHover ? { scale: 1.05 } : undefined}
                   transition={{ duration: 0.5 }}
                 >
                   <Image
@@ -350,7 +359,7 @@ export default function HomePage() {
                     </span>
                     <p className="text-[#9a9085] text-sm leading-relaxed pt-2">{item.desc}</p>
                   </motion.div>
-                ))}
+                ))} 
               </div>
             </div>
             <motion.div

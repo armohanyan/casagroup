@@ -35,11 +35,11 @@ export function StatsSection() {
   return (
     <section className="py-24 bg-[#0C1428] border-y border-[#2a2520]">
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+        <div className="grid min-w-0 grid-cols-2 gap-8 md:grid-cols-4 md:gap-12">
           {t.stats.map((stat, i) => (
             <motion.div
               key={stat.label}
-              className="text-center"
+              className="min-w-0 text-center"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

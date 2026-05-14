@@ -5,6 +5,7 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import { StatsSection } from "@/components/StatsSection";
 import { Seo } from "@/components/seo/Seo";
 import { useI18n } from "@/lib/i18n";
+import { useMediaQuery } from "@/lib/use-media-query";
 
 const TEAM_IMGS = [
   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",
@@ -15,6 +16,7 @@ const TEAM_IMGS = [
 
 export default function AboutPage() {
   const { t, lang } = useI18n();
+  const canFineHover = useMediaQuery("(hover: hover) and (pointer: fine)");
 
   return (
     <main className="bg-[#0C1428] min-h-screen pt-20">
@@ -175,7 +177,7 @@ export default function AboutPage() {
                           <div className="relative overflow-hidden rounded-xl mb-5 h-72">
                             <motion.div
                               className="h-full w-full"
-                              whileHover={{ scale: 1.05 }}
+                              whileHover={canFineHover ? { scale: 1.05 } : undefined}
                               transition={{ duration: 0.4 }}
                             >
                               <Image

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MapPin, Calendar, Building2, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
+import { useMediaQuery } from "@/lib/use-media-query";
 import type { Project } from "@/types";
 
 function formatPrice(p: number) {
@@ -15,6 +16,7 @@ function formatPrice(p: number) {
 
 export function ProjectCard({ project }: { project: Project }) {
   const { t } = useI18n();
+  const canFineHover = useMediaQuery("(hover: hover) and (pointer: fine)");
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -36,9 +38,13 @@ export function ProjectCard({ project }: { project: Project }) {
   return (
     <motion.div
       ref={ref}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 1000 }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      style={
+        canFineHover
+          ? { rotateX, rotateY, transformStyle: "preserve-3d" as const, perspective: 1000 }
+          : undefined
+      }
+      onMouseMove={canFineHover ? handleMouseMove : undefined}
+      onMouseLeave={canFineHover ? handleMouseLeave : undefined}
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -47,7 +53,11 @@ export function ProjectCard({ project }: { project: Project }) {
     >
       {/* Image */}
       <div className="relative h-64 overflow-hidden">
-        <motion.div className="h-full w-full" whileHover={{ scale: 1.05 }} transition={{ duration: 0.5 }}>
+        <motion.div
+          className="h-full w-full"
+          whileHover={canFineHover ? { scale: 1.05 } : undefined}
+          transition={{ duration: 0.5 }}
+        >
           {project.images[0] ? (
             <Image
               src={project.images[0]}
