@@ -112,14 +112,14 @@ export default function HomePage() {
             <span className="text-[#c9a96e]">{t.home.heroTitle2}</span>
           </motion.h1>
 
-          <motion.p
-            className="text-[#9a9085] font-light leading-relaxed max-w-lg mb-10 text-sm sm:text-base"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            {t.home.heroSubtitle}
-          </motion.p>
+          {/*<motion.p*/}
+          {/*  className="text-[#9a9085] font-light leading-relaxed max-w-lg mb-10 text-sm sm:text-base"*/}
+          {/*  initial={{ opacity: 0, y: 20 }}*/}
+          {/*  animate={{ opacity: 1, y: 0 }}*/}
+          {/*  transition={{ delay: 0.5, duration: 0.8 }}*/}
+          {/*>*/}
+          {/*  {t.home.heroSubtitle}*/}
+          {/*</motion.p>*/}
 
           <motion.div
             className="flex flex-wrap gap-3 sm:gap-4"
