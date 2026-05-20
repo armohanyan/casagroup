@@ -85,8 +85,8 @@ export default function HomePage() {
           style={{ y: heroY }}
         >
           <Image
-            src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1920&q=85"
-            alt="Modern high-rise residential complex at dusk — CasaGroup new construction portfolio"
+            src="/yerevan.png"
+            alt="Yerevan — CasaGroup new construction portfolio"
             fill
             priority
             sizes="100vw"
