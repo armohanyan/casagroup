@@ -110,7 +110,7 @@ async function setupTeamTable(
   const teamSkippedSeed: string[] = [];
   const createdFields: string[] = [];
 
-  let tables = await listTables(apiKey, baseId);
+  const tables = await listTables(apiKey, baseId);
   let teamTable = findTableInsensitive(tables, TEAM_TABLE_NAME);
 
   if (!teamTable) {
@@ -153,7 +153,7 @@ async function setupTeamTable(
 }
 
 async function setupInquiriesTable(apiKey: string, baseId: string, logs: string[]): Promise<void> {
-  let tables = await listTables(apiKey, baseId);
+  const tables = await listTables(apiKey, baseId);
   let inquiriesTable = findTableInsensitive(tables, INQUIRIES_TABLE_NAME);
 
   if (!inquiriesTable) {
