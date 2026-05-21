@@ -66,3 +66,33 @@ export interface InquiryFormData {
   interestedProject: string;
   message: string;
 }
+
+export interface TeamMemberDisplay {
+  name: string;
+  role: string;
+  imageUrl?: string;
+}
+
+export interface TeamSectionDisplay {
+  sectionEyebrow: string;
+  sectionTitle: string;
+  members: TeamMemberDisplay[];
+}
+
+/** One row in the Airtable "Team" table. */
+export interface TeamMemberRow {
+  id: string;
+  sectionKey: string;
+  sectionSort: number;
+  memberSort: number;
+  sectionEyebrowEn: string;
+  sectionEyebrowHy: string;
+  sectionTitleEn: string;
+  sectionTitleHy: string;
+  nameEn: string;
+  nameHy: string;
+  roleEn: string;
+  roleHy: string;
+  photoUrl?: string;
+  published?: boolean;
+}

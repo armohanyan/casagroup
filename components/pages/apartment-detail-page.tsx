@@ -9,13 +9,10 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { useI18n } from "@/lib/i18n";
+import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
-
-function formatPrice(p: number) {
-  return p >= 1_000_000 ? `$${(p / 1_000_000).toFixed(1)}M` : `$${(p / 1000).toFixed(0)}K`;
-}
+import { formatPrice } from "@/lib/format-price";
 
 export default function ApartmentDetailPage() {
   const params = useParams();
@@ -232,7 +229,7 @@ export default function ApartmentDetailPage() {
                   [t.aptDetail.areaShort, `${apt.area} m²`],
                   [t.aptDetail.floorShort, `${apt.floor}`],
                   [t.aptDetail.viewShort, apt.viewType],
-                  [t.aptDetail.statusLabel, apt.status],
+                  [t.aptDetail.statusLabel, getStatusLabel(t, apt.status)],
                   [t.aptDetail.balcony, apt.balcony ? t.aptDetail.yes : t.aptDetail.no],
                 ].map(([label, val]) => (
                   <div key={label} className="flex justify-between">

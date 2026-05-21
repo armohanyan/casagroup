@@ -166,24 +166,6 @@ export default function HomePage() {
             <ChevronDown size={16} />
           </motion.div>
         </motion.div>
-
-        {/* Floating info card */}
-        <motion.div
-          className="absolute bottom-16 right-8 lg:right-16 hidden lg:block"
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.9, duration: 0.7 }}
-        >
-          <div className="bg-[#0f1e30]/90 backdrop-blur-md border border-[#2a2520] rounded-xl p-6 w-56">
-            <p className="text-xs tracking-widest uppercase text-[#5a554f] mb-1">{t.home.heroFloatingNew}</p>
-            <p className="font-['Cormorant_Garamond'] text-xl text-[#f0ece4] font-light">Ararat Heights</p>
-            <p className="text-[#9a9085] text-xs mt-1">28 {t.home.heroFloatingFloors}</p>
-            <div className="mt-3 pt-3 border-t border-[#2a2520] flex justify-between items-center">
-              <span className="text-[#c9a96e] font-['DM_Mono'] font-medium">{t.home.heroFloatingFrom} $185K</span>
-              <span className="text-xs text-[#5a554f]">14 {t.home.heroFloatingAvail}</span>
-            </div>
-          </div>
-        </motion.div>
       </section>
 
       {/* ─── FEATURED PROJECTS ───────────────────────────────────────────── */}

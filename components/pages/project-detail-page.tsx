@@ -4,15 +4,16 @@ import { motion } from "framer-motion";
 import { MapPin, ChevronRight, Check } from "lucide-react";
 import { ProjectGallery } from "@/components/ProjectGallery";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
-import { ApartmentTable } from "@/components/ApartmentTable";
+import { ApartmentGrid } from "@/components/ApartmentGrid";
 import { ContactForm } from "@/components/ContactForm";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { useI18n } from "@/lib/i18n";
+import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
+import { formatPrice } from "@/lib/format-price";
 
 const AMENITY_ICONS: Record<string, string> = {
   Waves: "🏊",
@@ -24,10 +25,6 @@ const AMENITY_ICONS: Record<string, string> = {
   Wifi: "📶",
   Zap: "⚡",
 };
-
-function formatPrice(p: number) {
-  return p >= 1_000_000 ? `$${(p / 1_000_000).toFixed(1)}M` : `$${(p / 1000).toFixed(0)}K`;
-}
 
 const PLACE_ICONS: Record<string, string> = {
   transport: "🚇",
@@ -208,7 +205,7 @@ export default function ProjectDetailPage() {
                   { label: t.projectDetail.totalUnits, value: `${project.totalApartments}` },
                   { label: t.projectDetail.available, value: `${project.availableApartmentsCount}` },
                   { label: t.projectDetail.completion, value: project.completionDate },
-                  { label: t.projectDetail.statusLabel, value: project.status },
+                  { label: t.projectDetail.statusLabel, value: getStatusLabel(t, project.status) },
                 ].map((row) => (
                   <div key={row.label} className="flex justify-between items-start">
                     <span className="text-xs text-[#5a554f] uppercase tracking-wider">{row.label}</span>
@@ -263,12 +260,10 @@ export default function ProjectDetailPage() {
         </div>
       </section>
 
-      {/* ─── APARTMENTS TABLE ─────────────────────────────────────────────── */}
+      {/* ─── APARTMENT LISTINGS ───────────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-24">
         <SectionTitle eyebrow={t.projectDetail.availabilityEyebrow} title={t.projectDetail.availabilityTitle} />
-        <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl overflow-hidden">
-          <ApartmentTable apartments={project.apartments} projectSlug={project.slug} />
-        </div>
+        <ApartmentGrid apartments={project.apartments} projectSlug={project.slug} />
       </section>
 
       {/* ─── INQUIRY FORM ─────────────────────────────────────────────────── */}

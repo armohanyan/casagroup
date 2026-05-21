@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { StatsSection } from "@/components/StatsSection";
 import { Seo } from "@/components/seo/Seo";
 import { useI18n } from "@/lib/i18n";
 import { useMediaQuery } from "@/lib/use-media-query";
+import type { TeamSectionDisplay } from "@/types";
 
 const TEAM_IMGS = [
   "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",
@@ -17,6 +19,27 @@ const TEAM_IMGS = [
 export default function AboutPage() {
   const { t, lang } = useI18n();
   const canFineHover = useMediaQuery("(hover: hover) and (pointer: fine)");
+  const [teamSections, setTeamSections] = useState<TeamSectionDisplay[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch(`/api/team?lang=${lang}`, { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("team fetch failed"))))
+      .then((data: { sections?: TeamSectionDisplay[] }) => {
+        if (!cancelled && Array.isArray(data.sections) && data.sections.length > 0) {
+          setTeamSections(data.sections);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setTeamSections(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lang]);
+
+  const displayedTeamSections: TeamSectionDisplay[] =
+    teamSections ?? (t.about.teamSections as TeamSectionDisplay[]);
 
   return (
     <main className="bg-[#0C1428] min-h-screen pt-20">
@@ -142,8 +165,8 @@ export default function AboutPage() {
             centered
           />
           <div className="space-y-20 mt-4">
-            {t.about.teamSections.map((section, si) => {
-              const imgOffset = t.about.teamSections
+            {displayedTeamSections.map((section, si) => {
+              const imgOffset = displayedTeamSections
                 .slice(0, si)
                 .reduce((acc, s) => acc + s.members.length, 0);
               return (
@@ -181,10 +204,11 @@ export default function AboutPage() {
                               transition={{ duration: 0.4 }}
                             >
                               <Image
-                                src={TEAM_IMGS[i % TEAM_IMGS.length]}
+                                src={member.imageUrl ?? TEAM_IMGS[i % TEAM_IMGS.length]}
                                 alt={member.name}
                                 fill
                                 sizes="(max-width: 640px) 100vw, 50vw"
+                                unoptimized={!!member.imageUrl}
                                 className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
                               />
                             </motion.div>

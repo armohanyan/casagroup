@@ -7,12 +7,7 @@ import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import { useMediaQuery } from "@/lib/use-media-query";
 import type { Project } from "@/types";
-
-function formatPrice(p: number) {
-  return p >= 1_000_000
-    ? `$${(p / 1_000_000).toFixed(1)}M`
-    : `$${(p / 1000).toFixed(0)}K`;
-}
+import { formatPrice } from "@/lib/format-price";
 
 export function ProjectCard({ project }: { project: Project }) {
   const { t } = useI18n();

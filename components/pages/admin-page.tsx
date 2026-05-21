@@ -11,8 +11,22 @@ import Image from "next/image";
 import { Seo } from "@/components/seo/Seo";
 import { useProjects } from "@/lib/projects-context";
 import { runAirtableSetupFromAdmin } from "@/app/admin-lx9k2m/actions";
+import { formatPrice } from "@/lib/format-price";
 import { emptyProject, emptyApartment, generateId } from "@/lib/store";
 import type { Project, Apartment, ProjectStatus, ApartmentStatus } from "@/types";
+import { hyTranslations } from "@/content/hy";
+import { getStatusLabel } from "@/lib/i18n";
+
+/** Admin UI is always Armenian — independent of public site language. */
+const a = hyTranslations.admin;
+const hy = hyTranslations;
+
+function fmt(template: string, vars: Record<string, string | number>): string {
+  return Object.entries(vars).reduce(
+    (s, [k, v]) => s.replace(new RegExp(`\\{${k}\\}`, "g"), String(v)),
+    template,
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,7 +39,7 @@ function RemotePreviewImage({ src, sizes }: { src: string; sizes: string }) {
   if (!visible) {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-[#060d1a] px-1 text-center text-[9px] text-[#5a6a7e]">
-        Invalid URL
+        {a.invalidUrl}
       </div>
     );
   }
@@ -148,10 +162,10 @@ function TagsEditor({ values, onChange }: { values: string[]; onChange: (v: stri
   };
   return (
     <div>
-      <label className={LABEL_CLS}>Tags</label>
+      <label className={LABEL_CLS}>{a.tags}</label>
       <div className="flex gap-2 mb-3">
         <input className={INPUT_CLS} value={input} onChange={(e) => setInput(e.target.value)}
-          placeholder="e.g. pool, gym, panoramic view" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} />
+          placeholder={a.tagsPlaceholder} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} />
         <button type="button" onClick={add} className="px-4 py-2 bg-[#c9a96e] text-[#0C1428] rounded-lg hover:bg-[#e8d5b0] transition-colors shrink-0">
           <Plus size={16} />
         </button>
@@ -197,10 +211,10 @@ function ApartmentsEditor({ projectId, apartments, onChange }: {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <label className={LABEL_CLS + " mb-0"}>Apartments ({apartments.length})</label>
+        <label className={LABEL_CLS + " mb-0"}>{fmt(a.apartmentsCount, { count: apartments.length })}</label>
         <button type="button" onClick={add}
           className="flex items-center gap-2 px-3 py-1.5 bg-[#c9a96e] text-[#0C1428] rounded-lg text-xs font-medium hover:bg-[#e8d5b0] transition-colors">
-          <Plus size={13} /> Add Unit
+          <Plus size={13} /> {a.addUnit}
         </button>
       </div>
 
@@ -215,13 +229,13 @@ function ApartmentsEditor({ projectId, apartments, onChange }: {
               <GripVertical size={14} className="text-[#3a4d63]" />
               <Home size={14} className="text-[#c9a96e]" />
               <span className="text-sm text-[#f0ece4] flex-1">
-                {apt.rooms}BR · Floor {apt.floor} · {apt.area}m² · ${apt.price.toLocaleString()}
+                {apt.rooms} {a.roomsShort} · {a.floorLabel} {apt.floor} · {apt.area}m² · {formatPrice(apt.price)}
               </span>
               <span className={`text-xs px-2 py-0.5 rounded-full border ${
                 apt.status === "Available" ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/5"
                 : apt.status === "Reserved" ? "text-yellow-400 border-yellow-400/30 bg-yellow-400/5"
                 : "text-red-400 border-red-400/30 bg-red-400/5"
-              }`}>{apt.status}</span>
+              }`}>{getStatusLabel(hy, apt.status)}</span>
               <button type="button" onClick={(e) => { e.stopPropagation(); remove(apt.id); }} className="text-[#3a4d63] hover:text-red-400 transition-colors ml-1">
                 <Trash2 size={14} />
               </button>
@@ -237,48 +251,48 @@ function ApartmentsEditor({ projectId, apartments, onChange }: {
                   transition={{ duration: 0.2 }}
                 >
                   <div className="border-t border-[#1e2d45] px-4 py-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <Field label="Rooms">
+                    <Field label={a.rooms}>
                       <input type="number" className={INPUT_CLS} value={apt.rooms} min={1} max={10}
                         onChange={(e) => update(apt.id, { rooms: +e.target.value })} />
                     </Field>
-                    <Field label="Floor">
+                    <Field label={a.floorLabel}>
                       <input type="number" className={INPUT_CLS} value={apt.floor} min={1}
                         onChange={(e) => update(apt.id, { floor: +e.target.value })} />
                     </Field>
-                    <Field label="Area (m²)">
+                    <Field label={a.areaSqm}>
                       <input type="number" className={INPUT_CLS} value={apt.area}
                         onChange={(e) => update(apt.id, { area: +e.target.value })} />
                     </Field>
-                    <Field label="Price ($)">
+                    <Field label={a.priceAmd}>
                       <input type="number" className={INPUT_CLS} value={apt.price}
                         onChange={(e) => update(apt.id, { price: +e.target.value })} />
                     </Field>
-                    <Field label="Status">
+                    <Field label={hy.filter.status}>
                       <select className={SELECT_CLS} value={apt.status}
                         onChange={(e) => update(apt.id, { status: e.target.value as ApartmentStatus })}>
-                        <option>Available</option>
-                        <option>Reserved</option>
-                        <option>Sold</option>
+                        <option value="Available">{getStatusLabel(hy, "Available")}</option>
+                        <option value="Reserved">{getStatusLabel(hy, "Reserved")}</option>
+                        <option value="Sold">{getStatusLabel(hy, "Sold")}</option>
                       </select>
                     </Field>
-                    <Field label="View Type">
-                      <input className={INPUT_CLS} value={apt.viewType} placeholder="City, Mountain…"
+                    <Field label={a.viewType}>
+                      <input className={INPUT_CLS} value={apt.viewType} placeholder={a.viewTypePlaceholder}
                         onChange={(e) => update(apt.id, { viewType: e.target.value })} />
                     </Field>
                     <div className="col-span-2 md:col-span-3">
-                      <UrlList label="Gallery Images" values={apt.gallery}
+                      <UrlList label={a.galleryImages} values={apt.gallery}
                         onChange={(v) => update(apt.id, { gallery: v })}
                         placeholder="https://images.unsplash.com/…"
-                        hint="HTTPS image URLs only — paste links; files are not uploaded here."
+                        hint={a.urlHintHttps}
                       />
                     </div>
                     <div className="col-span-2 md:col-span-3">
-                      <Field label="Floor Plan Image URL">
+                      <Field label={a.floorPlanUrl}>
                         <input type="text" inputMode="url" autoComplete="off" className={INPUT_CLS} value={apt.floorPlanImage} placeholder="https://…"
                           onChange={(e) => update(apt.id, { floorPlanImage: e.target.value })} />
                       </Field>
                     </div>
-                    <Field label="Balcony">
+                    <Field label={a.balcony}>
                       <label className="flex items-center gap-3 cursor-pointer mt-2">
                         <div
                           className={`w-10 h-6 rounded-full transition-colors ${apt.balcony ? "bg-[#c9a96e]" : "bg-[#1e2d45]"}`}
@@ -286,7 +300,7 @@ function ApartmentsEditor({ projectId, apartments, onChange }: {
                         >
                           <div className={`w-4 h-4 bg-white rounded-full mt-1 transition-transform ${apt.balcony ? "translate-x-5" : "translate-x-1"}`} />
                         </div>
-                        <span className="text-xs text-[#9a9085]">{apt.balcony ? "Yes" : "No"}</span>
+                        <span className="text-xs text-[#9a9085]">{apt.balcony ? a.yes : a.no}</span>
                       </label>
                     </Field>
                   </div>
@@ -297,7 +311,7 @@ function ApartmentsEditor({ projectId, apartments, onChange }: {
         ))}
         {apartments.length === 0 && (
           <p className="text-center text-[#3a4d63] text-xs py-6 border border-dashed border-[#1e2d45] rounded-xl">
-            No apartments yet — click "Add Unit" to add listings
+            {a.noApartments}
           </p>
         )}
       </div>
@@ -320,14 +334,14 @@ function DroneVideosEditor({ values, onChange }: {
     <div>
       <div className="flex items-center justify-between mb-3">
         <div>
-          <label className={LABEL_CLS + " mb-0"}>Drone Videos</label>
+          <label className={LABEL_CLS + " mb-0"}>{a.droneVideos}</label>
           <p className="text-[10px] text-[#5a6a7e] mt-1 leading-relaxed max-w-xl">
-            Embed and thumbnail must be HTTPS URLs (e.g. YouTube embed link). No file upload.
+            {a.droneVideosHint}
           </p>
         </div>
         <button type="button" onClick={add}
           className="flex items-center gap-2 px-3 py-1.5 bg-[#c9a96e] text-[#0C1428] rounded-lg text-xs font-medium hover:bg-[#e8d5b0] transition-colors">
-          <Plus size={13} /> Add Video
+          <Plus size={13} /> {a.addVideo}
         </button>
       </div>
       <div className="space-y-3">
@@ -336,21 +350,21 @@ function DroneVideosEditor({ values, onChange }: {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Video size={14} className="text-[#c9a96e]" />
-                <span className="text-xs text-[#9a9085]">Video {i + 1}</span>
+                <span className="text-xs text-[#9a9085]">{fmt(a.videoN, { n: i + 1 })}</span>
               </div>
               <button type="button" onClick={() => remove(i)} className="text-[#3a4d63] hover:text-red-400 transition-colors">
                 <Trash2 size={14} />
               </button>
             </div>
-            <Field label="Title">
-              <input className={INPUT_CLS} value={v.title} placeholder="Aerial Overview"
+            <Field label={a.videoTitle}>
+              <input className={INPUT_CLS} value={v.title} placeholder={a.aerialOverview}
                 onChange={(e) => update(i, { title: e.target.value })} />
             </Field>
-            <Field label="YouTube Embed URL">
+            <Field label={a.youtubeEmbed}>
               <input type="text" inputMode="url" autoComplete="off" className={INPUT_CLS} value={v.url} placeholder="https://www.youtube.com/embed/…"
                 onChange={(e) => update(i, { url: e.target.value })} />
             </Field>
-            <Field label="Thumbnail URL (optional)">
+            <Field label={a.thumbnailOptional}>
               <input type="text" inputMode="url" autoComplete="off" className={INPUT_CLS} value={v.thumbnail ?? ""} placeholder="https://…"
                 onChange={(e) => update(i, { thumbnail: e.target.value })} />
             </Field>
@@ -358,7 +372,7 @@ function DroneVideosEditor({ values, onChange }: {
         ))}
         {values.length === 0 && (
           <p className="text-center text-[#3a4d63] text-xs py-4 border border-dashed border-[#1e2d45] rounded-xl">
-            No drone videos — click "Add Video"
+            {a.noDroneVideos}
           </p>
         )}
       </div>
@@ -369,14 +383,14 @@ function DroneVideosEditor({ values, onChange }: {
 // ─── Amenities editor ─────────────────────────────────────────────────────────
 
 const AMENITY_OPTIONS = [
-  { icon: "Waves", label: "Pool" },
-  { icon: "Dumbbell", label: "Gym" },
-  { icon: "Car", label: "Parking" },
-  { icon: "Shield", label: "Security" },
-  { icon: "Leaf", label: "Garden" },
-  { icon: "UtensilsCrossed", label: "Restaurant" },
-  { icon: "Wifi", label: "Wi-Fi" },
-  { icon: "Zap", label: "Smart Home" },
+  { icon: "Waves", label: a.amenityPool },
+  { icon: "Dumbbell", label: a.amenityGym },
+  { icon: "Car", label: a.amenityParking },
+  { icon: "Shield", label: a.amenitySecurity },
+  { icon: "Leaf", label: a.amenityGarden },
+  { icon: "UtensilsCrossed", label: a.amenityRestaurant },
+  { icon: "Wifi", label: a.amenityWifi },
+  { icon: "Zap", label: a.amenitySmartHome },
 ];
 
 function AmenitiesEditor({ values, onChange }: {
@@ -389,7 +403,7 @@ function AmenitiesEditor({ values, onChange }: {
   };
   return (
     <div>
-      <label className={LABEL_CLS}>Amenities</label>
+      <label className={LABEL_CLS}>{a.amenities}</label>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {AMENITY_OPTIONS.map((opt) => {
           const active = values.some((v) => v.icon === opt.icon);
@@ -439,69 +453,69 @@ function ProjectForm({
       className="space-y-2"
     >
       {/* Core info */}
-      <Section title="Core Information" icon={Building2}>
+      <Section title={a.sectionCore} icon={Building2}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Project Title *">
-            <input required className={INPUT_CLS} value={form.title} placeholder="Ararat Heights"
+          <Field label={a.projectTitle}>
+            <input required className={INPUT_CLS} value={form.title} placeholder={a.projectTitlePlaceholder}
               onChange={(e) => set("title", e.target.value)} />
           </Field>
-          <Field label="Developer">
+          <Field label={a.developer}>
             <input className={INPUT_CLS} value={form.developer} onChange={(e) => set("developer", e.target.value)} />
           </Field>
-          <Field label="Architect">
-            <input className={INPUT_CLS} value={form.architect ?? ""} placeholder="Studio Name"
+          <Field label={a.architect}>
+            <input className={INPUT_CLS} value={form.architect ?? ""} placeholder={a.architectPlaceholder}
               onChange={(e) => set("architect", e.target.value)} />
           </Field>
-          <Field label="City">
+          <Field label={a.city}>
             <input className={INPUT_CLS} value={form.city} onChange={(e) => set("city", e.target.value)} />
           </Field>
           <div className="md:col-span-2">
-            <Field label="Full Address / Location">
-              <input className={INPUT_CLS} value={form.location} placeholder="Northern Ave 12, Yerevan"
+            <Field label={a.fullAddress}>
+              <input className={INPUT_CLS} value={form.location} placeholder={a.addressPlaceholder}
                 onChange={(e) => set("location", e.target.value)} />
             </Field>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label="Short Description">
-            <textarea rows={2} className={INPUT_CLS} value={form.description} placeholder="One-liner for cards…"
+          <Field label={a.shortDescription}>
+            <textarea rows={2} className={INPUT_CLS} value={form.description} placeholder={a.shortDescPlaceholder}
               onChange={(e) => set("description", e.target.value)} />
           </Field>
-          <Field label="Long Description">
-            <textarea rows={2} className={INPUT_CLS} value={form.longDescription} placeholder="Full project story…"
+          <Field label={a.longDescription}>
+            <textarea rows={2} className={INPUT_CLS} value={form.longDescription} placeholder={a.longDescPlaceholder}
               onChange={(e) => set("longDescription", e.target.value)} />
           </Field>
         </div>
       </Section>
 
       {/* Pricing & Status */}
-      <Section title="Pricing & Status" icon={DollarSign}>
+      <Section title={a.sectionPricing} icon={DollarSign}>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Field label="Starting Price ($) *">
+          <Field label={a.startingPrice}>
             <input required type="number" className={INPUT_CLS} value={form.startingPrice || ""}
-              placeholder="185000" onChange={(e) => set("startingPrice", +e.target.value)} />
+              placeholder={a.startingPricePlaceholder} onChange={(e) => set("startingPrice", +e.target.value)} />
           </Field>
-          <Field label="Status">
+          <Field label={hy.filter.status}>
             <select className={SELECT_CLS} value={form.status} onChange={(e) => set("status", e.target.value as ProjectStatus)}>
-              <option>Under Construction</option>
-              <option>Ready</option>
-              <option>Sold Out</option>
+              <option value="Under Construction">{getStatusLabel(hy, "Under Construction")}</option>
+              <option value="Ready">{getStatusLabel(hy, "Ready")}</option>
+              <option value="Sold Out">{getStatusLabel(hy, "Sold Out")}</option>
             </select>
           </Field>
-          <Field label="Completion Date">
-            <input className={INPUT_CLS} value={form.completionDate} placeholder="Q2 2026"
+          <Field label={a.completionDate}>
+            <input className={INPUT_CLS} value={form.completionDate} placeholder={a.completionPlaceholder}
               onChange={(e) => set("completionDate", e.target.value)} />
           </Field>
-          <Field label="Total Floors">
+          <Field label={a.totalFloors}>
             <input type="number" className={INPUT_CLS} value={form.floors || ""} min={1}
               onChange={(e) => set("floors", +e.target.value)} />
           </Field>
-          <Field label="Total Apartments">
+          <Field label={a.totalApartments}>
             <input type="number" className={INPUT_CLS} value={form.totalApartments || ""} min={0}
               onChange={(e) => set("totalApartments", +e.target.value)} />
           </Field>
-          <Field label="Available Units">
+          <Field label={a.availableUnits}>
             <input type="number" className={INPUT_CLS} value={form.availableApartmentsCount || ""} min={0}
               onChange={(e) => set("availableApartmentsCount", +e.target.value)} />
           </Field>
@@ -513,19 +527,19 @@ function ProjectForm({
           >
             <div className={`w-4 h-4 bg-white rounded-full mt-1 transition-transform ${form.featured ? "translate-x-6" : "translate-x-1"}`} />
           </div>
-          <span className="text-sm text-[#9a9085]">Featured on homepage</span>
+          <span className="text-sm text-[#9a9085]">{a.featuredHomepage}</span>
           <Star size={14} className={form.featured ? "text-[#c9a96e]" : "text-[#3a4d63]"} />
         </div>
       </Section>
 
       {/* Images */}
-      <Section title="Images" icon={ImageIcon}>
+      <Section title={a.sectionImages} icon={ImageIcon}>
         <UrlList
-          label="Project Images (first = hero)"
+          label={a.projectImages}
           values={form.images}
           onChange={(v) => set("images", v)}
           placeholder="https://images.unsplash.com/photo-…?w=1200&q=80"
-          hint="HTTPS image URLs only — paste links; files are not uploaded here."
+          hint={a.urlHintHttps}
         />
         {form.images[0] && (
           <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-2">
@@ -539,7 +553,7 @@ function ProjectForm({
       </Section>
 
       {/* Drone Videos */}
-      <Section title="Drone Videos" icon={Video}>
+      <Section title={a.sectionDrone} icon={Video}>
         <DroneVideosEditor
           values={form.droneVideos ?? []}
           onChange={(v) => set("droneVideos", v)}
@@ -547,69 +561,69 @@ function ProjectForm({
       </Section>
 
       {/* Amenities */}
-      <Section title="Amenities" icon={Layers}>
+      <Section title={a.sectionAmenities} icon={Layers}>
         <AmenitiesEditor values={form.amenities} onChange={(v) => set("amenities", v)} />
       </Section>
 
       {/* Tags */}
-      <Section title="Tags & Highlights" icon={Star}>
+      <Section title={a.sectionTags} icon={Star}>
         <TagsEditor values={form.tags} onChange={(v) => set("tags", v)} />
       </Section>
 
       {/* Payment Options */}
-      <Section title="Payment Options" icon={DollarSign}>
+      <Section title={a.sectionPayment} icon={DollarSign}>
         <div className="space-y-3">
           {form.paymentOptions.map((opt, i) => (
             <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-[#060d1a] border border-[#1e2d45] rounded-xl p-4">
-              <Field label="Plan Title">
-                <input className={INPUT_CLS} value={opt.title} placeholder="Mortgage"
+              <Field label={a.planTitle}>
+                <input className={INPUT_CLS} value={opt.title} placeholder={a.planTitlePlaceholder}
                   onChange={(e) => set("paymentOptions", form.paymentOptions.map((o, j) => j === i ? { ...o, title: e.target.value } : o))} />
               </Field>
-              <Field label="Description">
-                <input className={INPUT_CLS} value={opt.description} placeholder="Up to 20 years, 10% down"
+              <Field label={a.planDescription}>
+                <input className={INPUT_CLS} value={opt.description} placeholder={a.planDescPlaceholder}
                   onChange={(e) => set("paymentOptions", form.paymentOptions.map((o, j) => j === i ? { ...o, description: e.target.value } : o))} />
               </Field>
               <button type="button" onClick={() => set("paymentOptions", form.paymentOptions.filter((_, j) => j !== i))}
                 className="text-xs text-red-400/70 hover:text-red-400 transition-colors text-left flex items-center gap-1">
-                <Trash2 size={12} /> Remove
+                <Trash2 size={12} /> {a.remove}
               </button>
             </div>
           ))}
           <button type="button"
             onClick={() => set("paymentOptions", [...form.paymentOptions, { title: "", description: "" }])}
             className="flex items-center gap-2 text-xs text-[#c9a96e] hover:text-[#e8d5b0] transition-colors">
-            <Plus size={14} /> Add Payment Option
+            <Plus size={14} /> {a.addPaymentOption}
           </button>
         </div>
       </Section>
 
       {/* Nearby Places */}
-      <Section title="Nearby Places" icon={MapPin}>
+      <Section title={a.sectionNearby} icon={MapPin}>
         <div className="space-y-3">
           {form.nearbyPlaces.map((place, i) => (
             <div key={i} className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[#060d1a] border border-[#1e2d45] rounded-xl p-4">
-              <Field label="Name">
+              <Field label={a.name}>
                 <input className={INPUT_CLS} value={place.name} onChange={(e) =>
                   set("nearbyPlaces", form.nearbyPlaces.map((p, j) => j === i ? { ...p, name: e.target.value } : p))} />
               </Field>
-              <Field label="Distance">
-                <input className={INPUT_CLS} value={place.distance} placeholder="5 min walk"
+              <Field label={a.distance}>
+                <input className={INPUT_CLS} value={place.distance} placeholder={a.distancePlaceholder}
                   onChange={(e) => set("nearbyPlaces", form.nearbyPlaces.map((p, j) => j === i ? { ...p, distance: e.target.value } : p))} />
               </Field>
-              <Field label="Category">
+              <Field label={a.category}>
                 <select className={SELECT_CLS} value={place.category}
                   onChange={(e) => set("nearbyPlaces", form.nearbyPlaces.map((p, j) => j === i ? { ...p, category: e.target.value as never } : p))}>
-                  <option value="transport">Transport</option>
-                  <option value="education">Education</option>
-                  <option value="health">Health</option>
-                  <option value="leisure">Leisure</option>
-                  <option value="shopping">Shopping</option>
+                  <option value="transport">{a.nearbyTransport}</option>
+                  <option value="education">{a.nearbyEducation}</option>
+                  <option value="health">{a.nearbyHealth}</option>
+                  <option value="leisure">{a.nearbyLeisure}</option>
+                  <option value="shopping">{a.nearbyShopping}</option>
                 </select>
               </Field>
               <div className="flex items-end">
                 <button type="button" onClick={() => set("nearbyPlaces", form.nearbyPlaces.filter((_, j) => j !== i))}
                   className="text-xs text-red-400/70 hover:text-red-400 transition-colors flex items-center gap-1 pb-3">
-                  <Trash2 size={12} /> Remove
+                  <Trash2 size={12} /> {a.remove}
                 </button>
               </div>
             </div>
@@ -617,13 +631,13 @@ function ProjectForm({
           <button type="button"
             onClick={() => set("nearbyPlaces", [...form.nearbyPlaces, { name: "", distance: "", category: "transport" }])}
             className="flex items-center gap-2 text-xs text-[#c9a96e] hover:text-[#e8d5b0] transition-colors">
-            <Plus size={14} /> Add Place
+            <Plus size={14} /> {a.addPlace}
           </button>
         </div>
       </Section>
 
       {/* Apartments */}
-      <Section title="Apartment Listings" icon={Home}>
+      <Section title={a.sectionApartments} icon={Home}>
         <ApartmentsEditor
           projectId={apartmentProjectId}
           apartments={form.apartments}
@@ -635,11 +649,11 @@ function ProjectForm({
       <div className="flex items-center justify-between pt-4 pb-8">
         <button type="button" onClick={onCancel}
           className="flex items-center gap-2 px-6 py-3 border border-[#1e2d45] text-[#9a9085] rounded-xl hover:border-[#c9a96e]/40 hover:text-[#f0ece4] transition-all text-sm">
-          <X size={16} /> Cancel
+          <X size={16} /> {a.cancel}
         </button>
         <button type="submit"
           className="flex items-center gap-2 px-8 py-3 bg-[#c9a96e] text-[#0C1428] rounded-xl font-semibold hover:bg-[#e8d5b0] transition-all text-sm">
-          <Save size={16} /> {isNew ? "Publish Project" : "Save Changes"}
+          <Save size={16} /> {isNew ? a.publishProject : a.saveChanges}
         </button>
       </div>
     </form>
@@ -676,10 +690,10 @@ export default function AdminPage() {
     try {
       if (view === "new") {
         await addProject(data as Omit<Project, "id" | "slug">);
-        addToast("Project published successfully");
+        addToast(a.toastPublished);
       } else if (editingId) {
         await updateProject(editingId, data as Partial<Project>);
-        addToast("Project updated");
+        addToast(a.toastUpdated);
       }
       setView("list");
       setEditingId(null);
@@ -692,7 +706,7 @@ export default function AdminPage() {
     try {
       await deleteProject(id);
       setConfirmDelete(null);
-      addToast("Project deleted", "error");
+      addToast(a.toastDeleted, "error");
     } catch (e) {
       addToast(e instanceof Error ? e.message : String(e), "error");
     }
@@ -701,10 +715,16 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#060d1a] font-['DM_Sans']">
       <Seo
-        title={view === "list" ? "Listings manager" : view === "new" ? "New project" : `Edit — ${editingProject?.title ?? "Project"}`}
-        description="CasaGroup internal tool to manage featured projects and apartment listings. This area is not intended for search indexing."
+        title={
+          view === "list"
+            ? a.seoList
+            : view === "new"
+              ? a.seoNew
+              : fmt(a.seoEdit, { title: editingProject?.title ?? a.seoEditFallback })
+        }
+        description={a.seoDescription}
         path="/admin-lx9k2m"
-        lang="en"
+        lang="hy"
         noindex
       />
       {/* Toasts */}
@@ -745,16 +765,16 @@ export default function AdminPage() {
               exit={{ scale: 0.95, opacity: 0 }}
             >
               <AlertTriangle size={32} className="text-red-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-[#f0ece4] mb-2">Delete Project?</h3>
-              <p className="text-sm text-[#9a9085] mb-6">This cannot be undone.</p>
+              <h3 className="text-lg font-medium text-[#f0ece4] mb-2">{a.deleteTitle}</h3>
+              <p className="text-sm text-[#9a9085] mb-6">{a.deleteBody}</p>
               <div className="flex gap-3">
                 <button onClick={() => setConfirmDelete(null)}
                   className="flex-1 py-2.5 border border-[#1e2d45] text-[#9a9085] rounded-xl hover:border-[#c9a96e]/40 transition-all text-sm">
-                  Cancel
+                  {a.cancel}
                 </button>
                 <button onClick={() => handleDelete(confirmDelete)}
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all text-sm font-medium">
-                  Delete
+                  {a.delete}
                 </button>
               </div>
             </motion.div>
@@ -774,19 +794,19 @@ export default function AdminPage() {
             )}
             <span className="font-['Cormorant_Garamond'] text-xl font-light tracking-widest text-[#f0ece4]">
               Casa<span className="text-[#c9a96e]">Group</span>
-              <span className="text-[#5a6a7e] text-sm font-['DM_Sans'] ml-3 tracking-normal">Admin</span>
+              <span className="text-[#5a6a7e] text-sm font-['DM_Sans'] ml-3 tracking-normal">{a.brandAdmin}</span>
             </span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/" target="_blank">
               <span className="flex items-center gap-2 text-xs text-[#5a6a7e] hover:text-[#c9a96e] transition-colors cursor-pointer">
-                <Eye size={14} /> View Site
+                <Eye size={14} /> {a.viewSite}
               </span>
             </Link>
             {view === "list" && (
               <button onClick={() => setView("new")}
                 className="flex items-center gap-2 px-5 py-2 bg-[#c9a96e] text-[#0C1428] rounded-xl text-sm font-semibold hover:bg-[#e8d5b0] transition-all">
-                <Plus size={16} /> New Project
+                <Plus size={16} /> {a.newProject}
               </button>
             )}
           </div>
@@ -796,26 +816,24 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         {airtableConfigured === false && (
           <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100/90">
-            <strong className="font-medium text-amber-200">Airtable is not configured on the server.</strong>{" "}
-            New projects and edits will not sync until you set{" "}
-            <code className="text-xs bg-[#0a1628] px-1.5 py-0.5 rounded">AIRTABLE_API_KEY</code> and{" "}
+            <strong className="font-medium text-amber-200">{a.airtableNotConfiguredStrong}</strong>{" "}
+            {a.airtableEnvHint}{" "}
+            <code className="text-xs bg-[#0a1628] px-1.5 py-0.5 rounded">AIRTABLE_API_KEY</code> և{" "}
             <code className="text-xs bg-[#0a1628] px-1.5 py-0.5 rounded">AIRTABLE_BASE_ID</code>{" "}
-            (e.g. in Vercel → Environment Variables), then redeploy.
+            {a.airtableEnvRedeploy}
           </div>
         )}
         {/* LIST VIEW */}
         {view === "list" && (
           <div>
-            <h1 className="sr-only">CasaGroup project listings manager</h1>
+            <h1 className="sr-only">{a.srListTitle}</h1>
             {/* Airtable setup (server action — works on Vercel when AIRTABLE_* env is set) */}
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-[#1e2d45] bg-[#0a1628] px-5 py-4">
               <div className="flex gap-3 min-w-0">
                 <Database size={20} className="text-[#c9a96e] shrink-0 mt-0.5" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#f0ece4]">Airtable setup &amp; seed</p>
-                  <p className="text-xs text-[#5a6a7e] mt-1 leading-relaxed">
-                    Creates the <span className="text-[#9a9085]">Projects</span> table and columns if needed, inserts default listings from the app, then refreshes the grid. Safe to run again (existing rows are skipped by slug).
-                  </p>
+                  <p className="text-sm font-medium text-[#f0ece4]">{a.setupTitle}</p>
+                  <p className="text-xs text-[#5a6a7e] mt-1 leading-relaxed">{a.setupDesc}</p>
                 </div>
               </div>
               <button
@@ -830,12 +848,24 @@ export default function AdminPage() {
                       return;
                     }
                     const parts = [
-                      result.createdTable ? "Created table" : "Table OK",
-                      result.createdFields.length ? `+${result.createdFields.length} fields` : "",
-                      result.seeded.length ? `Seeded: ${result.seeded.join(", ")}` : "",
-                      result.skippedSeed.length ? `Skipped: ${result.skippedSeed.join(", ")}` : "",
+                      result.createdTable ? a.setupCreatedTable : a.setupTableOk,
+                      result.createdFields.length
+                        ? fmt(a.setupFields, { n: result.createdFields.length })
+                        : "",
+                      result.seeded.length
+                        ? fmt(a.setupProjectsSeeded, { list: result.seeded.join(", ") })
+                        : "",
+                      result.skippedSeed.length
+                        ? fmt(a.setupProjectsSkipped, { list: result.skippedSeed.join(", ") })
+                        : "",
+                      result.teamSeeded.length
+                        ? fmt(a.setupTeamSeeded, { list: result.teamSeeded.join(", ") })
+                        : "",
+                      result.teamSkippedSeed.length
+                        ? fmt(a.setupTeamSkipped, { list: result.teamSkippedSeed.join(", ") })
+                        : "",
                     ].filter(Boolean);
-                    addToast(parts.join(" · ") || "Airtable setup finished");
+                    addToast(parts.join(" · ") || a.setupFinished);
                     await refreshProjects();
                   } catch (e) {
                     addToast(e instanceof Error ? e.message : String(e), "error");
@@ -845,16 +875,16 @@ export default function AdminPage() {
                 }}
                 className="shrink-0 px-5 py-2.5 rounded-xl border border-[#c9a96e]/40 text-sm font-medium text-[#e8d5b0] hover:bg-[#c9a96e]/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {airtableSetupRunning ? "Running…" : "Run setup & seed"}
+                {airtableSetupRunning ? a.running : a.runSetup}
               </button>
             </div>
             {/* Stats strip */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
-                { label: "Total Projects", value: projects.length },
-                { label: "Cities", value: new Set(projects.map((p) => p.city)).size },
-                { label: "Available Units", value: projects.reduce((a, p) => a + p.availableApartmentsCount, 0) },
-                { label: "Featured", value: projects.filter((p) => p.featured).length },
+                { label: a.statTotalProjects, value: projects.length },
+                { label: a.statCities, value: new Set(projects.map((p) => p.city)).size },
+                { label: a.statAvailableUnits, value: projects.reduce((sum, p) => sum + p.availableApartmentsCount, 0) },
+                { label: a.statFeatured, value: projects.filter((p) => p.featured).length },
               ].map((s) => (
                 <div key={s.label} className="bg-[#0a1628] border border-[#1e2d45] rounded-xl p-5">
                   <p className="text-2xl font-['Cormorant_Garamond'] text-[#c9a96e] font-light">{s.value}</p>
@@ -866,8 +896,8 @@ export default function AdminPage() {
             {/* Projects table */}
             <div className="bg-[#0a1628] border border-[#1e2d45] rounded-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-[#1e2d45] flex items-center justify-between">
-                <h2 className="text-sm font-medium text-[#f0ece4]">All Projects</h2>
-                <span className="text-xs text-[#5a6a7e]">{projects.length} total</span>
+                <h2 className="text-sm font-medium text-[#f0ece4]">{a.allProjects}</h2>
+                <span className="text-xs text-[#5a6a7e]">{fmt(a.totalCount, { count: projects.length })}</span>
               </div>
               <div className="divide-y divide-[#1e2d45]">
                 {projects.map((p, i) => (
@@ -898,17 +928,17 @@ export default function AdminPage() {
                       : p.status === "Sold Out" ? "text-red-400 border-red-400/30 bg-red-400/5"
                       : "text-yellow-400 border-yellow-400/30 bg-yellow-400/5"
                     }`}>
-                      {p.status}
+                      {getStatusLabel(hy, p.status)}
                     </span>
 
                     {/* Price */}
                     <span className="text-sm font-['DM_Mono'] text-[#c9a96e] shrink-0 hidden lg:block">
-                      ${(p.startingPrice / 1000).toFixed(0)}K
+                      {formatPrice(p.startingPrice)}
                     </span>
 
                     {/* Units */}
                     <span className="text-xs text-[#5a6a7e] shrink-0 hidden lg:block">
-                      {p.availableApartmentsCount} avail
+                      {p.availableApartmentsCount} {a.availShort}
                     </span>
 
                     {/* Actions */}
@@ -945,10 +975,12 @@ export default function AdminPage() {
           <div>
             <div className="mb-6">
               <h1 className="font-['Cormorant_Garamond'] text-3xl font-light text-[#f0ece4]">
-                {view === "new" ? "New Project" : `Edit — ${editingProject?.title}`}
+                {view === "new"
+                  ? a.newProjectTitle
+                  : fmt(a.editProjectTitle, { title: editingProject?.title ?? "" })}
               </h1>
               <p className="text-sm text-[#5a6a7e] mt-1">
-                {view === "new" ? "Fill in the details to publish a new property listing." : "Update project information."}
+                {view === "new" ? a.newProjectSubtitle : a.editProjectSubtitle}
               </p>
             </div>
             <ProjectForm

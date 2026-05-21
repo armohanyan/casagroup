@@ -1,13 +1,18 @@
 import Airtable from "airtable";
 import { MOCK_PROJECTS } from "@/data/mock";
+import { TEAM_SEED_ROWS } from "@/data/team-seed";
 import {
   buildFieldSpecMap,
   escapeFormulaString,
   inferProjectFields,
   projectToAirtableFields,
 } from "@/src/lib/airtable-project-schema";
+import { INQUIRY_FIELD_SPECS } from "@/src/lib/airtable-inquiries-schema";
+import { TEAM_FIELD_SPECS, teamRowToAirtableFields } from "@/src/lib/airtable-team-schema";
 import {
+  INQUIRIES_TABLE_NAME,
   PROJECTS_TABLE_NAME,
+  TEAM_TABLE_NAME,
   createField,
   createTable,
   findTableInsensitive,
@@ -90,8 +95,83 @@ export type SetupAirtableResult = {
   createdFields: string[];
   seeded: string[];
   skippedSeed: string[];
+  teamSeeded: string[];
+  teamSkippedSeed: string[];
   logs: string[];
 };
+
+async function setupTeamTable(
+  base: ReturnType<typeof getAirtableBase>["base"],
+  apiKey: string,
+  baseId: string,
+  logs: string[]
+): Promise<{ teamSeeded: string[]; teamSkippedSeed: string[] }> {
+  const teamSeeded: string[] = [];
+  const teamSkippedSeed: string[] = [];
+  const createdFields: string[] = [];
+
+  let tables = await listTables(apiKey, baseId);
+  let teamTable = findTableInsensitive(tables, TEAM_TABLE_NAME);
+
+  if (!teamTable) {
+    logs.push(`Creating table "${TEAM_TABLE_NAME}" with ${TEAM_FIELD_SPECS.length} fields`);
+    console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+    teamTable = await createTable(apiKey, baseId, TEAM_TABLE_NAME, TEAM_FIELD_SPECS);
+  } else {
+    logs.push(`Table "${teamTable.name}" already exists (${teamTable.id})`);
+    console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+    for (const field of TEAM_FIELD_SPECS) {
+      if (tableHasField(teamTable, field.name)) continue;
+      logs.push(`Creating Team field: ${field.name}`);
+      console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+      const created = await createField(apiKey, baseId, teamTable.id, field);
+      createdFields.push(field.name);
+      teamTable = { ...teamTable, fields: [...teamTable.fields, created] };
+    }
+  }
+
+  for (const row of TEAM_SEED_ROWS) {
+    const formula = `{id}='${escapeFormulaString(row.id)}'`;
+    const existingRows = await base(teamTable.name)
+      .select({ filterByFormula: formula, maxRecords: 1 })
+      .firstPage();
+
+    if (existingRows.length > 0) {
+      teamSkippedSeed.push(row.id);
+      logs.push(`Team seed skip (exists): ${row.id}`);
+      console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+      continue;
+    }
+
+    await base(teamTable.name).create(teamRowToAirtableFields(row) as Airtable.FieldSet, { typecast: true });
+    teamSeeded.push(row.id);
+    logs.push(`Seeded team member: ${row.id}`);
+    console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+  }
+
+  return { teamSeeded, teamSkippedSeed };
+}
+
+async function setupInquiriesTable(apiKey: string, baseId: string, logs: string[]): Promise<void> {
+  let tables = await listTables(apiKey, baseId);
+  let inquiriesTable = findTableInsensitive(tables, INQUIRIES_TABLE_NAME);
+
+  if (!inquiriesTable) {
+    logs.push(`Creating table "${INQUIRIES_TABLE_NAME}" with ${INQUIRY_FIELD_SPECS.length} fields`);
+    console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+    inquiriesTable = await createTable(apiKey, baseId, INQUIRIES_TABLE_NAME, INQUIRY_FIELD_SPECS);
+  } else {
+    logs.push(`Table "${inquiriesTable.name}" already exists (${inquiriesTable.id})`);
+    console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+    for (const field of INQUIRY_FIELD_SPECS) {
+      if (tableHasField(inquiriesTable, field.name)) continue;
+      logs.push(`Creating Inquiries field: ${field.name}`);
+      console.log(`[setup-airtable] ${logs[logs.length - 1]}`);
+      const created = await createField(apiKey, baseId, inquiriesTable.id, field);
+      inquiriesTable = { ...inquiriesTable, fields: [...inquiriesTable.fields, created] };
+    }
+  }
+}
 
 export async function runAirtableSetup(): Promise<SetupAirtableResult> {
   const logs: string[] = [];
@@ -155,6 +235,10 @@ export async function runAirtableSetup(): Promise<SetupAirtableResult> {
 
   await syncProjectsGridView(apiKey, baseId, logs);
 
+  const { teamSeeded, teamSkippedSeed } = await setupTeamTable(base, apiKey, baseId, logs);
+
+  await setupInquiriesTable(apiKey, baseId, logs);
+
   return {
     ok: true,
     table: table.name,
@@ -163,6 +247,8 @@ export async function runAirtableSetup(): Promise<SetupAirtableResult> {
     createdFields,
     seeded,
     skippedSeed,
+    teamSeeded,
+    teamSkippedSeed,
     logs,
   };
 }

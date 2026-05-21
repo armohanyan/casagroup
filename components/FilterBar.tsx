@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { formatPrice } from "@/lib/format-price";
 import { useI18n } from "@/lib/i18n";
 
 export interface FilterState {
@@ -61,11 +62,12 @@ export function FilterBar({ filters, onChange, cities }: Props) {
         <div className="flex min-w-0 w-full flex-col gap-1.5 sm:w-auto sm:min-w-[140px] md:min-w-[160px]">
           <label className="text-xs tracking-widest uppercase text-[#5a554f]">{t.filter.maxPrice}</label>
           <select className={inputCls} value={filters.maxPrice} onChange={(e) => set("maxPrice", Number(e.target.value))}>
-            <option value={9999999}>{t.filter.anyPrice}</option>
-            <option value={200000}>{t.filter.upTo200}</option>
-            <option value={350000}>{t.filter.upTo350}</option>
-            <option value={500000}>{t.filter.upTo500}</option>
-            <option value={1000000}>{t.filter.upTo1M}</option>
+            <option value={0}>{t.filter.anyPrice}</option>
+            {[20_000_000, 40_000_000, 50_000_000, 60_000_000, 100_000_000].map((limit) => (
+              <option key={limit} value={limit}>
+                {t.filter.upTo} {formatPrice(limit)}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -85,7 +87,7 @@ export function FilterBar({ filters, onChange, cities }: Props) {
         <button
           type="button"
           className="cursor-pointer py-2.5 text-xs tracking-widest text-[#9a9085] uppercase transition-colors hover:text-[#c9a96e] sm:w-auto sm:self-end"
-          onClick={() => onChange({ city: "", status: "", minPrice: 0, maxPrice: 9999999, rooms: "" })}
+          onClick={() => onChange({ city: "", status: "", minPrice: 0, maxPrice: 0, rooms: "" })}
         >
           {t.filter.clearFilters}
         </button>

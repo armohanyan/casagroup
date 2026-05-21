@@ -31,6 +31,7 @@ export function ContactForm({ defaultProject = "", light = false }: Props) {
     message: "",
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -51,10 +52,24 @@ export function ContactForm({ defaultProject = "", light = false }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+    setSubmitError(null);
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
-    setSubmitted(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? t.form.submitError);
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : t.form.submitError);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
@@ -132,6 +147,8 @@ export function ContactForm({ defaultProject = "", light = false }: Props) {
         />
         {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message}</p>}
       </div>
+
+      {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
 
       <Button type="submit" disabled={loading} size="lg" variant="default">
         {loading ? t.form.sending : t.form.send}

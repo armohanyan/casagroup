@@ -1,10 +1,18 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import type { Translations } from "@/lib/translations-en";
 import { translations } from "@/lib/translations-index";
+import type { ProjectStatus, ApartmentStatus } from "@/types";
 
 export type Lang = "en" | "hy";
 
 export type { Translations };
+
+export type StatusLabelKey = ProjectStatus | ApartmentStatus;
+
+/** Localized label for project/apartment status badges and detail rows. */
+export function getStatusLabel(t: Translations, status: StatusLabelKey): string {
+  return t.status[status] ?? status;
+}
 
 // ─── Context ────────────────────────────────────────────────────────────────
 

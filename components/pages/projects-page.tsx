@@ -17,7 +17,7 @@ export default function ProjectsPage() {
     city: "",
     status: "",
     minPrice: 0,
-    maxPrice: 9999999,
+    maxPrice: 0,
     rooms: "",
   });
 
@@ -25,7 +25,7 @@ export default function ProjectsPage() {
     return projects.filter((p) => {
       if (filters.city && p.city !== filters.city) return false;
       if (filters.status && p.status !== filters.status) return false;
-      if (p.startingPrice > filters.maxPrice) return false;
+      if (filters.maxPrice > 0 && p.startingPrice > filters.maxPrice) return false;
       if (filters.rooms) {
         const r = parseInt(filters.rooms);
         const hasRoom = p.apartments.some((a) =>

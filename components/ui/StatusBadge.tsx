@@ -1,3 +1,4 @@
+import { getStatusLabel, useI18n } from "@/lib/i18n";
 import type { ProjectStatus, ApartmentStatus } from "@/types";
 
 type BadgeStatus = ProjectStatus | ApartmentStatus;
@@ -12,11 +13,14 @@ const statusConfig: Record<BadgeStatus, { bg: string; text: string; dot: string 
 };
 
 export function StatusBadge({ status }: { status: BadgeStatus }) {
+  const { t } = useI18n();
   const cfg = statusConfig[status] ?? statusConfig["Available"];
+  const label = getStatusLabel(t, status);
+
   return (
     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium tracking-wide ${cfg.bg} ${cfg.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-      {status}
+      {label}
     </span>
   );
 }

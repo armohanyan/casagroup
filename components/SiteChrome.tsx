@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { GlobalJsonLd } from "@/components/seo/GlobalJsonLd";
 
 const ADMIN_PREFIX = "/admin-lx9k2m";
@@ -18,6 +19,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       <Navbar />
       {children}
       <Footer />
+      <WhatsAppButton />
     </>
   );
 }

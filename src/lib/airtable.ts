@@ -2,6 +2,8 @@ import Airtable from "airtable";
 import type { FieldCreatePayload } from "@/src/lib/airtable-project-schema";
 
 export const PROJECTS_TABLE_NAME = "Projects";
+export const TEAM_TABLE_NAME = "Team";
+export const INQUIRIES_TABLE_NAME = "Inquiries";
 
 const META_BASE = "https://api.airtable.com/v0/meta/bases";
 
