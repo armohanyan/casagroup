@@ -54,6 +54,10 @@ export interface Project {
   apartments: Apartment[];
   developer: string;
   architect?: string;
+  managementCompany?: string;
+  partnerBank?: string;
+  constructionStart?: string;
+  exclusiveSalesRights?: string;
   coordinates: { lat: number; lng: number };
   tags: string[];
   featured: boolean;

@@ -8,7 +8,7 @@ export default function NotFoundPage() {
   const pathname = usePathname();
   const path = pathname && pathname !== "" ? pathname : "/404";
   return (
-    <main className="bg-[#0C1428] min-h-screen pt-32 flex flex-col items-center justify-center px-6">
+    <main className="bg-[#FAF8F5] min-h-screen pt-32 flex flex-col items-center justify-center px-6">
       <Seo
         title={t.seo.notFound.title}
         description={t.seo.notFound.description}
@@ -16,10 +16,10 @@ export default function NotFoundPage() {
         lang={lang}
         noindex
       />
-      <p className="font-['Cormorant_Garamond'] text-5xl text-[#f0ece4] mb-4">404</p>
-      <p className="text-[#9a9085] mb-10 text-center max-w-md">{t.notFound}</p>
+      <p className="font-sans font-semibold text-5xl text-[#1C1917] mb-4">404</p>
+      <p className="text-[#57534E] mb-10 text-center max-w-md">{t.notFound}</p>
       <Link href="/">
-        <span className="text-[#c9a96e] text-sm tracking-widest uppercase cursor-pointer border border-[#c9a96e]/40 px-6 py-3 rounded-sm hover:bg-[#c9a96e]/10 transition-colors">
+        <span className="btn-outline text-sm tracking-widest uppercase cursor-pointer px-6 py-3 rounded-sm">
           {t.backHome}
         </span>
       </Link>

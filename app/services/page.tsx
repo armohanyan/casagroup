@@ -1,3 +1,5 @@
-"use client";
+import { redirect } from "next/navigation";
 
-export { default } from "@/components/pages/services-page";
+export default function LegacyServicesPage() {
+  redirect("/partners/services");
+}

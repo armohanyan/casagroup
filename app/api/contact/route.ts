@@ -8,7 +8,9 @@ function isValidEmail(email: string): boolean {
   return /\S+@\S+\.\S+/.test(email);
 }
 
-function parseBody(body: unknown): InquiryFormData | null {
+type ParsedContactBody = InquiryFormData & { kind?: string };
+
+function parseBody(body: unknown): ParsedContactBody | null {
   if (!body || typeof body !== "object") return null;
   const o = body as Record<string, unknown>;
   const fullName = typeof o.fullName === "string" ? o.fullName : "";
@@ -16,12 +18,15 @@ function parseBody(body: unknown): InquiryFormData | null {
   const email = typeof o.email === "string" ? o.email : "";
   const interestedProject = typeof o.interestedProject === "string" ? o.interestedProject : "";
   const message = typeof o.message === "string" ? o.message : "";
-  return { fullName, phone, email, interestedProject, message };
+  const kind = typeof o.kind === "string" ? o.kind : undefined;
+  return { fullName, phone, email, interestedProject, message, kind };
 }
 
-function validate(data: InquiryFormData): string | null {
+function validate(data: ParsedContactBody): string | null {
   if (!data.fullName.trim()) return "fullName is required";
   if (!data.phone.trim()) return "phone is required";
+  const simpleKinds = ["consultation", "callback", "visit"];
+  if (data.kind && simpleKinds.includes(data.kind)) return null;
   if (!data.email.trim() || !isValidEmail(data.email)) return "valid email is required";
   if (!data.message.trim()) return "message is required";
   return null;
@@ -47,7 +52,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
-    const result = await createInquiryOnAirtable(data);
+    const inquiry: InquiryFormData = {
+      fullName: data.fullName,
+      phone: data.phone,
+      email: data.email,
+      interestedProject: data.interestedProject,
+      message:
+        (data.kind === "consultation" || data.kind === "callback" || data.kind === "visit") &&
+        !data.message.trim()
+          ? `${data.kind ?? "Inquiry"} request`
+          : data.message,
+    };
+
+    const result = await createInquiryOnAirtable(inquiry);
     return NextResponse.json({ ok: true, id: result.id });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);

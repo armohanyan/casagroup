@@ -25,10 +25,10 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
     return (
       <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-24">
         <SectionTitle eyebrow={t.projectDetail.droneEyebrow} title={t.projectDetail.droneTitle} />
-        <div className="h-52 rounded-2xl border border-[#1e2d45] bg-[#0d1829] flex items-center justify-center">
+        <div className="h-52 rounded-2xl border border-[#E7E0D5] bg-[#F3EFE8] flex items-center justify-center">
           <div className="text-center">
             <Video size={32} className="text-[#2a3d58] mx-auto mb-3" />
-            <p className="text-[#5a554f] text-sm tracking-widest uppercase">{t.projectDetail.droneNoVideo}</p>
+            <p className="text-[#A8A29E] text-sm tracking-widest uppercase">{t.projectDetail.droneNoVideo}</p>
           </div>
         </div>
       </section>
@@ -41,14 +41,13 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
         <SectionTitle
           eyebrow={t.projectDetail.droneEyebrow}
           title={t.projectDetail.droneTitle}
-          subtitle={t.projectDetail.droneSubtitle}
         />
 
         <div className={`grid gap-4 ${videos.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
           {videos.map((video, i) => (
             <motion.div
               key={i}
-              className="relative rounded-xl overflow-hidden cursor-pointer group border border-[#1e2d45] bg-[#0d1829]"
+              className="relative rounded-xl overflow-hidden cursor-pointer group border border-[#E7E0D5] bg-[#F3EFE8]"
               style={{ height: videos.length === 1 ? "460px" : "300px" }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -69,16 +68,16 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[#0d1829] to-[#162035]" />
+                <div className="w-full h-full bg-gradient-to-br from-[#F3EFE8] to-[#E7E0D5]" />
               )}
 
               {/* Dark overlay */}
-              <div className="absolute inset-0 bg-[#0C1428]/50 group-hover:bg-[#0C1428]/30 transition-colors duration-300" />
+              <div className="absolute inset-0 bg-black/25 group-hover:bg-black/35 transition-colors duration-300" />
 
               {/* Drone badge */}
-              <div className="absolute top-4 left-4 flex items-center gap-2 bg-[#0C1428]/80 backdrop-blur-sm border border-[#1e2d45] rounded-full px-3 py-1.5">
+              <div className="absolute top-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-sm border border-[#E7E0D5] rounded-full px-3 py-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#c9a96e] animate-pulse" />
-                <span className="text-[10px] tracking-[0.2em] uppercase text-[#9a9085] font-medium">Drone</span>
+                <span className="text-[10px] tracking-[0.2em] uppercase text-[#57534E] font-medium">Drone</span>
               </div>
 
               {/* Play button */}
@@ -93,9 +92,9 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
               </motion.div>
 
               {/* Title bar */}
-              <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#0C1428]/90 to-transparent">
-                <p className="text-[#f0ece4] text-sm font-medium">{video.title}</p>
-                <p className="text-[#9a9085] text-xs mt-0.5 tracking-wider">{projectTitle}</p>
+              <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#FAF8F5]/92 to-transparent">
+                <p className="text-[#1C1917] text-sm font-medium">{video.title}</p>
+                <p className="text-[#57534E] text-xs mt-0.5 tracking-wider">{projectTitle}</p>
               </div>
             </motion.div>
           ))}
@@ -106,14 +105,14 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
       <AnimatePresence>
         {active && (
           <motion.div
-            className="fixed inset-0 z-[200] bg-[#0C1428]/95 backdrop-blur-md flex items-center justify-center p-4 md:p-10"
+            className="fixed inset-0 z-[200] bg-white/95 backdrop-blur-md flex items-center justify-center p-4 md:p-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setActive(null)}
           >
             <button
-              className="absolute top-6 right-6 w-10 h-10 rounded-full border border-[#1e2d45] bg-[#0d1829] flex items-center justify-center text-[#9a9085] hover:text-[#c9a96e] hover:border-[#c9a96e] transition-all z-10"
+              className="absolute top-6 right-6 w-10 h-10 rounded-full border border-[#E7E0D5] bg-[#F3EFE8] flex items-center justify-center text-[#57534E] hover:text-[#c9a96e] hover:border-[#c9a96e] transition-all z-10"
               onClick={() => setActive(null)}
             >
               <X size={18} />
@@ -134,7 +133,7 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
               </div>
 
               {/* YouTube iframe */}
-              <div className="relative w-full rounded-xl overflow-hidden border border-[#1e2d45]" style={{ paddingBottom: "56.25%" }}>
+              <div className="relative w-full rounded-xl overflow-hidden border border-[#E7E0D5]" style={{ paddingBottom: "56.25%" }}>
                 <iframe
                   src={`${active.url}?autoplay=1&rel=0&modestbranding=1&color=white`}
                   className="absolute inset-0 w-full h-full"
@@ -144,7 +143,7 @@ export function DroneVideoSection({ videos, projectTitle }: Props) {
                 />
               </div>
 
-              <p className="mt-4 text-[#5a554f] text-xs text-center tracking-widest">
+              <p className="mt-4 text-[#A8A29E] text-xs text-center tracking-widest">
                 {projectTitle} — {active.title}
               </p>
             </motion.div>

@@ -133,7 +133,7 @@ function UrlList({ label, values, onChange, placeholder, hint }: {
           placeholder={placeholder ?? "https://…"}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
         />
-        <button type="button" onClick={add} className="px-4 py-2 bg-[#c9a96e] text-[#0C1428] rounded-lg hover:bg-[#e8d5b0] transition-colors shrink-0">
+        <button type="button" onClick={add} className="btn-outline px-4 py-2 rounded-lg shrink-0 text-sm">
           <Plus size={16} />
         </button>
       </div>
@@ -166,7 +166,7 @@ function TagsEditor({ values, onChange }: { values: string[]; onChange: (v: stri
       <div className="flex gap-2 mb-3">
         <input className={INPUT_CLS} value={input} onChange={(e) => setInput(e.target.value)}
           placeholder={a.tagsPlaceholder} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} />
-        <button type="button" onClick={add} className="px-4 py-2 bg-[#c9a96e] text-[#0C1428] rounded-lg hover:bg-[#e8d5b0] transition-colors shrink-0">
+        <button type="button" onClick={add} className="btn-outline px-4 py-2 rounded-lg shrink-0 text-sm">
           <Plus size={16} />
         </button>
       </div>
@@ -213,7 +213,7 @@ function ApartmentsEditor({ projectId, apartments, onChange }: {
       <div className="flex items-center justify-between mb-4">
         <label className={LABEL_CLS + " mb-0"}>{fmt(a.apartmentsCount, { count: apartments.length })}</label>
         <button type="button" onClick={add}
-          className="flex items-center gap-2 px-3 py-1.5 bg-[#c9a96e] text-[#0C1428] rounded-lg text-xs font-medium hover:bg-[#e8d5b0] transition-colors">
+          className="btn-outline flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs">
           <Plus size={13} /> {a.addUnit}
         </button>
       </div>
@@ -340,7 +340,7 @@ function DroneVideosEditor({ values, onChange }: {
           </p>
         </div>
         <button type="button" onClick={add}
-          className="flex items-center gap-2 px-3 py-1.5 bg-[#c9a96e] text-[#0C1428] rounded-lg text-xs font-medium hover:bg-[#e8d5b0] transition-colors">
+          className="btn-outline flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs">
           <Plus size={13} /> {a.addVideo}
         </button>
       </div>
@@ -652,7 +652,7 @@ function ProjectForm({
           <X size={16} /> {a.cancel}
         </button>
         <button type="submit"
-          className="flex items-center gap-2 px-8 py-3 bg-[#c9a96e] text-[#0C1428] rounded-xl font-semibold hover:bg-[#e8d5b0] transition-all text-sm">
+          className="btn-outline flex items-center gap-2 px-8 py-3 rounded-xl text-sm">
           <Save size={16} /> {isNew ? a.publishProject : a.saveChanges}
         </button>
       </div>
@@ -805,7 +805,7 @@ export default function AdminPage() {
             </Link>
             {view === "list" && (
               <button onClick={() => setView("new")}
-                className="flex items-center gap-2 px-5 py-2 bg-[#c9a96e] text-[#0C1428] rounded-xl text-sm font-semibold hover:bg-[#e8d5b0] transition-all">
+                className="btn-outline flex items-center gap-2 px-5 py-2 rounded-xl text-sm">
                 <Plus size={16} /> {a.newProject}
               </button>
             )}

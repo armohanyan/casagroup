@@ -17,10 +17,9 @@ interface FormData {
 
 interface Props {
   defaultProject?: string;
-  light?: boolean;
 }
 
-export function ContactForm({ defaultProject = "", light = false }: Props) {
+export function ContactForm({ defaultProject = "" }: Props) {
   const { t } = useI18n();
   const { projects, loading: projectsLoading } = useProjects();
   const [form, setForm] = useState<FormData>({
@@ -35,9 +34,7 @@ export function ContactForm({ defaultProject = "", light = false }: Props) {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const inputCls = `w-full bg-transparent border-b ${
-    light ? "border-[#ccc] text-[#0C1428] placeholder-[#aaa] focus:border-[#c9a96e]" : "border-[#2a2520] text-[#f0ece4] placeholder-[#5a554f] focus:border-[#c9a96e]"
-  } outline-none py-3 text-sm transition-colors duration-200 font-['DM_Sans']`;
+  const inputCls = "field-input-line font-sans";
 
   function validate() {
     const e: Partial<FormData> = {};
@@ -80,10 +77,10 @@ export function ContactForm({ defaultProject = "", light = false }: Props) {
         animate={{ opacity: 1, scale: 1 }}
       >
         <CheckCircle size={48} className="text-[#c9a96e]" />
-        <h3 className={`font-['Cormorant_Garamond'] text-2xl font-light ${light ? "text-[#0C1428]" : "text-[#f0ece4]"}`}>
+        <h3 className="font-sans font-semibold text-2xl text-[#1C1917]">
           {t.form.successTitle}
         </h3>
-        <p className={`text-sm text-center max-w-sm ${light ? "text-[#5a554f]" : "text-[#9a9085]"}`}>
+        <p className="text-sm text-center max-w-sm text-[#57534E]">
           {t.form.successDesc}
         </p>
       </motion.div>
@@ -150,7 +147,7 @@ export function ContactForm({ defaultProject = "", light = false }: Props) {
 
       {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
 
-      <Button type="submit" disabled={loading} size="lg" variant="default">
+      <Button type="submit" disabled={loading} size="lg" variant="default" className="w-full sm:w-auto h-11 px-8 type-button">
         {loading ? t.form.sending : t.form.send}
       </Button>
     </form>

@@ -24,6 +24,11 @@ export const MOCK_PROJECTS: Project[] = [
     totalApartments: 28,
     floors: 16,
     developer: "CasaGroup",
+    architect: "CasaGroup Architecture",
+    managementCompany: "CasaGroup",
+    partnerBank: "Major Armenian banks",
+    constructionStart: "Q2 2025",
+    exclusiveSalesRights: "CasaGroup",
     coordinates: { lat: 40.1920, lng: 44.5100 },
     tags: ["ready to move", "cultural district", "rooftop terrace"],
     droneVideos: [

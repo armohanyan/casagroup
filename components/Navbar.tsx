@@ -1,32 +1,119 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { ExternalLink, Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useConsultationModal } from "@/lib/consultation-modal";
 import { cn } from "@/lib/utils";
 
-function isNavActive(href: string, pathname: string) {
-  if (href.startsWith("/#")) return false;
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+type NavLink = { label: string; href: string; description?: string };
+
+type NavMenu = {
+  id: string;
+  label: string;
+  links: NavLink[];
+};
+
+/** Pick the single most specific nav href that matches the current path. */
+function resolveActiveHref(pathname: string, hrefs: readonly string[]): string | null {
+  const matches = hrefs.filter((href) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  });
+  if (matches.length === 0) return null;
+  return matches.reduce((best, href) => (href.length > best.length ? href : best));
+}
+
+function isNavActive(href: string, pathname: string, allHrefs: readonly string[]) {
+  return resolveActiveHref(pathname, allHrefs) === href;
+}
+
+function menuIsActive(links: NavLink[], pathname: string, allHrefs: readonly string[]) {
+  const active = resolveActiveHref(pathname, allHrefs);
+  return active !== null && links.some((link) => link.href === active);
 }
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const pathname = usePathname();
   const { t, lang, setLang } = useI18n();
+  const { openConsultation } = useConsultationModal();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const menus: NavMenu[] = useMemo(
+    () => [
+      {
+        id: "realty",
+        label: t.sales.realty,
+        links: [
+          { label: t.nav.apartments, href: "/properties" },
+          { label: t.sales.mapSearch, href: "/properties/map" },
+          { label: t.nav.developments, href: "/projects" },
+          { label: t.nav.investment, href: "/investment" },
+          { label: t.nav.calculator, href: "/calculator" },
+        ],
+      },
+      {
+        id: "about",
+        label: t.sales.aboutMenu,
+        links: [
+          { label: t.footer.links.about, href: "/about" },
+          { label: t.footer.links.blog, href: "/blog" },
+          { label: t.footer.links.partner, href: "/partners" },
+        ],
+      },
+      {
+        id: "services",
+        label: t.sales.servicesMenu,
+        links: [{ label: t.nav.services, href: "/partners/services" }],
+      },
+    ],
+    [t],
+  );
+
+  const allNavHrefs = useMemo(
+    () => [...menus.flatMap((menu) => menu.links.map((link) => link.href)), "/contact"],
+    [menus],
+  );
+
+  const isHeroPage =
+    pathname === "/" ||
+    pathname === "/properties" ||
+    pathname.startsWith("/properties/") ||
+    pathname === "/projects" ||
+    pathname === "/about" ||
+    pathname === "/contact" ||
+    pathname === "/blog" ||
+    pathname === "/investment" ||
+    pathname === "/calculator";
+
+  const transparentNav = isHeroPage && !scrolled;
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 60);
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenu(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 8);
     window.addEventListener("scroll", handler, { passive: true });
+    handler();
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
   useEffect(() => {
     queueMicrotask(() => {
       setMobileOpen(false);
+      setOpenMenu(null);
     });
   }, [pathname]);
 
@@ -39,267 +126,234 @@ export function Navbar() {
     };
   }, [mobileOpen]);
 
-  const navLinks = [
-    { label: t.nav.home, href: "/" },
-    { label: t.nav.about, href: "/about" },
-    { label: t.nav.services, href: "/services" },
-    { label: t.nav.projects, href: "/projects" },
-    { label: t.nav.academy, href: "/#academy" },
-    { label: t.nav.faq, href: "/#faq" },
-    { label: t.nav.contact, href: "/contact" },
-  ];
-
-  /** Armenian labels need more horizontal space; switch to full nav + CTA a bit later. */
-  const desktopNavFrom = lang === "hy" ? "xl" : "lg";
-  const desktopNavHidden = desktopNavFrom === "xl" ? "hidden xl:flex" : "hidden lg:flex";
-  const mobileBarVisible = desktopNavFrom === "xl" ? "xl:hidden" : "lg:hidden";
+  const triggerCls = (menu: NavMenu) =>
+    cn(
+      "flex items-center gap-1 px-3.5 py-2 text-sm font-medium transition-colors rounded-md type-button",
+      transparentNav
+        ? menuIsActive(menu.links, pathname, allNavHrefs) || openMenu === menu.id
+          ? "text-white bg-white/15"
+          : "text-white/90 hover:text-white hover:bg-white/10"
+        : menuIsActive(menu.links, pathname, allNavHrefs) || openMenu === menu.id
+          ? "text-[#c9a96e] bg-[#FAF8F5]"
+          : "text-[#1C1917] hover:text-[#c9a96e]",
+    );
 
   return (
-    <>
-      <motion.header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          scrolled ? "bg-[#0C1428]/95 backdrop-blur-md border-b border-[#1e2d4a]" : "bg-transparent"
-        }`}
-        initial={{ y: -80 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+    <div ref={menuRef} className="fixed top-0 left-0 right-0 z-50">
+      {/* Top info bar */}
+      <div
+        className={cn(
+          "hidden lg:block text-white text-xs border-b transition-colors duration-300",
+          transparentNav
+            ? "bg-brand/45 border-white/10 backdrop-blur-sm"
+            : "bg-brand border-white/10",
+        )}
       >
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 min-h-20 py-2 flex items-center justify-between gap-4">
-          {/* Logo */}
-          <Link href="/" className="shrink-0">
-            <span className="font-['Cormorant_Garamond'] text-xl sm:text-2xl font-light tracking-widest text-[#f0ece4] cursor-pointer select-none">
-              Casa<span className="text-[#c9a96e]">Group</span>
-            </span>
-          </Link>
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between">
+          <span className="text-white/70 truncate pr-4">{t.contact.address}</span>
+          <div className="flex items-center gap-4 shrink-0">
+            <a
+              href="tel:+37496799733"
+              className="flex items-center gap-1.5 hover:text-[#c9a96e] transition-colors whitespace-nowrap"
+            >
+              <Phone size={12} />
+              +374 96 799733
+            </a>
+            <a
+              href="mailto:casagroup@gmail.com"
+              className="hover:text-[#c9a96e] transition-colors whitespace-nowrap"
+            >
+              casagroup@gmail.com
+            </a>
+          </div>
+        </div>
+      </div>
 
-          {/* Desktop Nav */}
-          <nav
+      <header
+        className={cn(
+          "transition-[box-shadow,background-color,border-color] duration-300",
+          transparentNav
+            ? "bg-transparent border-b border-white/10 backdrop-blur-[2px]"
+            : scrolled
+              ? "bg-white shadow-md border-b border-[#E7E0D5]"
+              : "bg-white border-b border-[#E7E0D5]",
+        )}
+      >
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          <Link
+            href="/"
             className={cn(
-              desktopNavHidden,
-              "flex-1 min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-2 sm:gap-x-3 xl:gap-x-5 2xl:gap-x-7"
+              "shrink-0 font-bold text-xl sm:text-2xl transition-colors tracking-tight",
+              transparentNav ? "text-white" : "text-[#1C1917]",
             )}
           >
-            {navLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="shrink-0">
-                <span
-                  className={cn(
-                    "inline-block text-center text-[10px] xl:text-xs font-medium transition-colors duration-200 cursor-pointer leading-snug",
-                    lang === "en" &&
-                      "whitespace-nowrap tracking-[0.18em] xl:tracking-[0.2em] uppercase",
-                    lang === "hy" && "whitespace-normal tracking-normal normal-case",
-                    isNavActive(link.href, pathname) ? "text-[#c9a96e]" : "text-[#9a9085] hover:text-[#f0ece4]"
-                  )}
-                >
-                  {link.label}
-                </span>
-              </Link>
-            ))}
+            Casa<span className="text-[#c9a96e]">Group</span>
+          </Link>
 
-            <a
-              href="https://gortsin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0"
-            >
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border border-dashed border-[#c9a96e]/50 bg-[#c9a96e]/[0.07] px-2.5 py-1 text-[10px] xl:text-[11px] font-medium text-[#c9a96e] transition-all duration-200 hover:border-[#c9a96e] hover:bg-[#c9a96e]/15",
-                  lang === "en" && "tracking-[0.14em] uppercase",
-                  lang === "hy" && "tracking-normal normal-case"
-                )}
-              >
-                {t.nav.gortsin}
-                <ExternalLink className="size-2.5 shrink-0 opacity-75 xl:size-3" aria-hidden />
-              </span>
-            </a>
-
-            {/* Language switcher */}
-            <div className="flex shrink-0 items-center gap-1 pl-1 sm:ml-1 sm:pl-2">
-              {(["en", "hy"] as const).map((l) => (
+          {/* Desktop dropdown nav */}
+          <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
+            {menus.map((menu) => (
+              <div key={menu.id} className="relative">
                 <button
-                  key={l}
                   type="button"
-                  onClick={() => setLang(l)}
-                  className={cn(
-                    "rounded-sm px-2 py-1 text-xs font-medium transition-colors duration-200",
-                    lang === "en" && "tracking-[0.15em] uppercase",
-                    lang === "hy" && "tracking-normal normal-case",
-                    lang === l
-                      ? "border border-[#c9a96e]/40 text-[#c9a96e]"
-                      : "text-[#9a9085] hover:text-[#f0ece4]"
-                  )}
+                  onClick={() => setOpenMenu(openMenu === menu.id ? null : menu.id)}
+                  className={triggerCls(menu)}
+                  aria-expanded={openMenu === menu.id}
+                  aria-haspopup="true"
                 >
-                  {l === "en" ? "EN" : "ՀՅ"}
+                  {menu.label}
+                  <ChevronDown
+                    size={14}
+                    className={cn("transition-transform", openMenu === menu.id && "rotate-180")}
+                  />
                 </button>
-              ))}
-            </div>
-
+                {openMenu === menu.id && (
+                  <div className="absolute top-full left-0 mt-1 min-w-[220px] bg-white border border-[#E7E0D5] rounded-lg shadow-lg py-2 z-50">
+                    {menu.links.map((link) => (
+                      <Link
+                        key={`${menu.id}-${link.href}`}
+                        href={link.href}
+                        className={cn(
+                          "block px-4 py-2.5 text-sm transition-colors",
+                          isNavActive(link.href, pathname, allNavHrefs)
+                            ? "text-[#c9a96e] font-medium bg-[#FAF8F5]"
+                            : "text-[#57534E] hover:bg-[#FAF8F5] hover:text-[#c9a96e]",
+                        )}
+                        onClick={() => setOpenMenu(null)}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
             <Link
               href="/contact"
               className={cn(
-                "inline-flex min-w-0 items-center justify-center self-center",
-                lang === "en" && "shrink-0",
-                lang === "hy" && "max-w-[11rem] shrink xl:max-w-[13rem] 2xl:max-w-none"
+                "px-3.5 py-2 text-sm font-medium transition-colors rounded-md type-button",
+                transparentNav
+                  ? isNavActive("/contact", pathname, allNavHrefs)
+                    ? "text-white bg-white/15"
+                    : "text-white/90 hover:text-white hover:bg-white/10"
+                  : isNavActive("/contact", pathname, allNavHrefs)
+                    ? "text-[#c9a96e] bg-[#FAF8F5]"
+                    : "text-[#1C1917] hover:text-[#c9a96e]",
               )}
             >
-              <span
-                className={cn(
-                  "inline-flex w-full min-w-0 cursor-pointer items-center justify-center rounded-sm border border-[#c9a96e] text-center text-xs font-medium text-[#c9a96e] leading-snug transition-all duration-200 whitespace-normal [text-wrap:balance] hover:bg-[#c9a96e] hover:text-[#0C1428]",
-                  lang === "en" && "px-6 py-2.5 tracking-[0.2em] uppercase",
-                  lang === "hy" && "px-3 py-2 tracking-wide normal-case"
-                )}
-              >
-                {t.nav.inquire}
-              </span>
+              {t.nav.contact}
             </Link>
           </nav>
 
-          {/* Mobile / compact: lang + menu (breakpoint matches desktop nav) */}
-          <div className={cn("flex items-center gap-3", mobileBarVisible)}>
-            <div className="flex items-center gap-1">
-              {(["en", "hy"] as const).map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => setLang(l)}
-                  className={cn(
-                    "rounded-sm px-2 py-1 text-xs font-medium transition-colors duration-200",
-                    lang === "en" && "tracking-[0.15em] uppercase",
-                    lang === "hy" && "tracking-normal normal-case",
-                    lang === l
-                      ? "border border-[#c9a96e]/40 text-[#c9a96e]"
-                      : "text-[#9a9085] hover:text-[#f0ece4]"
-                  )}
-                >
-                  {l === "en" ? "EN" : "ՀՅ"}
-                </button>
-              ))}
-            </div>
+          <div className="hidden lg:flex items-center gap-2 shrink-0">
+            {(["en", "hy"] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setLang(l)}
+                className={cn(
+                  "px-2.5 py-1 text-xs font-medium rounded border transition-colors",
+                  transparentNav
+                    ? lang === l
+                      ? "border-white text-white bg-white/15"
+                      : "border-white/30 text-white/80 hover:text-white hover:border-white/50"
+                    : lang === l
+                      ? "border-brand bg-brand text-white"
+                      : "border border-[#E7E0D5] bg-white text-[#57534E] hover:text-brand hover:border-brand/30",
+                )}
+              >
+                {l === "en" ? "EN" : "ՀՅ"}
+              </button>
+            ))}
             <button
               type="button"
-              className="text-[#f0ece4] p-2"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-drawer-nav"
+              onClick={openConsultation}
+              className={cn(
+                "ml-2 h-10 px-5 rounded-md type-button",
+                transparentNav ? "btn-outline-light" : "btn-primary",
+              )}
             >
-              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+              {t.nav.inquire}
             </button>
           </div>
+
+          <button
+            type="button"
+            className={cn("lg:hidden p-2 transition-colors", transparentNav ? "text-white" : "text-[#1C1917]")}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
-      </motion.header>
+      </header>
 
-      {/* Mobile drawer: scrollable panel + backdrop (stays below header z-50) */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            <motion.button
-              key="mobile-nav-backdrop"
-              type="button"
-              aria-label="Close menu"
-              className="fixed inset-0 z-40 cursor-default bg-[#060d1a]/75 backdrop-blur-[2px]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.22 }}
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.aside
-              key="mobile-nav-drawer"
-              id="mobile-drawer-nav"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Site navigation"
-              className="fixed bottom-0 right-0 top-20 z-[45] flex w-[min(100%,22rem)] max-w-full flex-col border-l border-[#1e2d4a] bg-[#0C1428] shadow-2xl"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
-            >
-              <nav
-                className={cn(
-                  "flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-y-contain px-5 py-4",
-                  "pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
-                )}
-              >
-                {navLinks.map((link, i) => {
-                  const active = isNavActive(link.href, pathname);
-                  return (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: 12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.04 * i, duration: 0.22 }}
-                    >
-                      <Link
-                        href={link.href}
-                        className={cn(
-                          "block rounded-sm border border-transparent py-3 pl-1 pr-2 transition-colors",
-                          active
-                            ? "border-[#c9a96e]/25 bg-[#c9a96e]/10 text-[#c9a96e]"
-                            : "text-[#f0ece4] hover:border-[#2a3f5c] hover:bg-[#121c30]"
-                        )}
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        <span
-                          className={cn(
-                            "font-['Cormorant_Garamond'] text-xl font-light leading-snug sm:text-2xl",
-                            lang === "en" && "tracking-[0.12em]",
-                            lang === "hy" && "tracking-normal"
-                          )}
-                        >
-                          {link.label}
-                        </span>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </nav>
-
-              <div
-                className={cn(
-                  "shrink-0 space-y-3 border-t border-[#1e2d4a] px-5 py-4",
-                  "pb-[max(1rem,env(safe-area-inset-bottom,0px))]"
-                )}
-              >
-                <motion.a
-                  href="https://gortsin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-dashed border-[#c9a96e]/55 bg-[#c9a96e]/10 px-4 py-2.5 text-sm font-medium text-[#c9a96e] transition-colors hover:border-[#c9a96e] hover:bg-[#c9a96e]/20"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.06 * navLinks.length, duration: 0.22 }}
-                >
-                  {t.nav.gortsin}
-                  <ExternalLink className="size-4 shrink-0 opacity-80" aria-hidden />
-                </motion.a>
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.06 * navLinks.length + 0.05, duration: 0.22 }}
-                >
-                  <Link
-                    href="/contact"
-                    className="flex w-full justify-center"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    <span
+      {mobileOpen && (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/40 lg:hidden top-header"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close menu"
+          />
+          <aside className="fixed top-header bottom-0 right-0 z-50 w-[min(100%,20rem)] bg-white border-l border-[#E7E0D5] overflow-y-auto lg:hidden shadow-xl">
+            <nav className="p-4 space-y-1">
+              {menus.map((menu) => (
+                <div key={menu.id}>
+                  <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[#A8A29E]">
+                    {menu.label}
+                  </p>
+                  {menu.links.map((link) => (
+                    <Link
+                      key={`${menu.id}-${link.href}`}
+                      href={link.href}
                       className={cn(
-                        "inline-flex w-full cursor-pointer items-center justify-center rounded-sm border border-[#c9a96e] px-4 py-3 text-center text-xs text-[#c9a96e] leading-snug transition-all hover:bg-[#c9a96e] hover:text-[#0C1428] sm:text-sm",
-                        lang === "en" && "tracking-[0.2em] uppercase",
-                        lang === "hy" && "tracking-wide normal-case"
+                        "block px-3 py-2.5 text-[#1C1917] font-medium rounded-lg transition-colors",
+                        isNavActive(link.href, pathname, allNavHrefs) && "bg-[#FAF8F5] text-[#c9a96e]",
                       )}
+                      onClick={() => setMobileOpen(false)}
                     >
-                      {t.nav.inquire}
-                    </span>
-                  </Link>
-                </motion.div>
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+              <div className="flex gap-2 px-3 pt-4 border-t border-[#E7E0D5] mt-4">
+                {(["en", "hy"] as const).map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setLang(l)}
+                    className={cn(
+                      "px-3 py-1.5 text-sm rounded border",
+                      lang === l ? "border-brand bg-brand text-white" : "border border-[#E7E0D5] bg-white text-[#57534E]",
+                    )}
+                  >
+                    {l === "en" ? "EN" : "ՀՅ"}
+                  </button>
+                ))}
               </div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-    </>
+              <button
+                type="button"
+                className="block w-[calc(100%-1.5rem)] mx-3 mt-3 text-center btn-primary py-3.5 rounded-lg type-button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  openConsultation();
+                }}
+              >
+                {t.nav.inquire}
+              </button>
+              <a
+                href="tel:+37496799733"
+                className="flex items-center justify-center gap-2 mx-3 mt-2 py-3 text-sm font-semibold text-[#57534E] border border-[#E7E0D5] rounded-lg"
+              >
+                <Phone size={16} />
+                +374 96 799733
+              </a>
+            </nav>
+          </aside>
+        </>
+      )}
+    </div>
   );
 }

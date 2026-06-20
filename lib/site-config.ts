@@ -18,18 +18,32 @@ export const DEFAULT_META_DESCRIPTION =
 
 export const META_KEYWORDS = [
   "CasaGroup",
+  "apartments in Yerevan",
+  "new developments Armenia",
+  "buy apartment Armenia",
+  "primary market real estate",
+  "new construction apartments",
+  "investment property Armenia",
   "Armenia real estate",
-  "new construction Yerevan",
   "premium apartments Armenia",
-  "residential complexes",
-  "new build sales",
   "property buying",
-  "developer projects",
 ].join(", ");
 
 export const SITE_AUTHOR = "CasaGroup";
 
-export const THEME_COLOR = "#0C1428";
+export const THEME_COLOR = "#FAF8F5";
+
+/** Primary brand navy — use for accents, focus states, dark bands (not full-page backgrounds). */
+export const BRAND_COLOR = "#0C1428";
+
+export const ACCENT_COLOR = "#c9a96e";
+
+/** Partner portal URL — set `NEXT_PUBLIC_PARTNER_PORTAL_URL` for subdomain (e.g. partners.casagroup.am). */
+export function getPartnerPortalUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_PARTNER_PORTAL_URL?.trim();
+  if (raw) return raw.replace(/\/$/, "");
+  return `${getSiteUrl()}/partners`;
+}
 
 export function absoluteUrl(path: string): string {
   const base = getSiteUrl();

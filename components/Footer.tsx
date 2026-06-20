@@ -4,86 +4,71 @@ import { useI18n } from "@/lib/i18n";
 
 export function Footer() {
   const { t } = useI18n();
-  const navLinks = [
-    { label: t.footer.links.home, href: "/" },
-    { label: t.footer.links.about, href: "/about" },
-    { label: t.footer.links.services, href: "/services" },
-    { label: t.footer.links.projects, href: "/projects" },
-    { label: t.footer.links.academy, href: "/#academy" },
-    { label: t.footer.links.faq, href: "/#faq" },
-    { label: t.footer.links.contact, href: "/contact" },
-  ];
 
   return (
-    <footer className="bg-[#060d1a] border-t border-[#2a2520]">
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-          {/* Brand */}
-          <div className="md:col-span-2">
+    <footer className="bg-brand text-white">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="lg:col-span-1">
             <Link href="/">
-              <span className="font-['Cormorant_Garamond'] text-3xl font-light tracking-widest text-[#f0ece4] cursor-pointer">
+              <span className="text-2xl font-bold">
                 Casa<span className="text-[#c9a96e]">Group</span>
               </span>
             </Link>
-            <p className="mt-5 text-[#9a9085] font-light leading-relaxed max-w-sm text-sm">
-              {t.footer.tagline}
-            </p>
-            <div className="flex gap-4 mt-8">
+            <p className="mt-4 text-sm text-white/60 leading-relaxed">{t.footer.tagline}</p>
+            <div className="flex gap-3 mt-6">
               {[Instagram, Facebook, Linkedin].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="w-10 h-10 border border-[#2a2520] flex items-center justify-center text-[#9a9085] hover:border-[#c9a96e] hover:text-[#c9a96e] transition-all rounded-sm"
-                >
+                <a key={i} href="#" className="w-9 h-9 flex items-center justify-center rounded border border-white/20 text-white/60 hover:border-[#c9a96e] hover:text-[#c9a96e] transition-colors">
                   <Icon size={16} />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Navigation */}
           <div>
-            <p className="text-xs tracking-[0.25em] uppercase text-[#c9a96e] mb-6 font-medium">{t.footer.navigation}</p>
-            <nav className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <Link key={link.href} href={link.href}>
-                  <span className="text-sm text-[#9a9085] hover:text-[#f0ece4] transition-colors cursor-pointer">
-                    {link.label}
-                  </span>
-                </Link>
-              ))}
+            <p className="text-sm font-semibold text-[#c9a96e] mb-4">{t.sales.realty}</p>
+            <nav className="flex flex-col gap-2.5">
+              <Link href="/properties" className="text-sm text-white/60 hover:text-white transition-colors">{t.sales.realtyBuy}</Link>
+              <Link href="/projects" className="text-sm text-white/60 hover:text-white transition-colors">{t.sales.realtyDevelopments}</Link>
+              <Link href="/calculator" className="text-sm text-white/60 hover:text-white transition-colors">{t.sales.realtyCalculator}</Link>
+              <Link href="/investment" className="text-sm text-white/60 hover:text-white transition-colors">{t.nav.investment}</Link>
             </nav>
           </div>
 
-          {/* Contact */}
           <div>
-            <p className="text-xs tracking-[0.25em] uppercase text-[#c9a96e] mb-6 font-medium">{t.footer.contact}</p>
-            <div className="flex flex-col gap-4">
-              <a href="tel:+37496799733" className="flex items-center gap-3 text-sm text-[#9a9085] hover:text-[#f0ece4] transition-colors group">
-                <Phone size={14} className="text-[#c9a96e]" />
+            <p className="text-sm font-semibold text-[#c9a96e] mb-4">{t.sales.aboutMenu}</p>
+            <nav className="flex flex-col gap-2.5">
+              <Link href="/about" className="text-sm text-white/60 hover:text-white transition-colors">{t.footer.links.about}</Link>
+              <Link href="/blog" className="text-sm text-white/60 hover:text-white transition-colors">{t.footer.links.blog}</Link>
+              <Link href="/contact" className="text-sm text-white/60 hover:text-white transition-colors">{t.nav.contact}</Link>
+              <Link href="/partners" className="text-sm text-white/60 hover:text-white transition-colors">{t.footer.links.partner}</Link>
+            </nav>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-[#c9a96e] mb-4">{t.footer.contact}</p>
+            <div className="flex flex-col gap-3">
+              <a href="tel:+37496799733" className="flex items-center gap-2 text-sm text-white/60 hover:text-[#c9a96e] transition-colors">
+                <Phone size={14} className="text-[#c9a96e] shrink-0" />
                 +374 96 799733
               </a>
-              <a href="mailto:casagroup@gmail.com" className="flex items-center gap-3 text-sm text-[#9a9085] hover:text-[#f0ece4] transition-colors group">
-                <Mail size={14} className="text-[#c9a96e]" />
+              <a href="mailto:casagroup@gmail.com" className="flex items-center gap-2 text-sm text-white/60 hover:text-[#c9a96e] transition-colors">
+                <Mail size={14} className="text-[#c9a96e] shrink-0" />
                 casagroup@gmail.com
               </a>
-              <div className="flex items-start gap-3 text-sm text-[#9a9085]">
-                <MapPin size={14} className="text-[#c9a96e] mt-0.5 shrink-0" />
-                <span className="leading-relaxed break-words">{t.contact.address}</span>
+              <div className="flex items-start gap-2 text-sm text-white/60">
+                <MapPin size={14} className="text-[#c9a96e] shrink-0 mt-0.5" />
+                <span>{t.contact.address}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="pt-8 border-t border-[#2a2520] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[#5a554f] text-center md:text-left">
-            © {new Date().getFullYear()} CasaGroup. {t.footer.rights}{" "}
-            <span className="text-[#5a554f]/80">{t.footer.thankYou}</span>
-          </p>
-          <div className="flex gap-6">
-            <a href="#" className="text-xs text-[#5a554f] hover:text-[#9a9085] transition-colors">{t.footer.privacy}</a>
-            <a href="#" className="text-xs text-[#5a554f] hover:text-[#9a9085] transition-colors">{t.footer.terms}</a>
+        <div className="mt-12 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
+          <p>© {new Date().getFullYear()} CasaGroup. {t.footer.rights}</p>
+          <div className="flex gap-5">
+            <a href="#" className="hover:text-white/70 transition-colors">{t.footer.privacy}</a>
+            <a href="#" className="hover:text-white/70 transition-colors">{t.footer.terms}</a>
           </div>
         </div>
       </div>

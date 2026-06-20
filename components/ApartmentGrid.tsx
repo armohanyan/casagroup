@@ -36,8 +36,8 @@ function SpecItem({
     <div className="flex items-center gap-2.5 min-w-0">
       <Icon size={14} className="text-[#c9a96e] shrink-0" aria-hidden />
       <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-[#5a554f] leading-none">{label}</p>
-        <p className="text-sm text-[#f0ece4] mt-0.5 truncate">{value}</p>
+        <p className="text-[10px] uppercase tracking-wider text-[#A8A29E] leading-none">{label}</p>
+        <p className="text-sm text-[#1C1917] mt-0.5 truncate">{value}</p>
       </div>
     </div>
   );
@@ -55,14 +55,14 @@ export function ApartmentGrid({ apartments, projectSlug }: Props) {
         return (
           <motion.article
             key={apt.id}
-            className="group bg-[#0d1829] border border-[#2a2520] rounded-xl overflow-hidden hover:border-[#c9a96e]/40 transition-colors"
+            className="group bg-white border border-[#E7E0D5] rounded-xl overflow-hidden hover:border-[#c9a96e]/40 hover:shadow-lg hover:shadow-black/5 transition-all shadow-sm shadow-black/[0.04]"
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.06, duration: 0.45 }}
           >
             <Link href={href} className="block">
-              <div className="relative aspect-[4/3] overflow-hidden bg-[#162035]">
+              <div className="relative aspect-[4/3] overflow-hidden bg-[#F3EFE8]">
                 {cover ? (
                   <Image
                     src={cover}
@@ -73,22 +73,22 @@ export function ApartmentGrid({ apartments, projectSlug }: Props) {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-[#5a554f] text-xs tracking-widest uppercase">
+                  <div className="absolute inset-0 flex items-center justify-center text-[#A8A29E] text-xs tracking-widest uppercase">
                     {t.table.view}
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0d1829] via-[#0d1829]/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
                 <div className="absolute top-3 left-3">
                   <StatusBadge status={apt.status} />
                 </div>
-                <p className="absolute bottom-3 right-3 font-['Cormorant_Garamond'] text-2xl text-[#c9a96e]">
+                <p className="absolute bottom-3 right-3 font-sans font-semibold text-2xl text-[#c9a96e]">
                   {formatPrice(apt.price)}
                 </p>
               </div>
 
               <div className="p-5 space-y-4">
                 <div className="flex items-start justify-between gap-3">
-                  <p className="font-['Cormorant_Garamond'] text-xl text-[#f0ece4] leading-tight">
+                  <p className="font-sans font-semibold text-xl text-[#1C1917] leading-tight">
                     {apt.rooms} {t.aptDetail.bedroomApt}
                   </p>
                   <span className="inline-flex items-center gap-1 text-xs tracking-widest uppercase text-[#c9a96e] shrink-0 pt-1 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -121,9 +121,9 @@ export function ApartmentGrid({ apartments, projectSlug }: Props) {
                 </div>
 
                 {apt.balcony && (
-                  <div className="flex items-center gap-2 pt-1 border-t border-[#2a2520]">
+                  <div className="flex items-center gap-2 pt-1 border-t border-[#E7E0D5]">
                     <Sun size={14} className="text-[#c9a96e]" aria-hidden />
-                    <span className="text-xs text-[#9a9085]">{t.aptDetail.balcony}</span>
+                    <span className="text-xs text-[#57534E]">{t.aptDetail.balcony}</span>
                   </div>
                 )}
               </div>
