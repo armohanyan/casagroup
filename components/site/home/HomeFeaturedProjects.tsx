@@ -59,13 +59,18 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
       <Container>
         <div className="flex flex-col gap-6 mb-10 md:mb-12 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#C8A96A]">
-              {t.home.featuredEyebrow}
-            </p>
-            <h2 className="font-display text-3xl md:text-[2.75rem] text-[#111827] mt-2 tracking-tight leading-tight">
+            {t.home.featuredEyebrow ? (
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#C8A96A]">
+                {t.home.featuredEyebrow}
+              </p>
+            ) : null}
+            <h2 className={cn("font-display text-3xl md:text-[2.75rem] text-[#111827] tracking-tight leading-tight", t.home.featuredEyebrow ? "mt-2" : "")}>
               {t.home.featuredTitle}
             </h2>
-            <p className="mt-3 text-sm text-[#6B7280] leading-relaxed max-w-lg">{t.home.featuredSubtitle}</p>
+            <p className="mt-3 text-base text-[#374151] leading-relaxed max-w-lg">{t.home.featuredSubtitle}</p>
+            {t.home.featuredSubtitle2 ? (
+              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed max-w-lg">{t.home.featuredSubtitle2}</p>
+            ) : null}
           </div>
 
           <Link

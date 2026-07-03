@@ -7,7 +7,7 @@ import { Container } from "@/components/site/Container";
 import { useI18n } from "@/lib/i18n";
 
 const WHATSAPP = "https://wa.me/37496799733";
-const OWNER_PHOTO = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&q=85";
+const OWNER_PHOTO = "/owner.jpg";
 
 export function OwnerProfile() {
   const { t } = useI18n();

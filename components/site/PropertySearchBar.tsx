@@ -112,9 +112,11 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
           <button
             type="submit"
             className={cn(
-              "h-11 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#C8A96A] text-[#111827] text-sm font-semibold",
-              "hover:bg-[#d4b87a] active:scale-[0.98] transition-all",
-              isHero && "xl:w-auto xl:min-w-[148px] xl:px-5 xl:shrink-0",
+              "h-11 w-full inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold",
+              "hover:opacity-95 active:scale-[0.98] transition-all",
+              isHero
+                ? "bg-[#1D4ED8] text-white hover:bg-[#1E40AF] xl:w-auto xl:min-w-[148px] xl:px-5 xl:shrink-0"
+                : "bg-[#C8A96A] text-[#111827] hover:bg-[#d4b87a]",
             )}
           >
             <Search size={16} strokeWidth={2.5} />

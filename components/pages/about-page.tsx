@@ -53,7 +53,6 @@ export default function AboutPage() {
                 {t.about.whyTitle}
               </h2>
               <p className="mt-5 text-base text-[#374151] leading-relaxed">{t.about.whyBody}</p>
-              <p className="mt-4 text-base text-[#6B7280] leading-relaxed">{t.about.storyP1}</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/contact"

@@ -33,10 +33,10 @@ export function HomeHero() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/projects" className="inline-flex h-11 items-center px-6 rounded-lg bg-white text-[#111827] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors">
+          <Link href="/projects" className="inline-flex h-11 items-center px-6 rounded-lg bg-white text-[#111827] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors shadow-sm">
             {t.home.heroCtaProjects}
           </Link>
-          <a href="tel:+37496799733" className="inline-flex h-11 items-center px-6 rounded-lg border border-white/60 text-white text-sm font-semibold hover:bg-white/10 transition-colors">
+          <a href="tel:+37496799733" className="inline-flex h-11 items-center px-6 rounded-lg bg-[#25D366] text-white text-sm font-semibold hover:bg-[#20BD5A] transition-colors shadow-sm">
             {t.home.heroCtaAgent}
           </a>
         </div>
