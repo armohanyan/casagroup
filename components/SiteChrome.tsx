@@ -5,8 +5,7 @@ import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PartnerChrome } from "@/components/partner/PartnerChrome";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { StickyCallButton } from "@/components/site/StickyCallButton";
 import { ConsultationModal } from "@/components/ConsultationModal";
 import { ConsultationModalProvider } from "@/lib/consultation-modal";
 import { GlobalJsonLd } from "@/components/seo/GlobalJsonLd";
@@ -27,10 +26,9 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     <ConsultationModalProvider>
       <GlobalJsonLd />
       <Navbar />
-      <div className="pb-mobile-nav">{children}</div>
+      {children}
       <Footer />
-      <WhatsAppButton />
-      <MobileBottomNav />
+      <StickyCallButton />
       <ConsultationModal />
     </ConsultationModalProvider>
   );

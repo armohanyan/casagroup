@@ -1,3 +1,5 @@
-"use client";
+import { redirect } from "next/navigation";
 
-export { default } from "@/components/pages/blog-page";
+export default function BlogPage() {
+  redirect("/projects");
+}

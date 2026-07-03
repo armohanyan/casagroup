@@ -1,25 +1,32 @@
+"use client";
+
 import { useMemo, useState } from "react";
-import { DeveloperCarouselCard } from "@/components/sales/DeveloperCarouselCard";
-import { ListingSearchPanel } from "@/components/sales/ListingSearchPanel";
-import { PageHero } from "@/components/sales/PageHero";
-import { FilterBar, type FilterState } from "@/components/FilterBar";
+import { useSearchParams } from "next/navigation";
 import { Seo } from "@/components/seo/Seo";
+import { Container } from "@/components/site/Container";
+import { PropertyCard } from "@/components/site/PropertyCard";
+import { ProjectsMapExplorer } from "@/components/site/ProjectsMapExplorer";
+import { ProjectsSidebarFilters } from "@/components/site/ProjectsSidebarFilters";
 import { useProjects } from "@/lib/projects-context";
 import { useI18n } from "@/lib/i18n";
+import type { FilterState } from "@/components/FilterBar";
+import { cn } from "@/lib/utils";
 
 export default function ProjectsPage() {
   const { t, lang } = useI18n();
   const { projects } = useProjects();
+  const searchParams = useSearchParams();
+  const cities = useMemo(() => [...new Set(projects.map((p) => p.city))], [projects]);
 
-  const CITIES = useMemo(() => [...new Set(projects.map((p) => p.city))], [projects]);
-
-  const [filters, setFilters] = useState<FilterState>({
-    city: "",
-    status: "",
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    city: searchParams.get("city") ?? "",
+    status: searchParams.get("status") ?? "",
     minPrice: 0,
-    maxPrice: 0,
-    rooms: "",
-  });
+    maxPrice: Number(searchParams.get("maxPrice") ?? 0),
+    rooms: searchParams.get("rooms") ?? "",
+  }));
+
+  const [view, setView] = useState<"list" | "map">("list");
 
   const filtered = useMemo(() => {
     return projects.filter((p) => {
@@ -27,53 +34,66 @@ export default function ProjectsPage() {
       if (filters.status && p.status !== filters.status) return false;
       if (filters.maxPrice > 0 && p.startingPrice > filters.maxPrice) return false;
       if (filters.rooms) {
-        const r = parseInt(filters.rooms);
-        const hasRoom = p.apartments.some((a) =>
-          filters.rooms === "4" ? a.rooms >= 4 : a.rooms === r
-        );
-        if (!hasRoom) return false;
+        const r = parseInt(filters.rooms, 10);
+        const has = p.apartments.some((a) => (filters.rooms === "4" ? a.rooms >= 4 : a.rooms === r));
+        if (!has) return false;
       }
       return true;
     });
   }, [filters, projects]);
 
   return (
-    <main className="bg-[#F6F7FB] min-h-screen">
-      <Seo
-        title={t.seo.projects.title}
-        description={t.seo.projects.description}
-        path="/projects"
-        lang={lang}
-      />
+    <main className="bg-[#F9FAFB] min-h-screen pt-header">
+      <Seo title={t.seo.projects.title} description={t.seo.projects.description} path="/projects" lang={lang} />
 
-      <PageHero title={t.projects.title} subtitle={t.sales.fromDevelopers} overlap>
-        <ListingSearchPanel cities={CITIES} projects={projects} />
-      </PageHero>
-
-      <section className="pt-4 sm:pt-6 max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
-        <div className="mb-6">
-          <FilterBar filters={filters} onChange={setFilters} cities={CITIES} />
-        </div>
-
-        <p className="text-sm text-[#57534E] mb-6">
-          {t.projects.showing}{" "}
-          <span className="font-semibold text-[#1C1917]">{filtered.length}</span>{" "}
-          {filtered.length !== 1 ? t.projects.projectsWord : t.projects.projectWord}
-        </p>
-
-        {filtered.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-xl border border-[#E7E0D5]">
-            <p className="text-lg font-semibold text-[#1C1917] mb-2">{t.projects.noResults}</p>
-            <p className="text-sm text-[#A8A29E]">{t.projects.noResultsHint}</p>
+      <Container className="py-6 md:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-semibold text-[#111827]">{t.projects.title}</h1>
+            <p className="mt-1 text-sm text-[#6B7280]">
+              {filtered.length} {filtered.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
+            </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {filtered.map((project) => (
-              <DeveloperCarouselCard key={project.id} project={project} className="!w-full" />
+          <div className="flex rounded-lg border border-[#E5E7EB] bg-white p-1 self-start">
+            {(["list", "map"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                  view === v ? "bg-[#111827] text-white" : "text-[#6B7280] hover:text-[#111827]",
+                )}
+              >
+                {v === "list" ? t.projects.viewList : t.projects.viewMap}
+              </button>
             ))}
           </div>
-        )}
-      </section>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+          <aside className="lg:sticky lg:top-20 lg:self-start">
+            <ProjectsSidebarFilters filters={filters} onChange={setFilters} cities={cities} />
+          </aside>
+
+          <div>
+            {filtered.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-lg border border-[#E5E7EB]">
+                <p className="font-medium text-[#111827]">{t.projects.noResults}</p>
+                <p className="mt-1 text-sm text-[#6B7280]">{t.projects.noResultsHint}</p>
+              </div>
+            ) : view === "map" ? (
+              <ProjectsMapExplorer projects={filtered} />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-5">
+                {filtered.map((project) => (
+                  <PropertyCard key={project.id} project={project} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </Container>
     </main>
   );
 }

@@ -31,6 +31,23 @@ export interface Apartment {
   balcony?: boolean;
 }
 
+export type GalleryCategory =
+  | "exterior"
+  | "interior"
+  | "entrance"
+  | "lobby"
+  | "parking"
+  | "green"
+  | "rooftop"
+  | "construction"
+  | "drone"
+  | "night";
+
+export interface ProjectGalleryItem {
+  url: string;
+  category: GalleryCategory;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -40,6 +57,7 @@ export interface Project {
   description: string;
   longDescription: string;
   images: string[];
+  gallery?: ProjectGalleryItem[];
   videoUrl?: string;
   droneVideos?: { title: string; url: string; thumbnail?: string }[];
   startingPrice: number;

@@ -6,12 +6,16 @@
 
 @theme {
   --font-sans: var(--font-inter), var(--font-armenian), ui-sans-serif, system-ui, sans-serif;
-  --color-brand: #0c1428;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --color-brand: #0f172a;
+  --color-brand-secondary: #1e293b;
   --color-brand-foreground: #ffffff;
-  --color-accent: #c9a96e;
+  --color-accent: #c8a96a;
   --color-accent-soft: #e8d5b0;
-  --color-surface: #f6f7fb;
-  --color-border: #e7e0d5;
+  --color-surface: #f8fafc;
+  --color-muted: #6b7280;
+  --color-text: #111827;
+  --color-border: #e2e8f0;
   --shadow-card: 0 1px 3px rgba(12, 20, 40, 0.04), 0 4px 16px rgba(12, 20, 40, 0.06);
   --shadow-card-hover: 0 4px 12px rgba(12, 20, 40, 0.08), 0 12px 32px rgba(12, 20, 40, 0.1);
   --radius-card: 0.875rem;
@@ -19,17 +23,17 @@
 
 :root {
   --header-h: 4rem;
-  --brand: #0c1428;
+  --brand: #0f172a;
   --brand-soft: color-mix(in srgb, var(--brand) 8%, white);
   --brand-ring: color-mix(in srgb, var(--brand) 14%, transparent);
   --brand-input-bg: white;
   --brand-input-border: var(--color-border);
-  --accent: #c9a96e;
+  --accent: #c8a96a;
 }
 
 @media (min-width: 1024px) {
   :root {
-    --header-h: 6.25rem;
+    --header-h: 4.5rem;
   }
 }
 
@@ -45,8 +49,12 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
-  background-color: #f6f7fb;
-  color: #1c1917;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 ::selection {

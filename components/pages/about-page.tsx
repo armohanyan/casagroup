@@ -1,247 +1,114 @@
-import { motion } from "framer-motion";
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { PageHero } from "@/components/sales/PageHero";
-import { SectionTitle } from "@/components/ui/SectionTitle";
-import { StatsSection } from "@/components/StatsSection";
+import { BadgeCheck, Building2, Globe2, Tag, Zap } from "lucide-react";
+import { Container } from "@/components/site/Container";
+import { HomeContactStrip } from "@/components/site/home/HomeContactStrip";
+import { OwnerProfile } from "@/components/site/OwnerProfile";
 import { Seo } from "@/components/seo/Seo";
+import { siteImages } from "@/lib/site-images";
 import { useI18n } from "@/lib/i18n";
-import { useMediaQuery } from "@/lib/use-media-query";
-import type { TeamSectionDisplay } from "@/types";
 
-const TEAM_IMGS = [
-  "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",
-  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80",
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
-];
+const WHY_ICONS = [Globe2, Building2, Tag, Zap];
 
 export default function AboutPage() {
   const { t, lang } = useI18n();
-  const canFineHover = useMediaQuery("(hover: hover) and (pointer: fine)");
-  const [teamSections, setTeamSections] = useState<TeamSectionDisplay[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetch(`/api/team?lang=${lang}`, { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("team fetch failed"))))
-      .then((data: { sections?: TeamSectionDisplay[] }) => {
-        if (!cancelled && Array.isArray(data.sections) && data.sections.length > 0) {
-          setTeamSections(data.sections);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setTeamSections(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [lang]);
-
-  const displayedTeamSections: TeamSectionDisplay[] =
-    teamSections ?? (t.about.teamSections as TeamSectionDisplay[]);
 
   return (
-    <main className="bg-[#F6F7FB] min-h-screen">
-      <Seo
-        title={t.seo.about.title}
-        description={t.seo.about.description}
-        path="/about"
-        lang={lang}
-      />
+    <main className="bg-white min-h-screen">
+      <Seo title={t.seo.about.title} description={t.seo.about.description} path="/about" lang={lang} />
 
-      <PageHero
-        title={
-          <>
-            {t.about.heroTitle1}
-            <br />
-            <span className="text-[#c9a96e]">{t.about.heroTitle2}</span>
-          </>
-        }
-        subtitle={t.about.heroEyebrow}
-      />
-
-      {/* Story */}
-      <section className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="relative w-full h-64 sm:h-80 lg:h-[500px] rounded-xl overflow-hidden">
-              <Image
-                src="https://images.unsplash.com/photo-1600573472592-401b489a3cdc?w=800&q=80"
-                alt="CasaGroup leadership collaborating on a residential development strategy"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <SectionTitle eyebrow={t.about.storyEyebrow} title={t.about.storyTitle} />
-            <div className="space-y-5 text-[#57534E] leading-relaxed text-base">
-              <p>{t.about.storyP1}</p>
-              <p>{t.about.storyP2}</p>
-              <p>{t.about.storyP3}</p>
-              <p>{t.about.storyP4}</p>
-            </div>
-            <div className="mt-10">
-              <Link href="/projects">
-                <span className="btn-outline inline-block px-8 py-3.5 text-xs tracking-[0.25em] uppercase rounded-sm cursor-pointer">
-                  {t.about.storyCta}
-                </span>
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <StatsSection />
-
-      {/* Values */}
-      <section className="py-32 max-w-7xl mx-auto px-6 lg:px-10">
-        <SectionTitle
-          eyebrow={t.about.principlesEyebrow}
-          title={t.about.principlesTitle}
-          centered
+      {/* Hero */}
+      <section className="relative pt-header min-h-[340px] md:min-h-[420px] flex items-center justify-center overflow-hidden">
+        <Image
+          src={siteImages.hero.about}
+          alt=""
+          fill
+          priority
+          unoptimized
+          sizes="100vw"
+          className="object-cover"
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-          {t.about.values.map((v, i) => (
-            <motion.div
-              key={i}
-              className="bg-[#F3EFE8] border border-[#E7E0D5] rounded-xl p-8 hover:border-[#c9a96e]/30 transition-all"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <p className="text-xs tracking-[0.2em] uppercase text-[#c9a96e] mb-3">0{i + 1}</p>
-              <h3 className="font-sans font-semibold text-2xl text-[#1C1917] mb-3">
-                {v.title}
-              </h3>
-              <p className="text-[#57534E] text-sm leading-relaxed">{v.desc}</p>
-            </motion.div>
-          ))}
-        </div>
+        <div className="absolute inset-0 bg-[#0F172A]/70" />
+        <Container className="relative z-10 py-16 md:py-20 text-center">
+          <h1 className="font-display text-4xl md:text-5xl lg:text-[3.25rem] text-white tracking-tight">
+            {t.about.pageTitle}
+          </h1>
+          <p className="mt-5 text-base md:text-lg text-white/85 max-w-2xl mx-auto leading-relaxed">
+            {t.about.pageSubtitle}
+          </p>
+        </Container>
       </section>
 
-      {/* Team */}
-      <section className="py-32 bg-[#F3EFE8] border-y border-[#E7E0D5]">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <SectionTitle
-            eyebrow={t.about.teamEyebrow}
-            title={t.about.teamTitle}
-            centered
-          />
-          <div className="space-y-20 mt-4">
-            {displayedTeamSections.map((section, si) => {
-              const imgOffset = displayedTeamSections
-                .slice(0, si)
-                .reduce((acc, s) => acc + s.members.length, 0);
-              return (
-                <div key={si}>
-                  <motion.div
-                    className="text-center mb-10"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
+      {/* Why CasaGroup — Liam two-column */}
+      <section className="py-16 md:py-24">
+        <Container>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#C8A96A]">
+                {t.about.whyEyebrow}
+              </p>
+              <h2 className="font-display text-3xl md:text-4xl text-[#111827] mt-3 tracking-tight leading-tight">
+                {t.about.whyTitle}
+              </h2>
+              <p className="mt-5 text-base text-[#374151] leading-relaxed">{t.about.whyBody}</p>
+              <p className="mt-4 text-base text-[#6B7280] leading-relaxed">{t.about.storyP1}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/contact"
+                  className="inline-flex h-12 items-center px-7 rounded-md bg-[#111827] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
+                >
+                  {t.nav.contact}
+                </Link>
+                <Link
+                  href="/projects"
+                  className="inline-flex h-12 items-center px-7 rounded-md border border-[#E5E7EB] text-[#111827] text-sm font-semibold hover:border-[#111827] transition-colors"
+                >
+                  {t.about.storyCta}
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-0">
+              {t.home.whyMinimal.map((item, i) => {
+                const Icon = WHY_ICONS[i] ?? BadgeCheck;
+                return (
+                  <div
+                    key={item.title}
+                    className="flex gap-5 py-8 border-b border-[#E8EAED] last:border-b-0 first:pt-0"
                   >
-                    <p className="text-[10px] sm:text-xs tracking-[0.25em] uppercase text-[#c9a96e] mb-2">
-                      {section.sectionEyebrow}
-                    </p>
-                    <h3 className="font-sans font-semibold text-2xl sm:text-3xl text-[#1C1917]">
-                      {section.sectionTitle}
-                    </h3>
-                  </motion.div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-12 max-w-5xl mx-auto">
-                    {section.members.map((member, mi) => {
-                      const i = imgOffset + mi;
-                      return (
-                        <motion.div
-                          key={`${si}-${mi}`}
-                          className="group"
-                          initial={{ opacity: 0, y: 30 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: mi * 0.08 }}
-                        >
-                          <div className="relative overflow-hidden rounded-xl mb-5 h-72">
-                            <motion.div
-                              className="h-full w-full"
-                              whileHover={canFineHover ? { scale: 1.05 } : undefined}
-                              transition={{ duration: 0.4 }}
-                            >
-                              <Image
-                                src={member.imageUrl ?? TEAM_IMGS[i % TEAM_IMGS.length]}
-                                alt={member.name}
-                                fill
-                                sizes="(max-width: 640px) 100vw, 50vw"
-                                unoptimized={!!member.imageUrl}
-                                className="object-cover grayscale transition-all duration-500 group-hover:grayscale-0"
-                              />
-                            </motion.div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#FAF8F5] via-transparent to-transparent" />
-                          </div>
-                          <p className="font-sans font-semibold text-xl text-[#1C1917]">
-                            {member.name}
-                          </p>
-                          <p className="text-xs tracking-widest uppercase text-[#c9a96e] mt-1">
-                            {member.role}
-                          </p>
-                        </motion.div>
-                      );
-                    })}
+                    <div className="shrink-0 pt-0.5">
+                      <Icon size={22} className="text-[#C8A96A]" strokeWidth={1.5} />
+                    </div>
+                    <div className="border-l border-[#E8EAED] pl-6">
+                      <h3 className="font-semibold text-[#111827]">{item.title}</h3>
+                      <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">{item.desc}</p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </Container>
       </section>
 
-      {/* CTA */}
-      <section className="py-32 max-w-7xl mx-auto px-6 lg:px-10 text-center">
-        <motion.p
-          className="text-xs tracking-[0.4em] uppercase text-[#c9a96e] mb-4"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-        >
-          {t.about.ctaEyebrow}
-        </motion.p>
-        <motion.h2
-          className="font-sans font-semibold text-[#1C1917] mb-8 max-w-2xl mx-auto break-words hyphens-auto"
-          style={{ fontSize: lang === "hy" ? "clamp(1.4rem, 2vw, 2rem)" : "clamp(1.6rem, 2.5vw, 2.5rem)" }}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          {t.about.ctaTitle}
-        </motion.h2>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/projects">
-            <span className="btn-outline inline-block px-10 py-4 text-xs tracking-[0.3em] uppercase rounded-sm cursor-pointer">
-              {t.about.ctaProjects}
-            </span>
-          </Link>
-          <Link href="/contact">
-            <span className="btn-outline inline-block px-10 py-4 text-xs tracking-[0.3em] uppercase rounded-sm cursor-pointer">
-              {t.about.ctaContact}
-            </span>
-          </Link>
-        </div>
+      {/* Stats strip */}
+      <section className="py-14 md:py-16 bg-[#F9FAFB] border-y border-[#E8EAED]">
+        <Container>
+          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            {t.about.stats.map((stat) => (
+              <div key={stat.label}>
+                <dt className="font-display text-4xl md:text-5xl text-[#111827] tabular-nums">{stat.value}</dt>
+                <dd className="mt-2 text-sm text-[#6B7280] font-medium">{stat.label}</dd>
+              </div>
+            ))}
+          </dl>
+        </Container>
       </section>
+
+      <OwnerProfile />
+      <HomeContactStrip />
     </main>
   );
 }
