@@ -1,5 +1,6 @@
 # CasaGroup
 
+
 Next.js (App Router) + React. Public routes use the App Router; admin stays at `/admin-lx9k2m` without the public chrome.
 
 ## Requirements
