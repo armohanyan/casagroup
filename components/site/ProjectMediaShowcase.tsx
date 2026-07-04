@@ -26,7 +26,8 @@ export function ProjectMediaShowcase({ project, items }: Props) {
     [items, filter],
   );
 
-  const active = filtered[index] ?? filtered[0];
+  const safeIndex = filtered.length === 0 ? 0 : Math.min(index, filtered.length - 1);
+  const active = filtered[safeIndex];
   const availableCategories = GALLERY_CATEGORIES.filter((cat) => items.some((i) => i.category === cat));
 
   const categoryLabel = (cat: GalleryCategory | "all") =>
@@ -38,16 +39,22 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   };
 
   const prev = useCallback(() => {
-    setIndex((i) => (i - 1 + filtered.length) % filtered.length);
+    setIndex((i) => {
+      const len = filtered.length;
+      if (len === 0) return 0;
+      const current = Math.min(i, len - 1);
+      return (current - 1 + len) % len;
+    });
   }, [filtered.length]);
 
   const next = useCallback(() => {
-    setIndex((i) => (i + 1) % filtered.length);
+    setIndex((i) => {
+      const len = filtered.length;
+      if (len === 0) return 0;
+      const current = Math.min(i, len - 1);
+      return (current + 1) % len;
+    });
   }, [filtered.length]);
-
-  useEffect(() => {
-    if (index >= filtered.length) setIndex(0);
-  }, [filtered.length, index]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -86,7 +93,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
         <AnimatePresence mode="wait" initial={false}>
           {active && (
             <motion.div
-              key={active.url + index}
+              key={active.url + safeIndex}
               className="absolute inset-0 pointer-events-none"
               initial={{ opacity: 0, scale: 1.03 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -162,7 +169,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
             </div>
             {active && (
               <p className="mt-3 text-xs text-white/55">
-                {categoryLabel(active.category)} · {index + 1} / {filtered.length}
+                {categoryLabel(active.category)} · {safeIndex + 1} / {filtered.length}
               </p>
             )}
           </div>
@@ -196,12 +203,12 @@ export function ProjectMediaShowcase({ project, items }: Props) {
                 onClick={() => setIndex(i)}
                 className={cn(
                   "relative shrink-0 w-20 h-14 md:w-24 md:h-16 rounded-lg overflow-hidden border-2 transition-all",
-                  i === index
+                  i === safeIndex
                     ? "border-[#c9a96e] opacity-100 ring-2 ring-[#c9a96e]/30"
                     : "border-transparent opacity-55 hover:opacity-90",
                 )}
                 aria-label={`${categoryLabel(item.category)} ${i + 1}`}
-                aria-current={i === index}
+                aria-current={i === safeIndex}
               >
                 <Image src={item.url} alt="" fill unoptimized sizes="96px" className="object-cover" />
               </button>
@@ -226,7 +233,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
               <div className="min-w-0">
                 <p className="text-sm font-medium text-white truncate">{project.title}</p>
                 <p className="text-xs text-white/60 mt-0.5">
-                  {categoryLabel(active.category)} · {index + 1} / {filtered.length}
+                  {categoryLabel(active.category)} · {safeIndex + 1} / {filtered.length}
                 </p>
               </div>
               <button
@@ -249,7 +256,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
                 <ChevronLeft size={24} />
               </button>
               <motion.div
-                key={index}
+                key={safeIndex}
                 className="relative w-full h-full max-w-6xl max-h-[75vh]"
                 initial={{ opacity: 0, x: 16 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -276,7 +283,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
                     onClick={() => setIndex(i)}
                     className={cn(
                       "relative w-14 h-14 shrink-0 rounded-lg overflow-hidden border-2 transition-all",
-                      i === index ? "border-[#c9a96e] opacity-100" : "border-transparent opacity-50 hover:opacity-80",
+                      i === safeIndex ? "border-[#c9a96e] opacity-100" : "border-transparent opacity-50 hover:opacity-80",
                     )}
                   >
                     <Image src={item.url} alt="" fill unoptimized sizes="56px" className="object-cover" />

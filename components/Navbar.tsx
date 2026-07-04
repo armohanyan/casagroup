@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Phone } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Lang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -19,14 +19,44 @@ function isActive(href: string, pathname: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function LangToggle({ onDark = false }: { onDark?: boolean }) {
+  const { lang, setLang } = useI18n();
+
+  return (
+    <div className="flex items-center gap-1.5" role="group" aria-label="Language">
+      {(["en", "hy"] as const).map((l: Lang) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => setLang(l)}
+          className={cn(
+            "w-9 h-9 text-[11px] font-semibold rounded border transition-colors",
+            lang === l
+              ? onDark
+                ? "border-white text-white bg-white/15"
+                : "border-[#0c1428] bg-[#0c1428] text-white"
+              : onDark
+                ? "border-white/35 text-white/65"
+                : "border-[#E5E7EB] text-[#6B7280]",
+          )}
+          aria-pressed={lang === l}
+        >
+          {l === "en" ? "EN" : "ՀՅ"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const { t, lang, setLang } = useI18n();
+  const { t } = useI18n();
 
   const isHome = pathname === "/";
   const transparent = isHome && !scrolled;
+  const headerDark = transparent || mobileOpen;
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 24);
@@ -61,36 +91,6 @@ export function Navbar() {
         ? isActive(href, pathname) ? "text-white" : "text-white/80 hover:text-white"
         : isActive(href, pathname) ? "text-[#0c1428]" : "text-[#6B7280] hover:text-[#0c1428]",
     );
-
-  const langBtnCls = (l: "en" | "hy", onDark: boolean) =>
-    cn(
-      "w-9 h-9 text-[11px] font-semibold rounded border transition-colors",
-      lang === l
-        ? onDark
-          ? "border-white text-white bg-white/15"
-          : "border-[#0c1428] bg-[#0c1428] text-white"
-        : onDark
-          ? "border-white/35 text-white/65"
-          : "border-[#E5E7EB] text-[#6B7280]",
-    );
-
-  const LangToggle = ({ onDark = false }: { onDark?: boolean }) => (
-    <div className="flex items-center gap-1.5" role="group" aria-label="Language">
-      {(["en", "hy"] as const).map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => setLang(l)}
-          className={langBtnCls(l, onDark)}
-          aria-pressed={lang === l}
-        >
-          {l === "en" ? "EN" : "ՀՅ"}
-        </button>
-      ))}
-    </div>
-  );
-
-  const headerDark = transparent || mobileOpen;
 
   return (
     <header
