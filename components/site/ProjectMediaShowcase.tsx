@@ -32,7 +32,10 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   const active = filtered[safeIndex];
   const availableCategories = GALLERY_CATEGORIES.filter((cat) => items.some((i) => i.category === cat));
   const filteredLenRef = useRef(filtered.length);
-  filteredLenRef.current = filtered.length;
+
+  useEffect(() => {
+    filteredLenRef.current = filtered.length;
+  }, [filtered.length]);
 
   const categoryLabel = (cat: GalleryCategory | "all") =>
     cat === "all" ? t.projectDetail.galleryAll : t.projectDetail.galleryCategories[cat];

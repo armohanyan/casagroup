@@ -36,11 +36,6 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
   const [direction, setDirection] = useState(1);
   const rootRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const indexRef = useRef(index);
-  const imagesRef = useRef(images);
-
-  indexRef.current = index;
-  imagesRef.current = images;
 
   useEffect(() => {
     const el = rootRef.current;
@@ -65,17 +60,16 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
       const dx = e.changedTouches[0].clientX - touchStart.current.x;
       const dy = e.changedTouches[0].clientY - touchStart.current.y;
       touchStart.current = null;
-      const list = imagesRef.current;
-      if (list.length <= 1) return;
+      const len = images.length;
+      if (len <= 1) return;
       if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
       e.stopPropagation();
-      const i = indexRef.current;
       if (dx < 0) {
         setDirection(1);
-        setIndex((i + 1) % list.length);
+        setIndex((i) => (i + 1) % len);
       } else {
         setDirection(-1);
-        setIndex((i - 1 + list.length) % list.length);
+        setIndex((i) => (i - 1 + len) % len);
       }
     };
 
