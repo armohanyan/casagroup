@@ -22,7 +22,7 @@ export default function InvestmentPage() {
           ))}
         </div>
         <div className="mt-10">
-          <Link href="/contact" className="inline-flex h-12 items-center px-6 rounded-lg bg-[#111827] text-white text-sm font-semibold">
+          <Link href="/contact" className="inline-flex h-12 items-center px-6 rounded-lg bg-[#0c1428] text-white text-sm font-semibold">
             {t.investment.ctaButton}
           </Link>
         </div>

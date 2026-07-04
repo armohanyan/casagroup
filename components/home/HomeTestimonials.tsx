@@ -29,7 +29,7 @@ export function HomeTestimonials() {
 
         <Reveal delay={0.1}>
           <div className="relative max-w-3xl mx-auto text-center">
-            <Quote size={40} className="mx-auto text-[#C8A96A]/40 mb-8" strokeWidth={1} />
+            <Quote size={40} className="mx-auto text-[#c9a96e]/40 mb-8" strokeWidth={1} />
 
             <AnimatePresence mode="wait">
               <motion.div
@@ -41,7 +41,7 @@ export function HomeTestimonials() {
               >
                 <div className="flex justify-center gap-1 mb-8">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} size={14} className="fill-[#C8A96A] text-[#C8A96A]" />
+                    <Star key={i} size={14} className="fill-[#c9a96e] text-[#c9a96e]" />
                   ))}
                 </div>
                 <blockquote className="font-display text-xl md:text-2xl text-white/90 leading-relaxed italic">
@@ -69,7 +69,7 @@ export function HomeTestimonials() {
                     key={i}
                     type="button"
                     onClick={() => setIndex(i)}
-                    className={`w-2 h-2 rounded-full transition-colors ${i === index ? "bg-[#C8A96A]" : "bg-white/25"}`}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === index ? "bg-[#c9a96e]" : "bg-white/25"}`}
                     aria-label={`Testimonial ${i + 1}`}
                   />
                 ))}

@@ -74,7 +74,7 @@ export function HomeConstruction({ projects }: Props) {
             const progress = progressForStatus(project.status);
             return (
               <Reveal key={project.id} delay={i * 0.06}>
-                <div className="flex flex-col md:flex-row gap-6 p-6 rounded-lg border border-[#E2E8F0] hover:border-[#C8A96A]/30 transition-colors">
+                <div className="flex flex-col md:flex-row gap-6 p-6 rounded-lg border border-[#E2E8F0] hover:border-[#c9a96e]/30 transition-colors">
                   <div className="relative w-full md:w-48 h-32 shrink-0 rounded-lg overflow-hidden image-zoom">
                     {project.images[0] && (
                       <Image
@@ -95,7 +95,7 @@ export function HomeConstruction({ projects }: Props) {
                       </div>
                       <Link
                         href={`/projects/${project.slug}`}
-                        className="text-sm font-semibold text-[#C8A96A] hover:text-[#a88a52] shrink-0"
+                        className="text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52] shrink-0"
                       >
                         {t.home.viewProject} →
                       </Link>
@@ -107,7 +107,7 @@ export function HomeConstruction({ projects }: Props) {
                       </div>
                       <div className="h-1.5 bg-[#E2E8F0] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-[#C8A96A] rounded-full transition-all duration-700"
+                          className="h-full bg-[#c9a96e] rounded-full transition-all duration-700"
                           style={{ width: `${progress}%` }}
                         />
                       </div>

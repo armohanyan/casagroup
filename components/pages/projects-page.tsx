@@ -49,7 +49,7 @@ export default function ProjectsPage() {
       <Container className="py-6 md:py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-[#111827]">{t.projects.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-semibold text-[#0c1428]">{t.projects.title}</h1>
             <p className="mt-1 text-sm text-[#6B7280]">
               {filtered.length} {filtered.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
             </p>
@@ -62,7 +62,7 @@ export default function ProjectsPage() {
                 onClick={() => setView(v)}
                 className={cn(
                   "px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                  view === v ? "bg-[#111827] text-white" : "text-[#6B7280] hover:text-[#111827]",
+                  view === v ? "bg-[#0c1428] text-white" : "text-[#6B7280] hover:text-[#0c1428]",
                 )}
               >
                 {v === "list" ? t.projects.viewList : t.projects.viewMap}
@@ -79,7 +79,7 @@ export default function ProjectsPage() {
           <div>
             {filtered.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-lg border border-[#E5E7EB]">
-                <p className="font-medium text-[#111827]">{t.projects.noResults}</p>
+                <p className="font-medium text-[#0c1428]">{t.projects.noResults}</p>
                 <p className="mt-1 text-sm text-[#6B7280]">{t.projects.noResultsHint}</p>
               </div>
             ) : view === "map" ? (

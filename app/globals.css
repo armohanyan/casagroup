@@ -10,11 +10,11 @@
   --color-brand: #0f172a;
   --color-brand-secondary: #1e293b;
   --color-brand-foreground: #ffffff;
-  --color-accent: #c8a96a;
+  --color-accent: #c9a96e;
   --color-accent-soft: #e8d5b0;
   --color-surface: #f8fafc;
   --color-muted: #6b7280;
-  --color-text: #111827;
+  --color-text: #0c1428;
   --color-border: #e2e8f0;
   --shadow-card: 0 1px 3px rgba(12, 20, 40, 0.04), 0 4px 16px rgba(12, 20, 40, 0.06);
   --shadow-card-hover: 0 4px 12px rgba(12, 20, 40, 0.08), 0 12px 32px rgba(12, 20, 40, 0.1);
@@ -28,7 +28,7 @@
   --brand-ring: color-mix(in srgb, var(--brand) 14%, transparent);
   --brand-input-bg: white;
   --brand-input-border: var(--color-border);
-  --accent: #c8a96a;
+  --accent: #c9a96e;
 }
 
 @media (min-width: 1024px) {
@@ -50,7 +50,7 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
   background-color: #ffffff;
-  color: #111827;
+  color: #0c1428;
 }
 
 .font-display {
@@ -483,4 +483,49 @@ html[lang="hy"] body {
   border-right: 2px solid #c9a96e;
   border-bottom: 2px solid #c9a96e;
   transform: translateX(-50%) rotate(45deg);
+}
+
+.project-map-pin {
+  position: relative;
+  transform: translate(-50%, -100%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50% 50% 50% 0;
+  background: #c9a96e;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+  rotate: -45deg;
+}
+
+.project-map-pin span {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: #0c1428;
+}
+
+/* Keep Leaflet panes/controls inside their map container, not above the site header */
+.leaflet-container {
+  z-index: 0;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  color: #0c1428 !important;
+  border-bottom-color: #e5e7eb !important;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 6px 0 0 0 !important;
 }

@@ -11,13 +11,13 @@ export function HomeContactStrip() {
   const { t } = useI18n();
 
   return (
-    <section className="py-14 md:py-16 bg-[#111827]">
+    <section className="py-14 md:py-16 bg-[#0c1428]">
       <Container className="text-center">
         <h2 className="text-2xl md:text-3xl font-semibold text-white">{t.home.contactStripTitle}</h2>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <a
             href="tel:+37496799733"
-            className="inline-flex h-12 items-center gap-2 px-6 rounded-lg bg-[#C8A96A] text-[#111827] text-sm font-semibold hover:bg-[#d4b87a]"
+            className="inline-flex h-12 items-center gap-2 px-6 rounded-lg bg-[#c9a96e] text-[#0c1428] text-sm font-semibold hover:bg-[#d4b87a]"
           >
             <Phone size={18} />
             {t.home.contactStripCall}

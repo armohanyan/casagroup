@@ -37,7 +37,10 @@ export function ProjectsMapCanvas({ projects, highlightId, centerId, onMarkerCli
       center: [40.1776, 44.5126],
       zoom: 12,
       scrollWheelZoom: true,
+      zoomControl: false,
     });
+
+    L.control.zoom({ position: "bottomright" }).addTo(map);
 
     L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',

@@ -61,7 +61,7 @@ export function HomeMap({ projects }: Props) {
                   </div>
                   <h3 className="font-display text-xl text-[#0F172A]">{selected.title}</h3>
                   <p className="mt-1 text-sm text-[#6B7280]">{selected.location}</p>
-                  <p className="mt-4 text-sm font-semibold text-[#C8A96A]">
+                  <p className="mt-4 text-sm font-semibold text-[#c9a96e]">
                     {t.home.startingFrom} {formatPrice(selected.startingPrice)}
                   </p>
                   <Link

@@ -46,23 +46,23 @@ export default function AboutPage() {
         <Container>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#C8A96A]">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#c9a96e]">
                 {t.about.whyEyebrow}
               </p>
-              <h2 className="font-display text-3xl md:text-4xl text-[#111827] mt-3 tracking-tight leading-tight">
+              <h2 className="font-display text-3xl md:text-4xl text-[#0c1428] mt-3 tracking-tight leading-tight">
                 {t.about.whyTitle}
               </h2>
               <p className="mt-5 text-base text-[#374151] leading-relaxed">{t.about.whyBody}</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/contact"
-                  className="inline-flex h-12 items-center px-7 rounded-md bg-[#111827] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
+                  className="inline-flex h-12 items-center px-7 rounded-md bg-[#0c1428] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
                 >
                   {t.nav.contact}
                 </Link>
                 <Link
                   href="/projects"
-                  className="inline-flex h-12 items-center px-7 rounded-md border border-[#E5E7EB] text-[#111827] text-sm font-semibold hover:border-[#111827] transition-colors"
+                  className="inline-flex h-12 items-center px-7 rounded-md border border-[#E5E7EB] text-[#0c1428] text-sm font-semibold hover:border-[#0c1428] transition-colors"
                 >
                   {t.about.storyCta}
                 </Link>
@@ -78,10 +78,10 @@ export default function AboutPage() {
                     className="flex gap-5 py-8 border-b border-[#E8EAED] last:border-b-0 first:pt-0"
                   >
                     <div className="shrink-0 pt-0.5">
-                      <Icon size={22} className="text-[#C8A96A]" strokeWidth={1.5} />
+                      <Icon size={22} className="text-[#c9a96e]" strokeWidth={1.5} />
                     </div>
                     <div className="border-l border-[#E8EAED] pl-6">
-                      <h3 className="font-semibold text-[#111827]">{item.title}</h3>
+                      <h3 className="font-semibold text-[#0c1428]">{item.title}</h3>
                       <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">{item.desc}</p>
                     </div>
                   </div>
@@ -98,7 +98,7 @@ export default function AboutPage() {
           <dl className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
             {t.about.stats.map((stat) => (
               <div key={stat.label}>
-                <dt className="font-display text-4xl md:text-5xl text-[#111827] tabular-nums">{stat.value}</dt>
+                <dt className="font-display text-4xl md:text-5xl text-[#0c1428] tabular-nums">{stat.value}</dt>
                 <dd className="mt-2 text-sm text-[#6B7280] font-medium">{stat.label}</dd>
               </div>
             ))}

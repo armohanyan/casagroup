@@ -36,7 +36,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-xs font-medium text-[#6B7280]">{item.label}</p>
-                      <p className="text-sm font-medium text-[#111827] group-hover:text-[#C8A96A]">{item.value}</p>
+                      <p className="text-sm font-medium text-[#0c1428] group-hover:text-[#c9a96e]">{item.value}</p>
                     </div>
                   </a>
                 );
@@ -46,7 +46,7 @@ export default function ContactPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-[#111827] mb-4">{t.contact.formTitle}</h2>
+              <h2 className="text-lg font-semibold text-[#0c1428] mb-4">{t.contact.formTitle}</h2>
               <ContactForm />
             </div>
           </div>

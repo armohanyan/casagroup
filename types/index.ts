@@ -55,7 +55,10 @@ export interface Project {
   location: string;
   city: string;
   description: string;
+  /** Armenian short description; falls back to `description` when missing. */
+  descriptionHy?: string;
   longDescription: string;
+  longDescriptionHy?: string;
   images: string[];
   gallery?: ProjectGalleryItem[];
   videoUrl?: string;

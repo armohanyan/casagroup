@@ -151,7 +151,7 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
   return (
     <article
       data-card
-      className="group/card flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#C8A96A]/30 transition-all duration-300"
+      className="group/card flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
     >
       <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
         <CardImageSlider images={images} title={project.title} />
@@ -176,27 +176,27 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
 
       <div className="flex flex-col flex-1 p-5 md:p-6">
         <Link href={`/projects/${project.slug}`} className="group/title">
-          <h3 className="font-display text-xl text-[#111827] leading-snug line-clamp-2 group-hover/title:text-[#C8A96A] transition-colors">
+          <h3 className="font-display text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/title:text-[#c9a96e] transition-colors">
             {project.title}
           </h3>
         </Link>
 
         <p className="mt-2.5 flex items-center gap-1.5 text-sm text-[#6B7280]">
-          <MapPin size={14} className="shrink-0 text-[#C8A96A]" strokeWidth={2} />
+          <MapPin size={14} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
           <span className="truncate">{project.city}, {project.location}</span>
         </p>
 
         <div className="mt-auto pt-5">
           <div className="flex items-center justify-between gap-3 rounded-lg bg-[#F9FAFB] border border-[#F0F1F3] px-3 py-2.5">
-            <p className="flex items-center gap-2 min-w-0 text-[#111827]">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C8A96A]" aria-hidden />
+            <p className="flex items-center gap-2 min-w-0 text-[#0c1428]">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a96e]" aria-hidden />
               <span className="text-[11px] font-bold uppercase tracking-[0.1em] truncate">
                 {t.home.searchTypes.apartment}
               </span>
             </p>
             <Link
               href={`/projects/${project.slug}`}
-              className="inline-flex h-9 shrink-0 items-center justify-center px-4 rounded-md bg-[#C8A96A] text-white text-xs font-semibold leading-none hover:bg-[#b8995e] active:scale-[0.98] transition-all shadow-sm"
+              className="inline-flex h-9 shrink-0 items-center justify-center px-4 rounded-md bg-[#c9a96e] text-white text-xs font-semibold leading-none hover:bg-[#b8995e] active:scale-[0.98] transition-all shadow-sm"
             >
               {t.home.viewDetails}
             </Link>
@@ -205,7 +205,7 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
 
         {project.developer && (
           <div className="mt-4 pt-4 border-t border-[#F0F1F3] flex items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F9FAFB] text-[10px] font-bold text-[#C8A96A] border border-[#E8EAED]">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F9FAFB] text-[10px] font-bold text-[#c9a96e] border border-[#E8EAED]">
               {project.developer.charAt(0)}
             </span>
             <span className="text-xs font-medium text-[#6B7280] truncate">{project.developer}</span>

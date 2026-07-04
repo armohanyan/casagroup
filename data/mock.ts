@@ -10,8 +10,11 @@ export const MOCK_PROJECTS: Project[] = [
     location: "Tamanyan St 8, Yerevan",
     city: "Yerevan",
     description: "Contemporary luxury residences nestled beside the iconic Cascade complex.",
+    descriptionHy: "Ժամանակակից շքեղ բնակարաններ՝ Կասկադ համալիրի կողքին։",
     longDescription:
       "Positioned steps from one of Yerevan's most celebrated cultural landmarks, Cascade Residences offers a rare combination of architectural heritage and contemporary comfort. The building's facade draws inspiration from the stepped terraces of the Cascade itself, while interiors reflect a modern minimalist sensibility.",
+    longDescriptionHy:
+      "Երևանի ամենահայտնի մշակութային կոթողներից մեկի կողքին՝ Cascade Residences-ը համատեղում է ճարտարապետական ժառանգությունը և ժամանակակից հարմարավետությունը։ Շենքի ճակատը ոգեշնչված է Կասկադի աստիճանաձև տեռասներից, իսկ ինտերիերը արտացոլում է ժամանակակից մինիմալիստական ոճը։",
     images: [
       "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=80",
       "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&q=80",
@@ -118,8 +121,11 @@ export const MOCK_PROJECTS: Project[] = [
     location: "Komitas Ave 42, Yerevan",
     city: "Yerevan",
     description: "Elevated living in one of Yerevan's most sought-after residential districts.",
+    descriptionHy: "Բարձրակարգ կյանք Երևանի ամենապահանջված բնակելի թաղամասերից մեկում։",
     longDescription:
       "Arabkir Heights offers panoramic city views from a prime hillside location. Contemporary architecture meets family-friendly design with generous layouts and premium finishes throughout.",
+    longDescriptionHy:
+      "Arabkir Heights-ը առաջարկում է համայնապատկերային տեսարաններ քաղաքի վրա՝ բլրի վրա գտնվող հարմարավետ վայրից։ Ժամանակակից ճարտարապետությունը համատեղվում է ընտանեկան դիզայնի հետ՝ ընդարձակ հատակագծերով և պրեմիում հարդարանքով։",
     images: [
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
       "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80",
@@ -170,8 +176,11 @@ export const MOCK_PROJECTS: Project[] = [
     location: "Azatutyan Ave 12, Yerevan",
     city: "Yerevan",
     description: "Move-in ready luxury apartments in the prestigious Northern Avenue district.",
+    descriptionHy: "Պատրաստ շքեղ բնակարաններ Հյուսիսային պողոտայի հեղինակավոր թաղամասում։",
     longDescription:
       "Northern Residences delivers turnkey luxury in the heart of Yerevan's most vibrant neighborhood. Walk to cafes, galleries, and the city's finest dining.",
+    longDescriptionHy:
+      "Northern Residences-ը տրամադրում է պատրաստ շքեղություն Երևանի ամենակենսունակ թաղամասի սրտում։ Քայլելու հեռավորության վրա՝ սրճարաններ, պատկերասրահներ և քաղաքի լավագույն ռեստորաններ։",
     images: [
       "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=1200&q=80",
       "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=80",
@@ -221,8 +230,11 @@ export const MOCK_PROJECTS: Project[] = [
     location: "Baghramyan Ave 24, Yerevan",
     city: "Yerevan",
     description: "An exclusive hillside development overlooking Victory Park and Mount Ararat.",
+    descriptionHy: "Բացառիկ բլրային նախագիծ՝ Հաղթանակի այգու և Արարատ լեռան տեսարանով։",
     longDescription:
       "Victory Park Estates represents the pinnacle of Casa Group's portfolio — limited collection residences with unmatched views and bespoke interiors.",
+    longDescriptionHy:
+      "Victory Park Estates-ը Casa Group-ի պորտֆելի գագաթնակետն է՝ սահմանափակ քանակությամբ բնակարաններ անզուգական տեսարաններով և անհատական ինտերիերով։",
     images: [
       "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80",
       "https://images.unsplash.com/photo-1600047509807-ba8f64d4e676?w=1200&q=80",

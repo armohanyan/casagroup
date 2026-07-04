@@ -10,7 +10,7 @@ export function HomeContactCta() {
   const { openConsultation } = useConsultationModal();
 
   return (
-    <section className="py-16 md:py-20 bg-[#111827]">
+    <section className="py-16 md:py-20 bg-[#0c1428]">
       <Container className="text-center">
         <h2 className="text-2xl md:text-3xl font-semibold text-white">{t.home.ctaTitle}</h2>
         <p className="mt-3 text-base text-white/70 max-w-lg mx-auto">{t.home.ctaSubtitleShort}</p>
@@ -18,7 +18,7 @@ export function HomeContactCta() {
           <button
             type="button"
             onClick={openConsultation}
-            className="inline-flex h-12 items-center px-6 rounded-lg bg-white text-[#111827] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors"
+            className="inline-flex h-12 items-center px-6 rounded-lg bg-white text-[#0c1428] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors"
           >
             {t.home.ctaConsultation}
           </button>

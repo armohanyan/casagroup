@@ -34,7 +34,7 @@ export function HomeFeaturedProjects({ projects }: Props) {
           />
           <Link
             href="/projects"
-            className="shrink-0 text-sm font-semibold text-[#C8A96A] hover:text-[#a88a52] transition-colors"
+            className="shrink-0 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52] transition-colors"
           >
             {t.home.featuredAll}
           </Link>
@@ -63,11 +63,11 @@ export function HomeFeaturedProjects({ projects }: Props) {
                 </div>
 
                 <div className="p-6 md:p-8">
-                  <h3 className="font-display text-2xl md:text-[1.75rem] text-[#0F172A] leading-tight group-hover:text-[#C8A96A] transition-colors">
+                  <h3 className="font-display text-2xl md:text-[1.75rem] text-[#0F172A] leading-tight group-hover:text-[#c9a96e] transition-colors">
                     {project.title}
                   </h3>
                   <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
-                    <MapPin size={14} className="text-[#C8A96A] shrink-0" />
+                    <MapPin size={14} className="text-[#c9a96e] shrink-0" />
                     {project.location}
                   </p>
                   <p className="mt-4 text-sm text-[#6B7280] leading-relaxed line-clamp-2">{project.description}</p>
@@ -92,7 +92,7 @@ export function HomeFeaturedProjects({ projects }: Props) {
                     </Link>
                     <Link
                       href={`/projects/${project.slug}`}
-                      className="inline-flex h-11 items-center justify-center gap-2 px-6 rounded-sm border border-[#E2E8F0] text-[#0F172A] text-sm font-semibold hover:border-[#C8A96A] transition-colors"
+                      className="inline-flex h-11 items-center justify-center gap-2 px-6 rounded-sm border border-[#E2E8F0] text-[#0F172A] text-sm font-semibold hover:border-[#c9a96e] transition-colors"
                     >
                       <Download size={16} />
                       {t.home.downloadBrochure}

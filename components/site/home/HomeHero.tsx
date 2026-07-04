@@ -17,7 +17,7 @@ export function HomeHero() {
   const listings = projects.reduce((n, p) => n + p.availableApartmentsCount, 0);
 
   return (
-    <section className={`relative overflow-hidden bg-[#111827] ${pathname === "/" ? "min-h-[88vh] flex items-end" : ""}`}>
+    <section className={`relative overflow-hidden bg-[#0c1428] ${pathname === "/" ? "min-h-[88vh] flex items-end" : ""}`}>
       <Image src={siteImages.hero.home} alt="" fill priority unoptimized sizes="100vw" className="object-cover opacity-60" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/70" />
       <Container className="relative z-10 w-full pb-10 pt-28 md:pt-36 md:pb-14">
@@ -33,7 +33,7 @@ export function HomeHero() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/projects" className="inline-flex h-11 items-center px-6 rounded-lg bg-white text-[#111827] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors shadow-sm">
+          <Link href="/projects" className="inline-flex h-11 items-center px-6 rounded-lg bg-white text-[#0c1428] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors shadow-sm">
             {t.home.heroCtaProjects}
           </Link>
           <a href="tel:+37496799733" className="inline-flex h-11 items-center px-6 rounded-lg bg-[#25D366] text-white text-sm font-semibold hover:bg-[#20BD5A] transition-colors shadow-sm">

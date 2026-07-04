@@ -61,7 +61,7 @@ export function HomeHero() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full gap-12 lg:gap-8">
           <div className="max-w-2xl">
             <Reveal delay={0.1}>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#C8A96A] mb-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#c9a96e] mb-6">
                 {t.home.heroEyebrow}
               </p>
             </Reveal>
@@ -78,7 +78,7 @@ export function HomeHero() {
             <Reveal delay={0.45} className="mt-10 flex flex-wrap gap-4">
               <Link
                 href="/projects"
-                className="inline-flex h-12 items-center justify-center px-8 rounded-sm bg-[#C8A96A] text-[#0F172A] text-sm font-semibold tracking-wide hover:bg-[#d4b87a] transition-colors"
+                className="inline-flex h-12 items-center justify-center px-8 rounded-sm bg-[#c9a96e] text-[#0F172A] text-sm font-semibold tracking-wide hover:bg-[#d4b87a] transition-colors"
               >
                 {t.home.heroCtaProjects}
               </Link>

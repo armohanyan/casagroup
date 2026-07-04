@@ -25,7 +25,7 @@ export function HomeLifestyle() {
         <div className="flex items-center px-6 sm:px-10 lg:px-16 py-16 lg:py-24">
           <div className="max-w-lg">
             <Reveal>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C8A96A] mb-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c9a96e] mb-4">
                 {t.home.lifestyleEyebrow}
               </p>
             </Reveal>
@@ -38,7 +38,7 @@ export function HomeLifestyle() {
               <p className="mt-6 text-base text-white/65 leading-relaxed">{t.home.lifestyleBody}</p>
             </Reveal>
             <Reveal delay={0.3}>
-              <blockquote className="mt-10 pl-6 border-l-2 border-[#C8A96A] font-display text-xl text-white/90 italic">
+              <blockquote className="mt-10 pl-6 border-l-2 border-[#c9a96e] font-display text-xl text-white/90 italic">
                 {t.home.lifestyleQuote}
               </blockquote>
             </Reveal>

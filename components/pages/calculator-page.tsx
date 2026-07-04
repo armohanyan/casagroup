@@ -15,7 +15,7 @@ export default function CalculatorPage() {
       <Container className="py-10 max-w-2xl">
         <MortgageCalculator />
         <p className="mt-8 text-center text-sm text-[#6B7280]">
-          <Link href="/contact" className="font-semibold text-[#111827] hover:underline">{t.calculator.ctaButton}</Link>
+          <Link href="/contact" className="font-semibold text-[#0c1428] hover:underline">{t.calculator.ctaButton}</Link>
         </p>
       </Container>
     </main>

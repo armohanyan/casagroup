@@ -24,7 +24,7 @@ export function ProjectFilters({ filters, onChange, cities }: Props) {
   }
 
   const selectCls =
-    "w-full h-11 px-3 rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#111827] outline-none focus:border-[#111827]";
+    "w-full h-11 px-3 rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#0c1428] outline-none focus:border-[#0c1428]";
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

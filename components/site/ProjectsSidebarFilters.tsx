@@ -24,11 +24,11 @@ export function ProjectsSidebarFilters({ filters, onChange, cities }: Props) {
     onChange({ ...filters, [key]: value });
   }
 
-  const fieldCls = "w-full h-10 px-3 rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#111827] outline-none focus:border-[#111827]";
+  const fieldCls = "w-full h-10 px-3 rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#0c1428] outline-none focus:border-[#0c1428]";
 
   return (
     <div className="bg-white rounded-lg border border-[#E5E7EB] p-4 space-y-4">
-      <p className="text-sm font-semibold text-[#111827]">{t.projects.filtersTitle}</p>
+      <p className="text-sm font-semibold text-[#0c1428]">{t.projects.filtersTitle}</p>
 
       <div>
         <label className="block text-xs font-medium text-[#6B7280] mb-1">{t.filter.location}</label>
@@ -77,7 +77,7 @@ export function ProjectsSidebarFilters({ filters, onChange, cities }: Props) {
       <button
         type="button"
         onClick={() => onChange({ city: "", status: "", minPrice: 0, maxPrice: 0, rooms: "" })}
-        className="w-full text-xs font-medium text-[#6B7280] hover:text-[#111827] py-2"
+        className="w-full text-xs font-medium text-[#6B7280] hover:text-[#0c1428] py-2"
       >
         {t.filter.clearFilters}
       </button>

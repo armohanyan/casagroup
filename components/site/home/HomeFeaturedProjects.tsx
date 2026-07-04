@@ -48,7 +48,7 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
     cn(
       "absolute top-[42%] -translate-y-1/2 z-10 hidden md:flex w-12 h-12 items-center justify-center rounded-full bg-white border shadow-[0_4px_16px_rgba(0,0,0,0.08)] transition-all",
       enabled
-        ? "border-[#E5E7EB] text-[#111827] hover:border-[#C8A96A] hover:shadow-lg"
+        ? "border-[#E5E7EB] text-[#0c1428] hover:border-[#c9a96e] hover:shadow-lg"
         : "border-[#F3F4F6] text-[#D1D5DB] cursor-not-allowed opacity-50",
     );
 
@@ -60,11 +60,11 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
         <div className="flex flex-col gap-6 mb-10 md:mb-12 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-xl">
             {t.home.featuredEyebrow ? (
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#C8A96A]">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#c9a96e]">
                 {t.home.featuredEyebrow}
               </p>
             ) : null}
-            <h2 className={cn("font-display text-3xl md:text-[2.75rem] text-[#111827] tracking-tight leading-tight", t.home.featuredEyebrow ? "mt-2" : "")}>
+            <h2 className={cn("font-display text-3xl md:text-[2.75rem] text-[#0c1428] tracking-tight leading-tight", t.home.featuredEyebrow ? "mt-2" : "")}>
               {t.home.featuredTitle}
             </h2>
             <p className="mt-3 text-base text-[#374151] leading-relaxed max-w-lg">{t.home.featuredSubtitle}</p>
@@ -75,7 +75,7 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
 
           <Link
             href="/projects"
-            className="shrink-0 text-sm font-semibold text-[#C8A96A] hover:text-[#a88a52] transition-colors self-start lg:self-auto"
+            className="shrink-0 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52] transition-colors self-start lg:self-auto"
           >
             {t.home.featuredAll}
           </Link>

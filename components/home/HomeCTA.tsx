@@ -38,7 +38,7 @@ export function HomeCTA() {
           <button
             type="button"
             onClick={openConsultation}
-            className="inline-flex h-12 items-center justify-center px-8 rounded-sm bg-[#C8A96A] text-[#0F172A] text-sm font-semibold tracking-wide hover:bg-[#d4b87a] transition-colors"
+            className="inline-flex h-12 items-center justify-center px-8 rounded-sm bg-[#c9a96e] text-[#0F172A] text-sm font-semibold tracking-wide hover:bg-[#d4b87a] transition-colors"
           >
             {t.home.ctaConsultation}
           </button>

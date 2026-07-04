@@ -43,8 +43,8 @@ export default function ApartmentDetailPage() {
       <main className="min-h-screen pt-header flex items-center justify-center bg-white">
         <Seo title={t.aptNotFound} description={t.aptNotFound} path={`/projects/${slug ?? "_"}/apartments/${aptId ?? ""}`} lang={lang} noindex />
         <div className="text-center">
-          <p className="text-lg font-medium text-[#111827]">{t.aptNotFound}</p>
-          <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#C8A96A]">{t.backProjects} →</Link>
+          <p className="text-lg font-medium text-[#0c1428]">{t.aptNotFound}</p>
+          <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]">{t.backProjects} →</Link>
         </div>
       </main>
     );
@@ -76,9 +76,9 @@ export default function ApartmentDetailPage() {
 
       <Container className="py-6 md:py-10">
         <nav className="text-sm text-[#6B7280] mb-6">
-          <Link href={`/projects/${project.slug}`} className="hover:text-[#111827]">{project.title}</Link>
+          <Link href={`/projects/${project.slug}`} className="hover:text-[#0c1428]">{project.title}</Link>
           <span className="mx-2">/</span>
-          <span className="text-[#111827]">{apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}</span>
+          <span className="text-[#0c1428]">{apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 items-start">
@@ -99,14 +99,14 @@ export default function ApartmentDetailPage() {
                 <div key={label} className="p-4 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB]">
                   <Icon size={18} className="text-[#6B7280] mb-2" />
                   <p className="text-xs text-[#6B7280]">{label}</p>
-                  <p className="text-sm font-semibold text-[#111827] mt-0.5">{value}</p>
+                  <p className="text-sm font-semibold text-[#0c1428] mt-0.5">{value}</p>
                 </div>
               ))}
             </div>
 
             {apt.floorPlanImage && (
               <div>
-                <h2 className="text-lg font-semibold text-[#111827] mb-3">{t.aptDetail.layoutTitle}</h2>
+                <h2 className="text-lg font-semibold text-[#0c1428] mb-3">{t.aptDetail.layoutTitle}</h2>
                 <div className="relative w-full h-72 sm:h-96 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB]">
                   <Image src={apt.floorPlanImage} alt="" fill unoptimized className="object-contain p-4" sizes="(max-width:1024px) 100vw, 800px" />
                 </div>
@@ -116,7 +116,7 @@ export default function ApartmentDetailPage() {
 
           <aside className="lg:sticky lg:top-24 p-6 rounded-lg border border-[#E5E7EB] bg-[#F9FAFB]">
             <StatusBadge status={apt.status} />
-            <p className="mt-4 text-3xl font-semibold text-[#111827] tabular-nums">
+            <p className="mt-4 text-3xl font-semibold text-[#0c1428] tabular-nums">
               {sold ? "—" : formatPrice(apt.price)}
             </p>
             <p className="mt-1 text-sm text-[#6B7280]">{getStatusLabel(t, apt.status)}</p>
@@ -125,13 +125,13 @@ export default function ApartmentDetailPage() {
               <div className="mt-6 space-y-2">
                 <Link
                   href="/contact"
-                  className="flex h-12 items-center justify-center rounded-lg bg-[#111827] text-white text-sm font-semibold hover:bg-[#1F2937]"
+                  className="flex h-12 items-center justify-center rounded-lg bg-[#0c1428] text-white text-sm font-semibold hover:bg-[#1F2937]"
                 >
                   {t.aptDetail.requestInfo}
                 </Link>
                 <a
                   href="tel:+37496799733"
-                  className="flex h-12 items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white text-sm font-semibold text-[#111827] hover:border-[#111827]"
+                  className="flex h-12 items-center justify-center gap-2 rounded-lg border border-[#E5E7EB] bg-white text-sm font-semibold text-[#0c1428] hover:border-[#0c1428]"
                 >
                   <Phone size={16} />
                   {t.aptDetail.requestCall}
@@ -142,7 +142,7 @@ export default function ApartmentDetailPage() {
         </div>
 
         <section className="mt-12 max-w-lg">
-          <h2 className="text-lg font-semibold text-[#111827] mb-4">{t.aptDetail.inquireTitle}</h2>
+          <h2 className="text-lg font-semibold text-[#0c1428] mb-4">{t.aptDetail.inquireTitle}</h2>
           <ContactForm defaultProject={`${project.title} — ${apt.rooms} BR`} />
         </section>
       </Container>

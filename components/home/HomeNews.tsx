@@ -21,7 +21,7 @@ export function HomeNews() {
           />
           <Link
             href="/blog"
-            className="shrink-0 text-sm font-semibold text-[#C8A96A] hover:text-[#a88a52] transition-colors"
+            className="shrink-0 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52] transition-colors"
           >
             {t.sales.viewAll} →
           </Link>
@@ -32,19 +32,19 @@ export function HomeNews() {
             <Reveal key={item.title} delay={i * 0.08}>
               <Link
                 href="/blog"
-                className="group block h-full bg-white rounded-lg border border-[#E2E8F0] p-6 md:p-8 hover:border-[#C8A96A]/40 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)] transition-all duration-300"
+                className="group block h-full bg-white rounded-lg border border-[#E2E8F0] p-6 md:p-8 hover:border-[#c9a96e]/40 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(15,23,42,0.08)] transition-all duration-300"
               >
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[#C8A96A]">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[#c9a96e]">
                     {item.category}
                   </span>
                   <span className="text-xs text-[#6B7280]">{item.date}</span>
                 </div>
-                <h3 className="font-display text-lg text-[#0F172A] leading-snug group-hover:text-[#C8A96A] transition-colors">
+                <h3 className="font-display text-lg text-[#0F172A] leading-snug group-hover:text-[#c9a96e] transition-colors">
                   {item.title}
                 </h3>
                 <p className="mt-3 text-sm text-[#6B7280] leading-relaxed line-clamp-3">{item.excerpt}</p>
-                <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#0F172A] group-hover:text-[#C8A96A] transition-colors">
+                <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#0F172A] group-hover:text-[#c9a96e] transition-colors">
                   {t.home.readMore}
                   <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </span>

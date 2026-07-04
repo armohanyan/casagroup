@@ -39,8 +39,8 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
   );
 
   const selectCls = cn(
-    "h-11 w-full min-w-0 px-3 rounded-lg border text-sm text-[#111827] outline-none transition-colors",
-    "focus:border-[#111827] focus:ring-2 focus:ring-[#111827]/10",
+    "h-11 w-full min-w-0 px-3 rounded-lg border text-sm text-[#0c1428] outline-none transition-colors",
+    "focus:border-[#0c1428] focus:ring-2 focus:ring-[#0c1428]/10",
     isHero ? "border-[#E5E7EB] bg-[#F9FAFB] hover:bg-white focus:bg-white" : "border-[#E5E7EB] bg-white",
   );
 
@@ -115,8 +115,8 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
               "h-11 w-full inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold",
               "hover:opacity-95 active:scale-[0.98] transition-all",
               isHero
-                ? "bg-[#1D4ED8] text-white hover:bg-[#1E40AF] xl:w-auto xl:min-w-[148px] xl:px-5 xl:shrink-0"
-                : "bg-[#C8A96A] text-[#111827] hover:bg-[#d4b87a]",
+                ? "bg-[#c9a96e] text-[#0c1428] hover:bg-[#d4b87a] xl:w-auto xl:min-w-[148px] xl:px-5 xl:shrink-0"
+                : "bg-[#c9a96e] text-[#0c1428] hover:bg-[#d4b87a]",
             )}
           >
             <Search size={16} strokeWidth={2.5} />
