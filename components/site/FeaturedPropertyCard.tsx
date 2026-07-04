@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -34,7 +34,60 @@ const slideVariants = {
 function CardImageSlider({ images, title }: { images: string[]; title: string }) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(1);
-  const touchStart = useRef(0);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const indexRef = useRef(index);
+  const imagesRef = useRef(images);
+
+  indexRef.current = index;
+  imagesRef.current = images;
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || images.length <= 1) return;
+
+    const onStart = (e: TouchEvent) => {
+      touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!touchStart.current) return;
+      const dx = e.touches[0].clientX - touchStart.current.x;
+      const dy = e.touches[0].clientY - touchStart.current.y;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+
+    const onEnd = (e: TouchEvent) => {
+      if (!touchStart.current) return;
+      const dx = e.changedTouches[0].clientX - touchStart.current.x;
+      const dy = e.changedTouches[0].clientY - touchStart.current.y;
+      touchStart.current = null;
+      const list = imagesRef.current;
+      if (list.length <= 1) return;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+      e.stopPropagation();
+      const i = indexRef.current;
+      if (dx < 0) {
+        setDirection(1);
+        setIndex((i + 1) % list.length);
+      } else {
+        setDirection(-1);
+        setIndex((i - 1 + list.length) % list.length);
+      }
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [images.length]);
 
   if (images.length === 0) {
     return <div className="absolute inset-0 bg-[#F3F4F6]" />;
@@ -45,21 +98,14 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
     setIndex(next);
   };
 
-  const prev = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    goTo((index - 1 + images.length) % images.length, -1);
-  };
-
-  const next = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    goTo((index + 1) % images.length, 1);
-  };
+  const goPrev = () => goTo((index - 1 + images.length) % images.length, -1);
+  const goNext = () => goTo((index + 1) % images.length, 1);
 
   const arrowCls =
-    "absolute top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center text-white drop-shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-95";
+    "absolute top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center text-white drop-shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-95";
 
   return (
-    <>
+    <div ref={rootRef} className="absolute inset-0 touch-pan-y">
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={`${title}-${index}`}
@@ -69,63 +115,67 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
           animate="center"
           exit="exit"
           transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
         >
           <Image
             src={images[index]}
             alt={`${title} — ${index + 1}`}
             fill
             unoptimized
+            draggable={false}
             sizes="(max-width: 768px) 85vw, 420px"
-            className="object-cover"
+            className="object-cover select-none"
           />
         </motion.div>
       </AnimatePresence>
 
       {images.length > 1 && (
         <>
-          <button type="button" onClick={prev} aria-label="Previous image" className={cn(arrowCls, "left-2")}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goPrev();
+            }}
+            aria-label="Previous image"
+            className={cn(arrowCls, "left-2")}
+          >
             <ChevronLeft size={28} strokeWidth={1.5} />
           </button>
-          <button type="button" onClick={next} aria-label="Next image" className={cn(arrowCls, "right-2")}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goNext();
+            }}
+            aria-label="Next image"
+            className={cn(arrowCls, "right-2")}
+          >
             <ChevronRight size={28} strokeWidth={1.5} />
           </button>
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 flex gap-1.5 pointer-events-auto">
             {images.map((_, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   goTo(i, i > index ? 1 : -1);
                 }}
                 aria-label={`Image ${i + 1}`}
                 className={cn(
-                  "h-1 rounded-full transition-all duration-300",
-                  i === index ? "w-5 bg-white" : "w-1.5 bg-white/45 hover:bg-white/70",
+                  "h-1.5 rounded-full transition-all duration-300",
+                  i === index ? "w-5 bg-white" : "w-1.5 bg-white/45",
                 )}
               />
             ))}
           </div>
         </>
       )}
-
-      <div
-        className="absolute inset-0 z-10 md:hidden"
-        onTouchStart={(e) => {
-          touchStart.current = e.touches[0].clientX;
-          e.stopPropagation();
-        }}
-        onTouchEnd={(e) => {
-          if (images.length <= 1) return;
-          const diff = touchStart.current - e.changedTouches[0].clientX;
-          if (Math.abs(diff) < 40) return;
-          e.stopPropagation();
-          if (diff > 0) next();
-          else prev();
-        }}
-      />
-    </>
+    </div>
   );
 }
 

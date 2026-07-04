@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, MapPin, X } from "lucide-react";
@@ -20,6 +20,8 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   const [filter, setFilter] = useState<GalleryCategory | "all">("all");
   const [index, setIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const filtered = useMemo(
     () => (filter === "all" ? items : items.filter((item) => item.category === filter)),
@@ -29,6 +31,8 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   const safeIndex = filtered.length === 0 ? 0 : Math.min(index, filtered.length - 1);
   const active = filtered[safeIndex];
   const availableCategories = GALLERY_CATEGORIES.filter((cat) => items.some((i) => i.category === cat));
+  const filteredLenRef = useRef(filtered.length);
+  filteredLenRef.current = filtered.length;
 
   const categoryLabel = (cat: GalleryCategory | "all") =>
     cat === "all" ? t.projectDetail.galleryAll : t.projectDetail.galleryCategories[cat];
@@ -40,21 +44,21 @@ export function ProjectMediaShowcase({ project, items }: Props) {
 
   const prev = useCallback(() => {
     setIndex((i) => {
-      const len = filtered.length;
+      const len = filteredLenRef.current;
       if (len === 0) return 0;
       const current = Math.min(i, len - 1);
       return (current - 1 + len) % len;
     });
-  }, [filtered.length]);
+  }, []);
 
   const next = useCallback(() => {
     setIndex((i) => {
-      const len = filtered.length;
+      const len = filteredLenRef.current;
       if (len === 0) return 0;
       const current = Math.min(i, len - 1);
       return (current + 1) % len;
     });
-  }, [filtered.length]);
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -74,6 +78,44 @@ export function ProjectMediaShowcase({ project, items }: Props) {
     };
   }, [lightbox]);
 
+  // Mobile swipe on hero
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+
+    const onStart = (e: TouchEvent) => {
+      touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!touchStart.current || filteredLenRef.current <= 1) return;
+      const dx = e.touches[0].clientX - touchStart.current.x;
+      const dy = e.touches[0].clientY - touchStart.current.y;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8 && e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    const onEnd = (e: TouchEvent) => {
+      if (!touchStart.current || filteredLenRef.current <= 1) return;
+      const dx = e.changedTouches[0].clientX - touchStart.current.x;
+      const dy = e.changedTouches[0].clientY - touchStart.current.y;
+      touchStart.current = null;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+      if (dx < 0) next();
+      else prev();
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [next, prev]);
+
   if (items.length === 0) {
     return <div className="h-[50vh] bg-[#F3F4F6] pt-header" />;
   }
@@ -89,7 +131,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   return (
     <section className="bg-[#0F172A]" aria-label={project.title}>
       {/* Hero stage */}
-      <div className="relative h-[58vh] min-h-[380px] max-h-[720px] group">
+      <div ref={heroRef} className="relative h-[58vh] min-h-[380px] max-h-[720px] group touch-pan-y">
         <AnimatePresence mode="wait" initial={false}>
           {active && (
             <motion.div
