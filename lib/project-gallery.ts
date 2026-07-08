@@ -64,12 +64,6 @@ export function getProjectGallery(project: Project): ProjectGalleryItem[] {
     }
   }
 
-  for (const video of project.droneVideos ?? []) {
-    if (video.thumbnail) {
-      items.push({ url: video.thumbnail, category: "drone" });
-    }
-  }
-
   return items;
 }
 

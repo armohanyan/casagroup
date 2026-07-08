@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/format-price";
 import { listingCode } from "@/lib/listing-code";
 import { estimateMonthlyPayment } from "@/lib/mortgage-estimate";
 import { formatUnitLine } from "@/lib/unit-summary";
-import { getStatusLabel, useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import type { Apartment } from "@/types";
 
 interface Props {
@@ -19,7 +19,6 @@ interface Props {
 export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Props) {
   const { t, lang } = useI18n();
   const sold = apartment.status === "Sold";
-  const reserved = apartment.status === "Reserved";
   const monthly = estimateMonthlyPayment(apartment.price);
   const code = listingCode(apartment.id);
   const href = `/projects/${projectSlug}/apartments/${apartment.id}`;
@@ -27,7 +26,7 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
 
   const body = (
     <>
-      <div className="relative aspect-[4/3] bg-[#F3EFE8] border-b border-[#E7E0D5]">
+      <div className="relative mx-4 mt-4 aspect-[4/3] overflow-hidden rounded-md bg-white">
         {cover ? (
           <Image
             src={cover}
@@ -35,11 +34,7 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
             fill
             unoptimized
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-            className={
-              cover === apartment.floorPlanImage
-                ? "object-contain p-3"
-                : "object-cover"
-            }
+            className="object-cover"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[#A8A29E] text-[10px] tracking-widest uppercase">
@@ -78,14 +73,10 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
       <div className="px-4 pb-4">
         <span className="text-[11px] font-semibold text-[#57534E] tabular-nums tracking-wide">{code}</span>
       </div>
-      {(sold || reserved) && (
+      {sold && (
         <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center">
-          <span
-            className={`px-4 py-2 rounded-md text-sm font-bold uppercase tracking-wide ${
-              sold ? "bg-brand/90 text-white" : "bg-brand text-white"
-            }`}
-          >
-            {sold ? t.developerDetail.sold : getStatusLabel(t, apartment.status)}
+          <span className="px-4 py-2 rounded-md text-sm font-bold uppercase tracking-wide bg-brand/90 text-white">
+            {t.developerDetail.sold}
           </span>
         </div>
       )}
@@ -93,7 +84,7 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
   );
 
   const className =
-    "relative block bg-white border border-[#E7E0D5] rounded-lg overflow-hidden hover:border-[#c9a96e]/50 hover:shadow-md transition-all";
+    "relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all";
 
   if (sold) {
     return <article className={className}>{body}</article>;

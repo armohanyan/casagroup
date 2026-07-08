@@ -29,7 +29,6 @@ export function ProjectsMapExplorer({ projects }: Props) {
 
   const highlightId = hoverId ?? centerId;
 
-  // Keep mobile card strip in sync when a marker is selected
   useEffect(() => {
     if (!centerId || !mobileScrollRef.current) return;
     const el = mobileScrollRef.current.querySelector<HTMLElement>(`[data-project-id="${centerId}"]`);
@@ -38,7 +37,6 @@ export function ProjectsMapExplorer({ projects }: Props) {
 
   return (
     <div className="relative isolate z-0 rounded-2xl overflow-hidden border border-[#E5E7EB] bg-white shadow-[0_8px_30px_rgba(12,20,40,0.06)]">
-      {/* Map */}
       <div className="h-[min(70vh,520px)] lg:h-[560px] relative">
         <ProjectsMapCanvas
           projects={projects}
@@ -48,13 +46,11 @@ export function ProjectsMapExplorer({ projects }: Props) {
           onMarkerHover={setHoverId}
         />
 
-        {/* Desktop: floating vertical list */}
         <div className="hidden lg:flex absolute z-[400] left-4 top-4 bottom-4 w-[340px] flex-col rounded-xl bg-white/95 backdrop-blur-md border border-[#E5E7EB] shadow-xl overflow-hidden">
           <div className="px-4 py-3 border-b border-[#E5E7EB] shrink-0">
             <p className="text-sm font-semibold text-[#0c1428]">
               {projects.length} {projects.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
             </p>
-            <p className="text-xs text-[#6B7280] mt-0.5">{t.projects.mapListHint}</p>
           </div>
           <ul className="overflow-y-auto flex-1 divide-y divide-[#F0F1F3]">
             {projects.map((project) => (
@@ -70,7 +66,6 @@ export function ProjectsMapExplorer({ projects }: Props) {
           </ul>
         </div>
 
-        {/* Mobile: horizontal card strip */}
         <div className="lg:hidden absolute z-[400] inset-x-0 bottom-0 pb-3 pt-8 bg-gradient-to-t from-black/35 via-black/10 to-transparent pointer-events-none">
           <div className="px-3 mb-2 pointer-events-none">
             <p className="text-xs font-medium text-white drop-shadow">

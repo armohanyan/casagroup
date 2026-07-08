@@ -10,7 +10,7 @@ export function HomeWhy() {
   const { t } = useI18n();
 
   return (
-    <section className="py-14 md:py-16 bg-white">
+    <section className="py-2 md:py-16 bg-white">
       <Container>
         <h2 className="text-2xl font-semibold text-[#0c1428] mb-8">{t.home.whyMinimalTitle}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

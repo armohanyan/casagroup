@@ -22,21 +22,21 @@ export function HomeHero() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/70" />
       <Container className="relative z-10 w-full pb-10 pt-28 md:pt-36 md:pb-14">
         <div className="max-w-3xl">
-          <h1 className="text-4xl md:text-5xl lg:text-[3.25rem] font-semibold text-white leading-tight tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] font-semibold text-white leading-snug tracking-tight">
             {t.home.heroHeadline}
           </h1>
-          <p className="mt-4 text-lg text-white/85 max-w-xl">{t.home.heroSubline}</p>
+          <p className="mt-3 text-sm sm:text-base text-white/85 max-w-xl leading-relaxed">{t.home.heroSubline}</p>
         </div>
 
-        <div className="mt-10 max-w-5xl">
+        <div className="mt-8 max-w-5xl">
           <PropertySearchBar cities={cities} variant="hero" />
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/projects" className="inline-flex h-11 items-center px-6 rounded-lg bg-white text-[#0c1428] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors shadow-sm">
             {t.home.heroCtaProjects}
           </Link>
-          <a href="tel:+37496799733" className="inline-flex h-11 items-center px-6 rounded-lg bg-[#25D366] text-white text-sm font-semibold hover:bg-[#20BD5A] transition-colors shadow-sm">
+          <a href="tel:+37496799733" className="inline-flex h-11 items-center px-6 rounded-lg bg-[#c9a96e] text-[#0c1428] text-sm font-semibold hover:bg-[#d4b87a] transition-colors shadow-sm">
             {t.home.heroCtaAgent}
           </a>
         </div>

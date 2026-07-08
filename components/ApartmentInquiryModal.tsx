@@ -93,7 +93,7 @@ export function ApartmentInquiryModal({ type, onClose, context }: Props) {
     if (!form.fullName.trim()) e.fullName = t.form.required;
     if (!form.phone.trim()) e.phone = t.form.required;
     if (type === "info") {
-      if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = t.form.emailRequired;
+      if (form.email.trim() && !/\S+@\S+\.\S+/.test(form.email)) e.email = t.form.emailRequired;
       if (!form.message.trim()) e.message = t.form.required;
     }
     setErrors(e);
@@ -160,7 +160,7 @@ export function ApartmentInquiryModal({ type, onClose, context }: Props) {
     <AnimatePresence>
       {open && modalCopy && (
         <motion.div
-          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6"
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center px-4 pb-4 pt-0 sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -176,10 +176,8 @@ export function ApartmentInquiryModal({ type, onClose, context }: Props) {
           />
 
           <motion.div
-            className={`relative w-full bg-white border border-[#E7E0D5] shadow-xl overflow-hidden ${
-              isWide
-                ? "max-w-3xl max-h-[92vh] sm:rounded-xl rounded-t-xl"
-                : "max-w-md sm:rounded-xl rounded-t-xl"
+            className={`relative w-full bg-white border border-[#E7E0D5] shadow-xl overflow-hidden rounded-xl ${
+              isWide ? "max-w-3xl max-h-[92vh]" : "max-w-md"
             }`}
             initial={{ y: 24, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -196,7 +194,7 @@ export function ApartmentInquiryModal({ type, onClose, context }: Props) {
               <X size={16} />
             </button>
 
-            <div className={`p-6 sm:p-8 ${isWide ? "overflow-y-auto max-h-[92vh]" : ""}`}>
+            <div className={`px-5 py-6 sm:p-8 ${isWide ? "overflow-y-auto max-h-[92vh]" : ""}`}>
               {submitted ? (
                 <motion.div
                   className="flex flex-col items-center justify-center py-8 gap-4 text-center"
@@ -279,7 +277,7 @@ export function ApartmentInquiryModal({ type, onClose, context }: Props) {
                           <input
                             className={inputCls}
                             type="email"
-                            placeholder={t.form.email}
+                            placeholder={t.form.email.replace(" *", "")}
                             value={form.email}
                             onChange={(e) => setForm({ ...form, email: e.target.value })}
                           />

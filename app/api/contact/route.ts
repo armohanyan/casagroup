@@ -27,6 +27,11 @@ function validate(data: ParsedContactBody): string | null {
   if (!data.phone.trim()) return "phone is required";
   const simpleKinds = ["consultation", "callback", "visit"];
   if (data.kind && simpleKinds.includes(data.kind)) return null;
+  if (data.kind === "apartment-info") {
+    if (data.email.trim() && !isValidEmail(data.email)) return "valid email is required";
+    if (!data.message.trim()) return "message is required";
+    return null;
+  }
   if (!data.email.trim() || !isValidEmail(data.email)) return "valid email is required";
   if (!data.message.trim()) return "message is required";
   return null;

@@ -92,20 +92,6 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      {/* Stats strip */}
-      <section className="py-14 md:py-16 bg-[#F9FAFB] border-y border-[#E8EAED]">
-        <Container>
-          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-            {t.about.stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="font-display text-4xl md:text-5xl text-[#0c1428] tabular-nums">{stat.value}</dt>
-                <dd className="mt-2 text-sm text-[#6B7280] font-medium">{stat.label}</dd>
-              </div>
-            ))}
-          </dl>
-        </Container>
-      </section>
-
       <OwnerProfile />
       <HomeContactStrip />
     </main>

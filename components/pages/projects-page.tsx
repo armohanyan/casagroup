@@ -47,21 +47,21 @@ export default function ProjectsPage() {
       <Seo title={t.seo.projects.title} description={t.seo.projects.description} path="/projects" lang={lang} />
 
       <Container className="py-6 md:py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex flex-col gap-4 mb-5 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-[#0c1428]">{t.projects.title}</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-[#0c1428]">{t.projects.title}</h1>
             <p className="mt-1 text-sm text-[#6B7280]">
               {filtered.length} {filtered.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
             </p>
           </div>
-          <div className="flex rounded-lg border border-[#E5E7EB] bg-white p-1 self-start">
+          <div className="flex w-full rounded-lg border border-[#E5E7EB] bg-white p-1 sm:w-auto sm:self-start">
             {(["list", "map"] as const).map((v) => (
               <button
                 key={v}
                 type="button"
                 onClick={() => setView(v)}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-md transition-colors",
+                  "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors sm:flex-none",
                   view === v ? "bg-[#0c1428] text-white" : "text-[#6B7280] hover:text-[#0c1428]",
                 )}
               >
@@ -71,28 +71,24 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
-          <aside className="lg:sticky lg:top-20 lg:self-start">
-            <ProjectsSidebarFilters filters={filters} onChange={setFilters} cities={cities} />
-          </aside>
-
-          <div>
-            {filtered.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-lg border border-[#E5E7EB]">
-                <p className="font-medium text-[#0c1428]">{t.projects.noResults}</p>
-                <p className="mt-1 text-sm text-[#6B7280]">{t.projects.noResultsHint}</p>
-              </div>
-            ) : view === "map" ? (
-              <ProjectsMapExplorer projects={filtered} />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-5">
-                {filtered.map((project) => (
-                  <PropertyCard key={project.id} project={project} />
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="mb-6">
+          <ProjectsSidebarFilters filters={filters} onChange={setFilters} cities={cities} />
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-lg border border-[#E5E7EB]">
+            <p className="font-medium text-[#0c1428]">{t.projects.noResults}</p>
+            <p className="mt-1 text-sm text-[#6B7280]">{t.projects.noResultsHint}</p>
+          </div>
+        ) : view === "map" ? (
+          <ProjectsMapExplorer projects={filtered} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((project) => (
+              <PropertyCard key={project.id} project={project} />
+            ))}
+          </div>
+        )}
       </Container>
     </main>
   );

@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DeveloperUnitCard } from "@/components/sales/DeveloperUnitCard";
+import { BrandMultiSelect } from "@/components/ui/BrandMultiSelect";
+import { BrandSelect } from "@/components/ui/BrandSelect";
+import { RangeSlider } from "@/components/ui/RangeSlider";
 import { useI18n } from "@/lib/i18n";
 import type { Project } from "@/types";
 
 type SortKey = "price-asc" | "price-desc" | "area-asc" | "floor-asc";
-
-const selectCls = "field-select";
+type PaymentKey = "mortgage" | "installment";
 
 interface Props {
   project: Project;
@@ -15,36 +17,59 @@ interface Props {
 
 export function DeveloperFloorPlanSection({ project }: Props) {
   const { t } = useI18n();
-  const [rooms, setRooms] = useState("");
-  const [floor, setFloor] = useState("");
-  const [minArea, setMinArea] = useState(0);
+  const [selectedRooms, setSelectedRooms] = useState<number[]>([]);
+  const [selectedFloors, setSelectedFloors] = useState<number[]>([]);
+  const [areaMin, setAreaMin] = useState(0);
+  const [areaMax, setAreaMax] = useState(0);
+  const [payments, setPayments] = useState<PaymentKey[]>(["mortgage", "installment"]);
   const [sort, setSort] = useState<SortKey>("price-asc");
+  const [defaultsReady, setDefaultsReady] = useState(false);
 
-  const soldCount = project.apartments.filter((a) => a.status === "Sold").length;
-  const roomOptions = useMemo(
-    () => [...new Set(project.apartments.map((a) => a.rooms))].sort((a, b) => a - b),
+  const marketApartments = useMemo(
+    () => project.apartments.filter((a) => a.status !== "Reserved"),
     [project.apartments],
+  );
+  const roomOptions = useMemo(
+    () => [...new Set(marketApartments.map((a) => a.rooms))].sort((a, b) => a - b),
+    [marketApartments],
   );
   const floorOptions = useMemo(
-    () => [...new Set(project.apartments.map((a) => a.floor))].sort((a, b) => a - b),
-    [project.apartments],
+    () => [...new Set(marketApartments.map((a) => a.floor))].sort((a, b) => a - b),
+    [marketApartments],
   );
-  const areaOptions = useMemo(
-    () => [...new Set(project.apartments.map((a) => a.area))].sort((a, b) => a - b),
-    [project.apartments],
-  );
+  const areaBounds = useMemo(() => {
+    if (marketApartments.length === 0) return { min: 0, max: 100 };
+    const areas = marketApartments.map((a) => a.area);
+    return { min: Math.min(...areas), max: Math.max(...areas) };
+  }, [marketApartments]);
+
+  useEffect(() => {
+    setSelectedRooms(roomOptions);
+    setSelectedFloors(floorOptions);
+    setAreaMin(areaBounds.min);
+    setAreaMax(areaBounds.max);
+    setDefaultsReady(true);
+  }, [roomOptions, floorOptions, areaBounds.min, areaBounds.max]);
 
   const filtered = useMemo(() => {
-    let list = [...project.apartments];
-    if (rooms) {
-      const r = parseInt(rooms, 10);
-      list = list.filter((a) => a.rooms === r);
+    if (!defaultsReady) return [];
+    let list = [...marketApartments];
+
+    if (selectedRooms.length > 0) {
+      list = list.filter((a) => selectedRooms.includes(a.rooms));
+    } else {
+      list = [];
     }
-    if (floor) {
-      const f = parseInt(floor, 10);
-      list = list.filter((a) => a.floor === f);
+
+    if (list.length && selectedFloors.length > 0) {
+      list = list.filter((a) => selectedFloors.includes(a.floor));
+    } else if (selectedFloors.length === 0) {
+      list = [];
     }
-    if (minArea > 0) list = list.filter((a) => a.area >= minArea);
+
+    list = list.filter((a) => a.area >= areaMin && a.area <= areaMax);
+
+    if (payments.length === 0) list = [];
 
     list.sort((a, b) => {
       switch (sort) {
@@ -59,81 +84,111 @@ export function DeveloperFloorPlanSection({ project }: Props) {
       }
     });
     return list;
-  }, [project.apartments, rooms, floor, minArea, sort]);
+  }, [
+    defaultsReady,
+    marketApartments,
+    selectedRooms,
+    selectedFloors,
+    areaMin,
+    areaMax,
+    payments,
+    sort,
+  ]);
+
+  const paymentOptions = [
+    { value: "mortgage", label: t.developerDetail.paymentMortgage },
+    { value: "installment", label: t.developerDetail.paymentInstallment },
+  ];
 
   return (
     <section id="floor-plans" className="scroll-mt-24">
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+      <div className="mb-6">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#1C1917]">{t.developerDetail.floorPlansTitle}</h2>
           <p className="mt-1 text-sm text-[#57534E]">
             {t.developerDetail.floorPlansTotal}{" "}
-            <span className="font-semibold text-[#1C1917]">{project.apartments.length}</span>
+            <span className="font-semibold text-[#1C1917]">{marketApartments.length}</span>
           </p>
-        </div>
-        <div className="flex items-center gap-3 bg-white border border-[#E7E0D5] rounded-lg px-4 py-3">
-          <span className="text-2xl font-bold text-[#c9a96e] tabular-nums">{soldCount}</span>
-          <span className="text-sm text-[#57534E] leading-tight">{t.developerDetail.sold}</span>
         </div>
       </div>
 
-      <div className="bg-white border border-[#E7E0D5] rounded-xl p-4 sm:p-5 mb-6">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          <div>
-            <label className="field-label">{t.developerDetail.filterArea}</label>
-            <select className={selectCls} value={minArea} onChange={(e) => setMinArea(Number(e.target.value))}>
-              <option value={0}>{t.sales.anyArea}</option>
-              {areaOptions.map((a) => (
-                <option key={a} value={a}>
-                  {a} m²+
-                </option>
-              ))}
-            </select>
+      <div className="mb-6 rounded-xl bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-4">
+          <div className="min-w-0 shrink-0 lg:w-[200px]">
+            <div className="flex items-center justify-between gap-2">
+              <p className="field-label !mb-0">{t.developerDetail.filterArea}</p>
+              <p className="text-xs tabular-nums text-[#57534E]">
+                {areaMin}–{areaMax} m²
+              </p>
+            </div>
+            <RangeSlider
+              min={areaBounds.min}
+              max={areaBounds.max}
+              valueMin={areaMin}
+              valueMax={areaMax}
+              onChange={(nextMin, nextMax) => {
+                setAreaMin(nextMin);
+                setAreaMax(nextMax);
+              }}
+            />
           </div>
-          <div>
-            <label className="field-label">{t.developerDetail.filterRooms}</label>
-            <select className={selectCls} value={rooms} onChange={(e) => setRooms(e.target.value)}>
-              <option value="">{t.home.searchAnyBedrooms}</option>
-              {roomOptions.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="field-label">{t.developerDetail.filterFloor}</label>
-            <select className={selectCls} value={floor} onChange={(e) => setFloor(e.target.value)}>
-              <option value="">{t.developerDetail.anyFloor}</option>
-              {floorOptions.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-2 lg:col-span-2">
-            <label className="field-label">{t.developerDetail.sortBy}</label>
-            <select
-              className={selectCls}
+
+          <BrandMultiSelect
+            className="min-w-0 flex-1 lg:max-w-[140px]"
+            label={t.developerDetail.filterRooms}
+            values={selectedRooms.map(String)}
+            onChange={(vals) => setSelectedRooms(vals.map(Number).sort((a, b) => a - b))}
+            options={roomOptions.map((r) => ({ value: String(r), label: String(r) }))}
+            allLabel={t.developerDetail.filterAll}
+            emptyLabel={t.developerDetail.filterNone}
+            triggerClassName="!h-9"
+          />
+
+          <BrandMultiSelect
+            className="min-w-0 flex-1 lg:max-w-[140px]"
+            label={t.developerDetail.filterFloor}
+            values={selectedFloors.map(String)}
+            onChange={(vals) => setSelectedFloors(vals.map(Number).sort((a, b) => a - b))}
+            options={floorOptions.map((f) => ({ value: String(f), label: String(f) }))}
+            allLabel={t.developerDetail.filterAll}
+            emptyLabel={t.developerDetail.filterNone}
+            triggerClassName="!h-9"
+          />
+
+          <BrandMultiSelect
+            className="min-w-0 flex-1 lg:max-w-[180px]"
+            label={t.developerDetail.filterPayment}
+            values={payments}
+            onChange={(vals) => setPayments(vals as PaymentKey[])}
+            options={paymentOptions}
+            allLabel={t.developerDetail.filterAll}
+            emptyLabel={t.developerDetail.filterNone}
+            triggerClassName="!h-9"
+          />
+
+          <div className="min-w-0 flex-1 lg:max-w-[220px]">
+            <BrandSelect
+              label={t.developerDetail.sortBy}
               value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-            >
-              <option value="price-asc">{t.developerDetail.sortPriceAsc}</option>
-              <option value="price-desc">{t.developerDetail.sortPriceDesc}</option>
-              <option value="area-asc">{t.developerDetail.sortAreaAsc}</option>
-              <option value="floor-asc">{t.developerDetail.sortFloorAsc}</option>
-            </select>
+              onChange={(v) => setSort(v as SortKey)}
+              triggerClassName="!h-9"
+              options={[
+                { value: "price-asc", label: t.developerDetail.sortPriceAsc },
+                { value: "price-desc", label: t.developerDetail.sortPriceDesc },
+                { value: "area-asc", label: t.developerDetail.sortAreaAsc },
+                { value: "floor-asc", label: t.developerDetail.sortFloorAsc },
+              ]}
+            />
           </div>
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-[#E7E0D5] text-[#57534E]">
+        <div className="rounded-xl bg-white py-16 text-center shadow-sm text-[#57534E]">
           {t.properties.noResults}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((apartment) => (
             <DeveloperUnitCard
               key={apartment.id}

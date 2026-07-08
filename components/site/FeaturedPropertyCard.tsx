@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getProjectGallery } from "@/lib/project-gallery";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
@@ -174,10 +175,7 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
 }
 
 function statusBadges(project: Project, t: ReturnType<typeof useI18n>["t"]) {
-  const badges = [getStatusLabel(t, project.status)];
-  const tag = project.tags[0];
-  if (tag) badges.push(tag);
-  return badges.slice(0, 2);
+  return [getStatusLabel(t, project.status)];
 }
 
 /** Liam-style featured property card with inner image slider. */
@@ -199,6 +197,10 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
     >
       <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
         <CardImageSlider images={images} title={project.title} />
+
+        <div className="absolute top-3 left-3 z-20 pointer-events-none">
+          <ProjectViewCount projectId={project.id} />
+        </div>
 
         <div className="absolute top-3 right-3 z-20 flex flex-wrap justify-end gap-1.5 max-w-[70%] pointer-events-none">
           {badges.map((badge) => (

@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, MapPin, X } from "lucide-react";
-import { GALLERY_CATEGORIES } from "@/lib/project-gallery";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
 import type { GalleryCategory, Project, ProjectGalleryItem } from "@/types";
@@ -17,37 +16,24 @@ interface Props {
 
 export function ProjectMediaShowcase({ project, items }: Props) {
   const { t } = useI18n();
-  const [filter, setFilter] = useState<GalleryCategory | "all">("all");
   const [index, setIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
-  const filtered = useMemo(
-    () => (filter === "all" ? items : items.filter((item) => item.category === filter)),
-    [items, filter],
-  );
-
-  const safeIndex = filtered.length === 0 ? 0 : Math.min(index, filtered.length - 1);
-  const active = filtered[safeIndex];
-  const availableCategories = GALLERY_CATEGORIES.filter((cat) => items.some((i) => i.category === cat));
-  const filteredLenRef = useRef(filtered.length);
+  const safeIndex = items.length === 0 ? 0 : Math.min(index, items.length - 1);
+  const active = items[safeIndex];
+  const itemsLenRef = useRef(items.length);
 
   useEffect(() => {
-    filteredLenRef.current = filtered.length;
-  }, [filtered.length]);
+    itemsLenRef.current = items.length;
+  }, [items.length]);
 
-  const categoryLabel = (cat: GalleryCategory | "all") =>
-    cat === "all" ? t.projectDetail.galleryAll : t.projectDetail.galleryCategories[cat];
-
-  const setFilterAndReset = (cat: GalleryCategory | "all") => {
-    setFilter(cat);
-    setIndex(0);
-  };
+  const categoryLabel = (cat: GalleryCategory) => t.projectDetail.galleryCategories[cat];
 
   const prev = useCallback(() => {
     setIndex((i) => {
-      const len = filteredLenRef.current;
+      const len = itemsLenRef.current;
       if (len === 0) return 0;
       const current = Math.min(i, len - 1);
       return (current - 1 + len) % len;
@@ -56,7 +42,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
 
   const next = useCallback(() => {
     setIndex((i) => {
-      const len = filteredLenRef.current;
+      const len = itemsLenRef.current;
       if (len === 0) return 0;
       const current = Math.min(i, len - 1);
       return (current + 1) % len;
@@ -81,7 +67,6 @@ export function ProjectMediaShowcase({ project, items }: Props) {
     };
   }, [lightbox]);
 
-  // Mobile swipe on hero
   useEffect(() => {
     const el = heroRef.current;
     if (!el) return;
@@ -91,7 +76,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
     };
 
     const onMove = (e: TouchEvent) => {
-      if (!touchStart.current || filteredLenRef.current <= 1) return;
+      if (!touchStart.current || itemsLenRef.current <= 1) return;
       const dx = e.touches[0].clientX - touchStart.current.x;
       const dy = e.touches[0].clientY - touchStart.current.y;
       if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8 && e.cancelable) {
@@ -100,7 +85,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
     };
 
     const onEnd = (e: TouchEvent) => {
-      if (!touchStart.current || filteredLenRef.current <= 1) return;
+      if (!touchStart.current || itemsLenRef.current <= 1) return;
       const dx = e.changedTouches[0].clientX - touchStart.current.x;
       const dy = e.changedTouches[0].clientY - touchStart.current.y;
       touchStart.current = null;
@@ -123,18 +108,9 @@ export function ProjectMediaShowcase({ project, items }: Props) {
     return <div className="h-[50vh] bg-[#F3F4F6] pt-header" />;
   }
 
-  const pillCls = (activePill: boolean) =>
-    cn(
-      "shrink-0 px-3.5 py-1.5 text-sm font-medium rounded-full border transition-all whitespace-nowrap",
-      activePill
-        ? "bg-[#0c1428] text-white border-[#0c1428]"
-        : "bg-white/90 text-[#374151] border-white/60 hover:bg-white",
-    );
-
   return (
     <section className="bg-[#0F172A]" aria-label={project.title}>
-      {/* Hero stage */}
-      <div ref={heroRef} className="relative h-[58vh] min-h-[380px] max-h-[720px] group touch-pan-y">
+      <div ref={heroRef} className="relative h-[78vh] min-h-[500px] max-h-[920px] group touch-pan-y">
         <AnimatePresence mode="wait" initial={false}>
           {active && (
             <motion.div
@@ -160,7 +136,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/30 pointer-events-none" />
 
-        {filtered.length > 1 && (
+        {items.length > 1 && (
           <>
             <button
               type="button"
@@ -169,10 +145,10 @@ export function ProjectMediaShowcase({ project, items }: Props) {
                 e.stopPropagation();
                 prev();
               }}
-              className="absolute left-3 md:left-5 top-1/2 -translate-y-1/2 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-white text-[#0c1428] shadow-lg hover:bg-[#F3F4F6] active:scale-95 transition-transform"
+              className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white/95 text-[#0c1428] shadow-sm backdrop-blur-sm hover:bg-white active:scale-95 transition-all"
               aria-label="Previous"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={18} />
             </button>
             <button
               type="button"
@@ -181,10 +157,10 @@ export function ProjectMediaShowcase({ project, items }: Props) {
                 e.stopPropagation();
                 next();
               }}
-              className="absolute right-3 md:right-5 top-1/2 -translate-y-1/2 z-30 w-12 h-12 flex items-center justify-center rounded-full bg-white text-[#0c1428] shadow-lg hover:bg-[#F3F4F6] active:scale-95 transition-transform"
+              className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white/95 text-[#0c1428] shadow-sm backdrop-blur-sm hover:bg-white active:scale-95 transition-all"
               aria-label="Next"
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={18} />
             </button>
           </>
         )}
@@ -198,7 +174,6 @@ export function ProjectMediaShowcase({ project, items }: Props) {
           <Expand size={18} />
         </button>
 
-        {/* Title overlay — pointer-events-none so it never blocks arrows */}
         <div className="absolute inset-x-0 bottom-0 z-20 px-4 sm:px-6 lg:px-8 pb-5 md:pb-6 pt-20 pointer-events-none">
           <div className="max-w-7xl mx-auto">
             <p className="text-sm font-medium text-[#c9a96e]">{getStatusLabel(t, project.status)}</p>
@@ -214,55 +189,13 @@ export function ProjectMediaShowcase({ project, items }: Props) {
             </div>
             {active && (
               <p className="mt-3 text-xs text-white/55">
-                {categoryLabel(active.category)} · {safeIndex + 1} / {filtered.length}
+                {categoryLabel(active.category)} · {safeIndex + 1} / {items.length}
               </p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Controls bar: filters + thumbs */}
-      <div className="border-t border-white/10 bg-[#0F172A]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
-          <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <button type="button" onClick={() => setFilterAndReset("all")} className={pillCls(filter === "all")}>
-              {categoryLabel("all")}
-              <span className="ml-1.5 opacity-70 tabular-nums">{items.length}</span>
-            </button>
-            {availableCategories.map((cat) => {
-              const count = items.filter((i) => i.category === cat).length;
-              return (
-                <button key={cat} type="button" onClick={() => setFilterAndReset(cat)} className={pillCls(filter === cat)}>
-                  {categoryLabel(cat)}
-                  <span className="ml-1.5 opacity-70 tabular-nums">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {filtered.map((item, i) => (
-              <button
-                key={`${item.url}-${i}`}
-                type="button"
-                onClick={() => setIndex(i)}
-                className={cn(
-                  "relative shrink-0 w-20 h-14 md:w-24 md:h-16 rounded-lg overflow-hidden border-2 transition-all",
-                  i === safeIndex
-                    ? "border-[#c9a96e] opacity-100 ring-2 ring-[#c9a96e]/30"
-                    : "border-transparent opacity-55 hover:opacity-90",
-                )}
-                aria-label={`${categoryLabel(item.category)} ${i + 1}`}
-                aria-current={i === safeIndex}
-              >
-                <Image src={item.url} alt="" fill unoptimized sizes="96px" className="object-cover" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Lightbox */}
       <AnimatePresence>
         {lightbox && active && (
           <motion.div
@@ -278,7 +211,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
               <div className="min-w-0">
                 <p className="text-sm font-medium text-white truncate">{project.title}</p>
                 <p className="text-xs text-white/60 mt-0.5">
-                  {categoryLabel(active.category)} · {safeIndex + 1} / {filtered.length}
+                  {categoryLabel(active.category)} · {safeIndex + 1} / {items.length}
                 </p>
               </div>
               <button
@@ -321,7 +254,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
 
             <div className="shrink-0 px-4 py-3 border-t border-white/10 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex gap-2 justify-center min-w-min mx-auto">
-                {filtered.map((item, i) => (
+                {items.map((item, i) => (
                   <button
                     key={`lb-${item.url}-${i}`}
                     type="button"

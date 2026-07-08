@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Phone, MessageCircle } from "lucide-react";
+import { Phone } from "lucide-react";
 import { Container } from "@/components/site/Container";
 import { useI18n } from "@/lib/i18n";
 
-const WHATSAPP = "https://wa.me/37496799733";
 const OWNER_PHOTO = "/owner.jpg";
 
 export function OwnerProfile() {
@@ -53,14 +52,6 @@ export function OwnerProfile() {
                 className="inline-flex h-12 items-center gap-2 px-6 rounded-lg bg-[#0c1428] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
               >
                 <Phone size={17} /> {t.nav.call}
-              </a>
-              <a
-                href={WHATSAPP}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-12 items-center gap-2 px-6 rounded-lg bg-[#25D366] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-              >
-                <MessageCircle size={17} /> WhatsApp
               </a>
               <Link
                 href="/contact"
