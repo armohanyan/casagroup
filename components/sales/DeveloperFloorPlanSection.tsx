@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DeveloperUnitCard } from "@/components/sales/DeveloperUnitCard";
 import { BrandMultiSelect } from "@/components/ui/BrandMultiSelect";
 import { BrandSelect } from "@/components/ui/BrandSelect";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { useI18n } from "@/lib/i18n";
-import type { Project } from "@/types";
+import type { Apartment, Project } from "@/types";
 
 type SortKey = "price-asc" | "price-desc" | "area-asc" | "floor-asc";
 type PaymentKey = "mortgage" | "installment";
@@ -15,44 +15,46 @@ interface Props {
   project: Project;
 }
 
+function marketOf(apartments: Apartment[]) {
+  return apartments.filter((a) => a.status !== "Reserved");
+}
+
+function uniqueSorted(nums: number[]) {
+  return [...new Set(nums)].sort((a, b) => a - b);
+}
+
+function areaRange(apartments: Apartment[]) {
+  if (apartments.length === 0) return { min: 0, max: 100 };
+  const areas = apartments.map((a) => a.area);
+  return { min: Math.min(...areas), max: Math.max(...areas) };
+}
+
 export function DeveloperFloorPlanSection({ project }: Props) {
   const { t } = useI18n();
-  const [selectedRooms, setSelectedRooms] = useState<number[]>([]);
-  const [selectedFloors, setSelectedFloors] = useState<number[]>([]);
-  const [areaMin, setAreaMin] = useState(0);
-  const [areaMax, setAreaMax] = useState(0);
-  const [payments, setPayments] = useState<PaymentKey[]>(["mortgage", "installment"]);
-  const [sort, setSort] = useState<SortKey>("price-asc");
-  const [defaultsReady, setDefaultsReady] = useState(false);
 
-  const marketApartments = useMemo(
-    () => project.apartments.filter((a) => a.status !== "Reserved"),
-    [project.apartments],
-  );
+  const marketApartments = useMemo(() => marketOf(project.apartments), [project.apartments]);
   const roomOptions = useMemo(
-    () => [...new Set(marketApartments.map((a) => a.rooms))].sort((a, b) => a - b),
+    () => uniqueSorted(marketApartments.map((a) => a.rooms)),
     [marketApartments],
   );
   const floorOptions = useMemo(
-    () => [...new Set(marketApartments.map((a) => a.floor))].sort((a, b) => a - b),
+    () => uniqueSorted(marketApartments.map((a) => a.floor)),
     [marketApartments],
   );
-  const areaBounds = useMemo(() => {
-    if (marketApartments.length === 0) return { min: 0, max: 100 };
-    const areas = marketApartments.map((a) => a.area);
-    return { min: Math.min(...areas), max: Math.max(...areas) };
-  }, [marketApartments]);
+  const areaBounds = useMemo(() => areaRange(marketApartments), [marketApartments]);
 
-  useEffect(() => {
-    setSelectedRooms(roomOptions);
-    setSelectedFloors(floorOptions);
-    setAreaMin(areaBounds.min);
-    setAreaMax(areaBounds.max);
-    setDefaultsReady(true);
-  }, [roomOptions, floorOptions, areaBounds.min, areaBounds.max]);
+  const [selectedRooms, setSelectedRooms] = useState(() =>
+    uniqueSorted(marketOf(project.apartments).map((a) => a.rooms)),
+  );
+  const [selectedFloors, setSelectedFloors] = useState(() =>
+    uniqueSorted(marketOf(project.apartments).map((a) => a.floor)),
+  );
+  const [areaMin, setAreaMin] = useState(() => areaRange(marketOf(project.apartments)).min);
+  const [areaMax, setAreaMax] = useState(() => areaRange(marketOf(project.apartments)).max);
+  const [payments, setPayments] = useState<PaymentKey[]>(["mortgage", "installment"]);
+  const [sort, setSort] = useState<SortKey>("price-asc");
 
   const filtered = useMemo(() => {
-    if (!defaultsReady) return [];
     let list = [...marketApartments];
 
     if (selectedRooms.length > 0) {
@@ -84,16 +86,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
       }
     });
     return list;
-  }, [
-    defaultsReady,
-    marketApartments,
-    selectedRooms,
-    selectedFloors,
-    areaMin,
-    areaMax,
-    payments,
-    sort,
-  ]);
+  }, [marketApartments, selectedRooms, selectedFloors, areaMin, areaMax, payments, sort]);
 
   const paymentOptions = [
     { value: "mortgage", label: t.developerDetail.paymentMortgage },
