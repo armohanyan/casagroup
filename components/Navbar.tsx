@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/", key: "home" as const },
   { href: "/projects", key: "projects" as const },
+  { href: "/calculator", key: "calculator" as const },
   { href: "/about", key: "about" as const },
   { href: "/contact", key: "contact" as const },
 ] as const;
@@ -80,6 +81,7 @@ export function Navbar() {
     ({
       home: t.nav.home,
       projects: t.nav.projects,
+      calculator: t.nav.calculatorShort,
       about: t.nav.about,
       contact: t.nav.contact,
     })[key];

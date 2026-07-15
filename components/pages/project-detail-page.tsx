@@ -8,6 +8,7 @@ import { Phone, MessageCircle } from "lucide-react";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { ContactForm } from "@/components/ContactForm";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
+import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { ProjectMediaShowcase } from "@/components/site/ProjectMediaShowcase";
 import { ProjectLocationSection } from "@/components/site/ProjectLocationSection";
 import { Container } from "@/components/site/Container";
@@ -166,6 +167,25 @@ export default function ProjectDetailPage() {
       <section id="apartments" className="border-t border-[#E5E7EB]">
         <Container className="py-10 md:py-14">
           <DeveloperFloorPlanSection project={project} />
+        </Container>
+      </section>
+
+      <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
+        <Container className="py-10 md:py-14">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#c9a96e]">
+              {t.calculator.eyebrow}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-[#0c1428] sm:text-2xl">
+              {t.calculator.title}
+            </h2>
+            <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
+              {t.calculator.subtitle}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-8">
+            <MortgageCalculator key={project.id} initialPrice={project.startingPrice} />
+          </div>
         </Container>
       </section>
 

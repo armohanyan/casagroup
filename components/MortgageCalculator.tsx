@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { BrandSlider } from "@/components/ui/BrandSlider";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n } from "@/lib/i18n";
 
@@ -21,8 +22,14 @@ interface MortgageCalculatorProps {
 }
 
 export function MortgageCalculator({ initialPrice, compact }: MortgageCalculatorProps = {}) {
-  const { t } = useI18n();
-  const [price, setPrice] = useState(initialPrice ?? 50_000_000);
+  const { t, lang } = useI18n();
+  const defaultPrice = initialPrice && initialPrice > 0 ? initialPrice : 50_000_000;
+  const priceMin = Math.max(5_000_000, Math.floor((defaultPrice * 0.4) / 1_000_000) * 1_000_000);
+  const priceMax = Math.max(
+    defaultPrice + 50_000_000,
+    Math.ceil((defaultPrice * 2.5) / 1_000_000) * 1_000_000,
+  );
+  const [price, setPrice] = useState(defaultPrice);
   const [downPct, setDownPct] = useState(20);
   const [term, setTerm] = useState(20);
   const [rate, setRate] = useState(12);
@@ -36,49 +43,52 @@ export function MortgageCalculator({ initialPrice, compact }: MortgageCalculator
     return { down, loan, monthly, total, interest };
   }, [price, downPct, term, rate]);
 
+  const yearsLabel = lang === "hy" ? "տարի" : "years";
+
   return (
     <div className={`grid grid-cols-1 ${compact ? "gap-6" : "lg:grid-cols-2 gap-10"}`}>
-      <div className="space-y-5">
+      <div className="space-y-6">
         <div>
           <label className="field-label">{t.calculator.propertyPrice}</label>
-          <input
-            type="range"
-            min={10_000_000}
-            max={200_000_000}
+          <BrandSlider
+            min={priceMin}
+            max={priceMax}
             step={1_000_000}
-            value={price}
-            onChange={(e) => setPrice(Number(e.target.value))}
-            className="w-full accent-[#c9a96e]"
+            value={Math.min(priceMax, Math.max(priceMin, price))}
+            onChange={setPrice}
+            aria-label={t.calculator.propertyPrice}
           />
-          <p className="mt-2 font-sans tabular-nums text-[#c9a96e]">{formatPrice(price)}</p>
+          <p className="mt-1.5 font-sans tabular-nums text-[#c9a96e]">{formatPrice(price)}</p>
         </div>
 
         <div>
           <label className="field-label">{t.calculator.downPayment}</label>
-          <input
-            type="range"
+          <BrandSlider
             min={0}
             max={50}
             step={5}
             value={downPct}
-            onChange={(e) => setDownPct(Number(e.target.value))}
-            className="w-full accent-[#c9a96e]"
+            onChange={setDownPct}
+            aria-label={t.calculator.downPayment}
           />
-          <p className="mt-2 text-[#1C1917]">{downPct}% — {formatPrice(result.down)}</p>
+          <p className="mt-1.5 text-[#1C1917]">
+            {downPct}% — {formatPrice(result.down)}
+          </p>
         </div>
 
         <div>
           <label className="field-label">{t.calculator.loanTerm}</label>
-          <input
-            type="range"
+          <BrandSlider
             min={5}
             max={30}
             step={1}
             value={term}
-            onChange={(e) => setTerm(Number(e.target.value))}
-            className="w-full accent-[#c9a96e]"
+            onChange={setTerm}
+            aria-label={t.calculator.loanTerm}
           />
-          <p className="mt-2 text-[#1C1917]">{term} years</p>
+          <p className="mt-1.5 text-[#1C1917]">
+            {term} {yearsLabel}
+          </p>
         </div>
 
         <div>
