@@ -5,10 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getProjectGallery } from "@/lib/project-gallery";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
-import { formatPrice } from "@/lib/format-price";
+import { getProjectDescription } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -150,7 +149,7 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
           >
             <ChevronRight size={28} strokeWidth={1.5} />
           </button>
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 flex gap-1.5 pointer-events-auto">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-1.5 pointer-events-auto">
             {images.map((_, i) => (
               <button
                 key={i}
@@ -180,7 +179,7 @@ function statusBadges(project: Project, t: ReturnType<typeof useI18n>["t"]) {
 
 /** Liam-style featured property card with inner image slider. */
 export function FeaturedPropertyCard({ project }: { project: Project }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   const images = useMemo(() => {
     const gallery = getProjectGallery(project);
@@ -189,74 +188,43 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
   }, [project]);
 
   const badges = statusBadges(project, t);
+  const shortInfo = getProjectDescription(project, lang);
 
   return (
     <article
       data-card
-      className="group/card flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
+      className="group/card flex flex-col h-full bg-white rounded-[5px] overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
     >
       <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
         <CardImageSlider images={images} title={project.title} />
-
-        <div className="absolute top-3 left-3 z-20 pointer-events-none">
-          <ProjectViewCount projectId={project.id} />
-        </div>
 
         <div className="absolute top-3 right-3 z-20 flex flex-wrap justify-end gap-1.5 max-w-[70%] pointer-events-none">
           {badges.map((badge) => (
             <span
               key={badge}
-              className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest bg-[#1F2937]/80 text-white rounded-sm backdrop-blur-sm"
+              className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest bg-[#1F2937]/80 text-white rounded-[5px] backdrop-blur-sm"
             >
               {badge}
             </span>
           ))}
         </div>
-
-        <div className="absolute inset-x-0 bottom-0 z-20 h-24 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
-        <p className="absolute bottom-4 left-4 z-20 text-white text-sm font-medium tracking-wide pointer-events-none">
-          <span className="mr-2 opacity-70">•</span>
-          {t.home.startingFrom} {formatPrice(project.startingPrice)}
-        </p>
       </div>
 
-      <div className="flex flex-col flex-1 p-5 md:p-6">
+      <div className="flex flex-col flex-1 p-5">
         <Link href={`/projects/${project.slug}`} className="group/title">
           <h3 className="font-display text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/title:text-[#c9a96e] transition-colors">
             {project.title}
           </h3>
         </Link>
-
-        <p className="mt-2.5 flex items-center gap-1.5 text-sm text-[#6B7280]">
+        <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
           <MapPin size={14} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
-          <span className="truncate">{project.city}, {project.location}</span>
+          <span className="truncate">{project.location}</span>
         </p>
-
-        <div className="mt-auto pt-5">
-          <div className="flex items-center justify-between gap-3 rounded-lg bg-[#F9FAFB] border border-[#F0F1F3] px-3 py-2.5">
-            <p className="flex items-center gap-2 min-w-0 text-[#0c1428]">
-              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#c9a96e]" aria-hidden />
-              <span className="text-[11px] font-bold uppercase tracking-[0.1em] truncate">
-                {t.home.searchTypes.apartment}
-              </span>
-            </p>
-            <Link
-              href={`/projects/${project.slug}`}
-              className="inline-flex h-9 shrink-0 items-center justify-center px-4 rounded-md bg-[#c9a96e] text-white text-xs font-semibold leading-none hover:bg-[#b8995e] active:scale-[0.98] transition-all shadow-sm"
-            >
-              {t.home.viewDetails}
-            </Link>
-          </div>
-        </div>
-
-        {project.developer && (
-          <div className="mt-4 pt-4 border-t border-[#F0F1F3] flex items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F9FAFB] text-[10px] font-bold text-[#c9a96e] border border-[#E8EAED]">
-              {project.developer.charAt(0)}
-            </span>
-            <span className="text-xs font-medium text-[#6B7280] truncate">{project.developer}</span>
-          </div>
-        )}
+        {shortInfo ? (
+          <p className="mt-auto pt-4 text-sm text-[#6B7280] leading-relaxed line-clamp-2">
+            {shortInfo}
+          </p>
+        ) : null}
       </div>
     </article>
   );

@@ -41,7 +41,7 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
   );
 
   const selectCls = cn(
-    "h-11 w-full min-w-0 px-3 rounded-lg border text-sm text-[#0c1428] outline-none transition-colors",
+    "h-11 w-full min-w-0 px-3 rounded-[5px] border text-sm text-[#0c1428] outline-none transition-colors",
     "focus:border-[#0c1428] focus:ring-2 focus:ring-[#0c1428]/10",
     isHero ? "border-[#E5E7EB] bg-[#F9FAFB] hover:bg-white focus:bg-white" : "border-[#E5E7EB] bg-white",
   );
@@ -52,10 +52,10 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "overflow-hidden rounded-2xl border",
+        "overflow-hidden rounded-[5px] border",
         isHero
           ? "border-[#E8EAED] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.15)]"
-          : "rounded-xl border-[#E5E7EB] bg-white shadow-lg",
+          : "border-[#E5E7EB] bg-white shadow-lg",
         className,
       )}
     >
@@ -68,7 +68,7 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
           open && "border-b border-[#E5E7EB] bg-[#FAFAF9]",
         )}
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#F5F0E8]">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0E8]">
           <SlidersHorizontal size={16} className="text-[#c9a96e]" />
         </span>
         <span className="text-sm font-semibold text-[#0c1428]">{t.home.searchButton}</span>
@@ -143,7 +143,7 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
           <button
             type="submit"
             className={cn(
-              "inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold transition-all",
+              "inline-flex h-11 w-full items-center justify-center gap-2 rounded-[5px] text-sm font-semibold transition-all",
               "hover:opacity-95 active:scale-[0.98]",
               isHero
                 ? "bg-[#c9a96e] text-[#0c1428] hover:bg-[#d4b87a] xl:w-auto xl:min-w-[148px] xl:shrink-0 xl:px-5"

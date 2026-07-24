@@ -14,7 +14,6 @@ export function HomeHero() {
   const { projects } = useProjects();
   const pathname = usePathname();
   const cities = [...new Set(projects.map((p) => p.city))];
-  const listings = projects.reduce((n, p) => n + p.availableApartmentsCount, 0);
 
   return (
     <section className={`relative overflow-hidden bg-[#0c1428] ${pathname === "/" ? "min-h-[88vh] flex items-end" : ""}`}>
@@ -33,26 +32,10 @@ export function HomeHero() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/projects" className="inline-flex h-11 items-center px-6 rounded-lg bg-white text-[#0c1428] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors shadow-sm">
+          <Link href="/projects" className="inline-flex h-11 items-center px-6 rounded-[5px] bg-white text-[#0c1428] text-sm font-semibold hover:bg-[#F3F4F6] transition-colors shadow-sm">
             {t.home.heroCtaProjects}
           </Link>
-          <a href="tel:+37496799733" className="inline-flex h-11 items-center px-6 rounded-lg bg-[#c9a96e] text-[#0c1428] text-sm font-semibold hover:bg-[#d4b87a] transition-colors shadow-sm">
-            {t.home.heroCtaAgent}
-          </a>
         </div>
-
-        <dl className="mt-12 flex flex-wrap gap-8 md:gap-14">
-          {[
-            { value: t.home.trustYears, label: t.home.trustYearsLabel },
-            { value: String(listings), label: t.home.trustListings },
-            { value: String(cities.length), label: t.home.trustLocations },
-          ].map((item) => (
-            <div key={item.label} className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
-              <dt className="text-2xl md:text-3xl font-semibold text-white tabular-nums">{item.value}</dt>
-              <dd className="text-sm text-white/90 mt-1 font-medium">{item.label}</dd>
-            </div>
-          ))}
-        </dl>
       </Container>
     </section>
   );

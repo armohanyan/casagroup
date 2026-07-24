@@ -4,14 +4,17 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { BedDouble, Layers, Square } from "lucide-react";
+import { BedDouble, Download, Layers, Square } from "lucide-react";
 import { ProjectGallery } from "@/components/ProjectGallery";
 import { ApartmentInquiryModal } from "@/components/ApartmentInquiryModal";
+import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { downloadProjectInfoPdf } from "@/lib/download-project-info";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
+import { getProjectDescription } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
@@ -63,6 +66,33 @@ export default function ApartmentDetailPage() {
   );
   const whatsappHref = `https://wa.me/37496799733?text=${whatsappMessage}`;
 
+  function handleDownloadPdf() {
+    downloadProjectInfoPdf({
+      project,
+      apartment: apt,
+      statusLabel: getStatusLabel(t, apt.status),
+      description: getProjectDescription(project, lang),
+      labels: {
+        title: t.aptDetail.pdfTitle,
+        project: lang === "hy" ? "Նախագիծ" : "Project",
+        location: t.aptDetail.locationSpec,
+        city: t.admin.city,
+        status: t.aptDetail.statusLabel,
+        developer: t.projectDetail.developer,
+        completion: t.aptDetail.completionSpec,
+        floors: t.projectDetail.floors,
+        apartment: t.home.searchTypes.apartment,
+        price: t.aptDetail.price,
+        bedrooms: t.aptDetail.bedrooms,
+        area: t.aptDetail.area,
+        floor: t.aptDetail.floorSpec,
+        view: t.aptDetail.viewSpec,
+        description: t.aptDetail.pdfDescription,
+        generated: t.aptDetail.pdfGenerated,
+      },
+    });
+  }
+
   return (
     <main className="bg-white min-h-screen pt-header pb-20">
       <Seo
@@ -92,20 +122,20 @@ export default function ApartmentDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
           <div className="space-y-6">
             {images.length > 0 ? (
-              <div className="rounded-lg overflow-hidden">
+              <div className="rounded-[5px] overflow-hidden">
                 <ProjectGallery images={images} title={project.title} />
               </div>
             ) : null}
 
             {apt.floorPlanImage && (
-              <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-sm">
+              <div className="rounded-[5px] bg-white p-4 sm:p-5 shadow-sm border border-[#E5E7EB]">
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-[#0c1428]">{t.aptDetail.layoutTitle}</h2>
-                  <span className="rounded-full bg-[#F5F0E8] px-3 py-1 text-[11px] font-medium text-[#8B6A33]">
+                  <span className="rounded-[5px] bg-[#F5F0E8] px-3 py-1 text-[11px] font-medium text-[#8B6A33]">
                     {apt.area} m²
                   </span>
                 </div>
-                <div className="relative w-full h-72 sm:h-[28rem] overflow-hidden rounded-xl bg-[#F8FAFC]">
+                <div className="relative w-full h-72 sm:h-[28rem] overflow-hidden rounded-[5px] bg-[#F8FAFC]">
                   <Image
                     src={apt.floorPlanImage}
                     alt={t.aptDetail.layoutTitle}
@@ -119,7 +149,7 @@ export default function ApartmentDetailPage() {
             )}
           </div>
 
-          <aside className="lg:sticky lg:top-24 min-w-0 rounded-xl bg-[#F9FAFB] p-5 sm:p-6">
+          <aside className="lg:sticky lg:top-24 min-w-0 rounded-[5px] bg-[#F9FAFB] p-5 sm:p-6">
             <StatusBadge status={apt.status} />
             <p className="mt-4 text-3xl font-semibold text-[#0c1428] tabular-nums">
               {sold ? "—" : formatPrice(apt.price)}
@@ -143,20 +173,50 @@ export default function ApartmentDetailPage() {
               ))}
             </div>
 
-            {!sold && (
-              <div className="mt-6">
+            <div className="mt-6 space-y-2">
+              {!sold && (
                 <button
                   type="button"
                   onClick={() => setInquiryType("info")}
-                  className="flex h-9 w-full items-center justify-center rounded-md bg-[#0c1428] px-3 text-xs font-semibold whitespace-nowrap text-white hover:bg-[#1F2937]"
+                  className="flex h-10 w-full items-center justify-center rounded-[5px] bg-[#0c1428] px-3 text-xs font-semibold whitespace-nowrap text-white hover:bg-[#1F2937]"
                 >
                   {t.aptDetail.requestInfo}
                 </button>
-              </div>
-            )}
+              )}
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-[5px] border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#0c1428] hover:border-[#0c1428] transition-colors"
+              >
+                <Download size={15} />
+                {t.aptDetail.downloadPdf}
+              </button>
+            </div>
           </aside>
         </div>
       </Container>
+
+      {!sold && (
+        <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
+          <Container className="py-10 md:py-14">
+            <div className="mb-8 max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#c9a96e]">
+                {t.calculator.eyebrow}
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-[#0c1428] sm:text-2xl">
+                {t.calculator.title}
+              </h2>
+              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
+                {t.calculator.subtitle}
+              </p>
+            </div>
+            <div className="rounded-[5px] bg-white p-5 shadow-sm sm:p-8">
+              <MortgageCalculator key={apt.id} initialPrice={apt.price} />
+            </div>
+          </Container>
+        </section>
+      )}
+
       <ApartmentInquiryModal
         type={inquiryType}
         onClose={() => setInquiryType(null)}

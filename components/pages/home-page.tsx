@@ -47,7 +47,7 @@ export default function HomePage() {
               {t.calculator.subtitle}
             </p>
           </div>
-          <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-8">
+          <div className="rounded-[5px] bg-white p-5 shadow-sm sm:p-8">
             <MortgageCalculator initialPrice={startingPrice} />
           </div>
         </Container>

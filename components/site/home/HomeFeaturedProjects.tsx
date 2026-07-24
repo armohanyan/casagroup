@@ -67,10 +67,6 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
             <h2 className={cn("font-display text-3xl md:text-[2.75rem] text-[#0c1428] tracking-tight leading-tight", t.home.featuredEyebrow ? "mt-2" : "")}>
               {t.home.featuredTitle}
             </h2>
-            <p className="mt-3 text-base text-[#374151] leading-relaxed max-w-lg">{t.home.featuredSubtitle}</p>
-            {t.home.featuredSubtitle2 ? (
-              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed max-w-lg">{t.home.featuredSubtitle2}</p>
-            ) : null}
           </div>
 
           <Link

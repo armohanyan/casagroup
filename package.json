@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:web": "next dev",
+    "dev:api": "npm --prefix backend run dev",
     "build": "npm run typecheck && next build",
     "start": "next start",
     "lint": "eslint .",
@@ -13,7 +15,6 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@react-spring/web": "^10.0.3",
     "@tanstack/react-query": "^5.100.6",
-    "airtable": "^0.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",

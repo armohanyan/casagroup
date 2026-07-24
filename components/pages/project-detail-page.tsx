@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Phone, MessageCircle } from "lucide-react";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
-import { ContactForm } from "@/components/ContactForm";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { ProjectMediaShowcase } from "@/components/site/ProjectMediaShowcase";
@@ -118,16 +117,16 @@ export default function ProjectDetailPage() {
       </section>
 
       <Container className="py-8 md:py-10">
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <dl className="flex flex-wrap items-start gap-x-8 gap-y-5 sm:gap-x-12">
           {[
             { label: t.home.startingFrom, value: formatPrice(project.startingPrice) },
             { label: t.projectDetail.available, value: String(project.availableApartmentsCount) },
             { label: t.developerDetail.constructionEnd, value: project.completionDate },
             { label: t.projectDetail.floors, value: String(project.floors) },
           ].map((row) => (
-            <div key={row.label} className="rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
-              <dt className="text-[11px] uppercase tracking-wide text-[#9CA3AF]">{row.label}</dt>
-              <dd className="mt-1 text-lg font-semibold text-[#0c1428] tabular-nums">{row.value}</dd>
+            <div key={row.label} className="min-w-0">
+              <dt className="text-xs text-[#9CA3AF]">{row.label}</dt>
+              <dd className="mt-1 text-base font-semibold text-[#0c1428] tabular-nums sm:text-lg">{row.value}</dd>
             </div>
           ))}
         </dl>
@@ -216,13 +215,6 @@ export default function ProjectDetailPage() {
           </div>
         </Container>
       </section>
-
-      <Container className="py-10 md:py-14 border-t border-[#E5E7EB]">
-        <div className="mx-auto max-w-lg">
-          <h2 className="text-xl font-semibold text-[#0c1428]">{t.projectDetail.contactTitle}</h2>
-          <ContactForm defaultProject={project.title} />
-        </div>
-      </Container>
     </main>
   );
 }

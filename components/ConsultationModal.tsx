@@ -66,22 +66,15 @@ export function ConsultationModal() {
     setSubmitError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: "consultation",
-          fullName: form.fullName,
-          phone: form.phone,
-          email: "",
-          interestedProject: "",
-          message: form.note.trim(),
-        }),
+      const { submitInquiry } = await import("@/lib/api-client");
+      await submitInquiry({
+        kind: "consultation",
+        fullName: form.fullName,
+        phone: form.phone,
+        email: "",
+        interestedProject: "",
+        message: form.note.trim(),
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? t.form.submitError);
-      }
       setSubmitted(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : t.form.submitError);

@@ -5,13 +5,11 @@ import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import { CheckCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { useProjects } from "@/lib/projects-context";
+import { submitInquiry } from "@/lib/api-client";
 
 interface FormData {
   fullName: string;
   phone: string;
-  email: string;
-  interestedProject: string;
   message: string;
 }
 
@@ -21,12 +19,9 @@ interface Props {
 
 export function ContactForm({ defaultProject = "" }: Props) {
   const { t } = useI18n();
-  const { projects, loading: projectsLoading } = useProjects();
   const [form, setForm] = useState<FormData>({
     fullName: "",
     phone: "",
-    email: "",
-    interestedProject: defaultProject,
     message: "",
   });
   const [errors, setErrors] = useState<Partial<FormData>>({});
@@ -40,8 +35,6 @@ export function ContactForm({ defaultProject = "" }: Props) {
     const e: Partial<FormData> = {};
     if (!form.fullName.trim()) e.fullName = t.form.required;
     if (!form.phone.trim()) e.phone = t.form.required;
-    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = t.form.emailRequired;
-    if (!form.message.trim()) e.message = t.form.required;
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -52,15 +45,14 @@ export function ContactForm({ defaultProject = "" }: Props) {
     setSubmitError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+      await submitInquiry({
+        fullName: form.fullName,
+        phone: form.phone,
+        email: "",
+        interestedProject: defaultProject,
+        message: form.message.trim(),
+        kind: "callback",
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? t.form.submitError);
-      }
       setSubmitted(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : t.form.submitError);
@@ -111,45 +103,21 @@ export function ContactForm({ defaultProject = "" }: Props) {
       </div>
 
       <div>
-        <input
-          className={inputCls}
-          type="email"
-          placeholder={t.form.email}
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
-        {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
-      </div>
-
-      <div>
-        <select
-          className={`${inputCls} appearance-none cursor-pointer`}
-          value={form.interestedProject}
-          onChange={(e) => setForm({ ...form, interestedProject: e.target.value })}
-        >
-          <option value="">{projectsLoading ? "…" : t.form.selectProject}</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.title}>{p.title}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
         <textarea
           className={`${inputCls} resize-none`}
           rows={4}
-          placeholder={t.form.message}
+          placeholder={t.form.message.replace(/\s*\*$/, "")}
           value={form.message}
           onChange={(e) => setForm({ ...form, message: e.target.value })}
         />
-        {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message}</p>}
       </div>
 
       {submitError && <p className="text-red-400 text-sm">{submitError}</p>}
 
-      <Button type="submit" disabled={loading} size="lg" variant="default" className="w-full sm:w-auto h-11 px-8 type-button">
+      <Button type="submit" disabled={loading} size="lg" variant="default" className="w-full sm:w-auto h-11 px-8 type-button rounded-[5px]">
         {loading ? t.form.sending : t.form.send}
       </Button>
     </form>
   );
 }
+

@@ -90,6 +90,7 @@ export interface InquiryFormData {
   email: string;
   interestedProject: string;
   message: string;
+  kind?: string;
 }
 
 export interface TeamMemberDisplay {
@@ -104,7 +105,7 @@ export interface TeamSectionDisplay {
   members: TeamMemberDisplay[];
 }
 
-/** One row in the Airtable "Team" table. */
+/** One row in the team seed / CMS table. */
 export interface TeamMemberRow {
   id: string;
   sectionKey: string;

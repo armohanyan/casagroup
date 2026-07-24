@@ -113,25 +113,18 @@ export function ApartmentInquiryModal({ type, onClose, context }: Props) {
     const ref = apartmentRef(context);
 
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind,
-          fullName: form.fullName,
-          phone: form.phone,
-          email: form.email,
-          interestedProject: context.projectTitle,
-          message:
-            type === "call" || type === "visit"
-              ? form.message.trim() || `${kind} request for ${ref}`
-              : form.message,
-        }),
+      const { submitInquiry } = await import("@/lib/api-client");
+      await submitInquiry({
+        kind,
+        fullName: form.fullName,
+        phone: form.phone,
+        email: form.email,
+        interestedProject: context.projectTitle,
+        message:
+          type === "call" || type === "visit"
+            ? form.message.trim() || `${kind} request for ${ref}`
+            : form.message,
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? t.form.submitError);
-      }
       setSubmitted(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : t.form.submitError);

@@ -124,15 +124,6 @@ export function Navbar() {
             +374 96 799733
           </a>
           <LangToggle onDark={transparent} />
-          <Link
-            href="/contact"
-            className={cn(
-              "inline-flex h-9 items-center gap-1.5 px-4 rounded-lg text-sm font-semibold",
-              transparent ? "bg-[#c9a96e] text-[#0c1428]" : "bg-[#0c1428] text-white",
-            )}
-          >
-            {t.nav.contact}
-          </Link>
         </div>
 
         <button

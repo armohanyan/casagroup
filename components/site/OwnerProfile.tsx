@@ -1,8 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { Phone } from "lucide-react";
 import { Container } from "@/components/site/Container";
 import { useI18n } from "@/lib/i18n";
 
@@ -16,7 +14,7 @@ export function OwnerProfile() {
       <Container className="max-w-5xl">
         <div className="flex flex-col md:flex-row gap-8 md:gap-14 items-stretch md:items-start">
           <div className="relative w-full md:w-80 lg:w-96 shrink-0">
-            <div className="relative aspect-[4/5] md:aspect-[3/4] rounded-2xl overflow-hidden bg-[#F3F4F6] shadow-[0_16px_48px_rgba(15,23,42,0.12)] ring-1 ring-[#E8EAED]">
+            <div className="relative aspect-[4/5] md:aspect-[3/4] rounded-[5px] overflow-hidden bg-[#F3F4F6] shadow-[0_16px_48px_rgba(15,23,42,0.12)] ring-1 ring-[#E8EAED]">
               <Image
                 src={OWNER_PHOTO}
                 alt={t.owner.name}
@@ -27,7 +25,7 @@ export function OwnerProfile() {
                 priority
               />
             </div>
-            <div className="absolute -bottom-3 -right-3 w-24 h-24 rounded-2xl bg-[#c9a96e]/15 -z-10 hidden md:block" aria-hidden />
+            <div className="absolute -bottom-3 -right-3 w-24 h-24 rounded-[5px] bg-[#c9a96e]/15 -z-10 hidden md:block" aria-hidden />
           </div>
 
           <div className="flex-1 w-full text-center md:text-left">
@@ -44,21 +42,6 @@ export function OwnerProfile() {
               <a href="mailto:casagroup@gmail.com" className="hover:text-[#0c1428] transition-colors font-medium">
                 casagroup@gmail.com
               </a>
-            </div>
-
-            <div className="mt-10 flex flex-wrap gap-3 justify-center md:justify-start">
-              <a
-                href="tel:+37496799733"
-                className="inline-flex h-12 items-center gap-2 px-6 rounded-lg bg-[#0c1428] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
-              >
-                <Phone size={17} /> {t.nav.call}
-              </a>
-              <Link
-                href="/contact"
-                className="inline-flex h-12 items-center px-6 rounded-lg border border-[#E5E7EB] text-sm font-semibold text-[#0c1428] hover:border-[#0c1428] transition-colors"
-              >
-                {t.owner.cta}
-              </Link>
             </div>
           </div>
         </div>

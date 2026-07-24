@@ -33,11 +33,8 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-[#0F172A]/70" />
         <Container className="relative z-10 py-16 md:py-20 text-center">
           <h1 className="font-display text-4xl md:text-5xl lg:text-[3.25rem] text-white tracking-tight">
-            {t.about.pageTitle}
+            {t.nav.about}
           </h1>
-          <p className="mt-5 text-base md:text-lg text-white/85 max-w-2xl mx-auto leading-relaxed">
-            {t.about.pageSubtitle}
-          </p>
         </Container>
       </section>
 
@@ -46,23 +43,20 @@ export default function AboutPage() {
         <Container>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#c9a96e]">
-                {t.about.whyEyebrow}
-              </p>
-              <h2 className="font-display text-3xl md:text-4xl text-[#0c1428] mt-3 tracking-tight leading-tight">
+              <h2 className="font-display text-3xl md:text-4xl text-[#0c1428] tracking-tight leading-tight">
                 {t.about.whyTitle}
               </h2>
               <p className="mt-5 text-base text-[#374151] leading-relaxed">{t.about.whyBody}</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/contact"
-                  className="inline-flex h-12 items-center px-7 rounded-md bg-[#0c1428] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
+                  className="inline-flex h-12 items-center px-7 rounded-[5px] bg-[#0c1428] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
                 >
                   {t.nav.contact}
                 </Link>
                 <Link
                   href="/projects"
-                  className="inline-flex h-12 items-center px-7 rounded-md border border-[#E5E7EB] text-[#0c1428] text-sm font-semibold hover:border-[#0c1428] transition-colors"
+                  className="inline-flex h-12 items-center px-7 rounded-[5px] border border-[#E5E7EB] text-[#0c1428] text-sm font-semibold hover:border-[#0c1428] transition-colors"
                 >
                   {t.about.storyCta}
                 </Link>
