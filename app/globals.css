@@ -5,7 +5,44 @@
 @source "../app/**/*.tsx";
 
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), var(--font-armenian), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --color-brand: #0f172a;
+  --color-brand-secondary: #1e293b;
+  --color-brand-foreground: #ffffff;
+  --color-accent: #c9a96e;
+  --color-accent-soft: #e8d5b0;
+  --color-surface: #f8fafc;
+  --color-muted: #6b7280;
+  --color-text: #0c1428;
+  --color-border: #e2e8f0;
+  --shadow-card: 0 1px 3px rgba(12, 20, 40, 0.04), 0 4px 16px rgba(12, 20, 40, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(12, 20, 40, 0.08), 0 12px 32px rgba(12, 20, 40, 0.1);
+  --radius-card: 5px;
+  --radius-xs: 5px;
+  --radius-sm: 5px;
+  --radius-md: 5px;
+  --radius-lg: 5px;
+  --radius-xl: 5px;
+  --radius-2xl: 5px;
+  --radius-3xl: 5px;
+  --radius-4xl: 5px;
+}
+
+:root {
+  --header-h: 4rem;
+  --brand: #0f172a;
+  --brand-soft: color-mix(in srgb, var(--brand) 8%, white);
+  --brand-ring: color-mix(in srgb, var(--brand) 14%, transparent);
+  --brand-input-bg: white;
+  --brand-input-border: var(--color-border);
+  --accent: #c9a96e;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 4.5rem;
+  }
 }
 
 html {
@@ -20,14 +57,486 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
+  background-color: #ffffff;
+  color: #0c1428;
 }
 
-/* Avoid native image drag / long-press ghosting on touch while scrolling */
+.font-display {
+  font-family: var(--font-display);
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--brand) 18%, white);
+  color: var(--brand);
+}
+
 img {
   -webkit-user-drag: none;
   user-select: none;
 }
 
 html[lang="hy"] body {
-  font-family: "Noto Sans Armenian", var(--font-sans);
+  font-family: var(--font-armenian), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ─── Typography scale ─────────────────────────────────────────────────── */
+
+.type-hero {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.type-page-heading {
+  font-size: clamp(1.75rem, 3.5vw, 2.375rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.type-section-heading {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.type-card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.type-body {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+.type-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.type-button {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+/* ─── Premium card & interaction utilities ─────────────────────────────── */
+
+.card-premium {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.card-premium:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--color-border));
+  box-shadow: var(--shadow-card-hover);
+}
+
+.image-zoom {
+  overflow: hidden;
+}
+
+.image-zoom img,
+.image-zoom .zoom-target {
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.image-zoom:hover img,
+.image-zoom:hover .zoom-target {
+  transform: scale(1.05);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f3efe8 25%, #faf8f5 50%, #f3efe8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes hero-zoom {
+  from { transform: scale(1.05); }
+  to { transform: scale(1); }
+}
+
+.pb-mobile-nav {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .pb-mobile-nav {
+    padding-bottom: 0;
+  }
+}
+
+.pt-header {
+  padding-top: var(--header-h);
+}
+
+.top-header {
+  top: var(--header-h);
+}
+
+/* ─── Brand accents (light UI — navy as accent, not background) ─────────── */
+
+.brand-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--brand);
+  margin-bottom: 0.5rem;
+}
+
+.brand-eyebrow::before {
+  content: "";
+  width: 1.25rem;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.brand-surface-top {
+  position: relative;
+}
+
+.brand-surface-top::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand) 0%, color-mix(in srgb, var(--brand) 70%, var(--accent)) 100%);
+  border-radius: inherit;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.brand-surface-left {
+  border-left: 3px solid var(--brand);
+}
+
+.section-heading {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.625rem;
+}
+
+.section-heading::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2.5rem;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand), var(--accent));
+  border-radius: 2px;
+}
+
+/* Form fields — brand borders & focus */
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #57534e;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.field-input,
+.field-select {
+  width: 100%;
+  background: var(--brand-input-bg);
+  border: 1px solid var(--brand-input-border);
+  color: #1c1917;
+  font-size: 0.875rem;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.field-input:hover,
+.field-select:hover {
+  border-color: color-mix(in srgb, var(--brand) 40%, #e7e0d5);
+  background-color: white;
+}
+
+.field-input {
+  border-radius: 5px;
+  padding: 0.625rem 1rem;
+}
+
+.field-select {
+  border-radius: 5px;
+  padding: 0 2rem 0 0.75rem;
+  height: 2.75rem;
+  appearance: none;
+  cursor: pointer;
+  background-color: var(--brand-input-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230c1428' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 1rem;
+}
+
+.field-input:focus,
+.field-select:focus {
+  border-color: var(--brand);
+  background-color: white;
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+.field-input-line {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--brand-input-border);
+  color: #1c1917;
+  font-size: 0.875rem;
+  padding: 0.75rem 0;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field-input-line::placeholder {
+  color: #a8a29e;
+}
+
+.field-input-line:hover {
+  border-bottom-color: color-mix(in srgb, var(--brand) 40%, #e7e0d5);
+}
+
+.field-input-line:focus {
+  border-bottom-color: var(--brand);
+  box-shadow: 0 2px 0 0 color-mix(in srgb, var(--brand) 25%, transparent);
+}
+
+/* Buttons — brand primary, gold reserved for accents/links */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--brand);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.btn-primary:hover {
+  background-color: color-mix(in srgb, var(--brand) 82%, white);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(12, 20, 40, 0.15);
+}
+
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: white;
+  color: var(--brand);
+  font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--brand) 35%, #e7e0d5);
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-outline:hover {
+  background-color: var(--brand-soft);
+  border-color: var(--brand);
+}
+
+.btn-outline:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+.btn-outline-active {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--brand);
+  color: #fff;
+  font-weight: 600;
+  border: 1px solid var(--brand);
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-outline-active:hover {
+  background-color: color-mix(in srgb, var(--brand) 82%, white);
+  border-color: color-mix(in srgb, var(--brand) 82%, white);
+}
+
+.btn-outline-active:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+/* Outline on dark / transparent header & hero */
+.btn-outline-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: #fff;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-outline-light:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: #fff;
+  color: #fff;
+}
+
+.btn-outline-light:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+.property-map-marker {
+  position: relative;
+  transform: translate(-50%, -100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fff;
+  border: 2px solid #c9a96e;
+  box-shadow: 0 2px 8px rgba(28, 25, 23, 0.15);
+  color: #1c1917;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.property-map-marker span {
+  pointer-events: none;
+}
+
+.property-map-marker:hover,
+.property-map-marker.is-selected {
+  background: #c9a96e;
+  color: #0c1428;
+  transform: translate(-50%, -100%) scale(1.04);
+}
+
+.property-map-marker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+  border-right: 2px solid #c9a96e;
+  border-bottom: 2px solid #c9a96e;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.project-map-pin {
+  position: relative;
+  transform: translate(-50%, -100%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50% 50% 50% 0;
+  background: #c9a96e;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+  rotate: -45deg;
+}
+
+.project-map-pin span {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: #0c1428;
+}
+
+/* Keep Leaflet panes/controls inside their map container, not above the site header */
+.leaflet-container {
+  z-index: 0;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  color: #0c1428 !important;
+  border-bottom-color: #e5e7eb !important;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-radius: 6px 0 0 0 !important;
 }

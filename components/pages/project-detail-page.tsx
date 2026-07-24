@@ -1,85 +1,94 @@
+"use client";
+
+import { useEffect, useMemo } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { MapPin, ChevronRight, Check } from "lucide-react";
-import { ProjectGallery } from "@/components/ProjectGallery";
+import { Phone, MessageCircle } from "lucide-react";
+import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
-import { ApartmentGrid } from "@/components/ApartmentGrid";
-import { ContactForm } from "@/components/ContactForm";
-import { SectionTitle } from "@/components/ui/SectionTitle";
-import { StatusBadge } from "@/components/ui/StatusBadge";
+import { MortgageCalculator } from "@/components/MortgageCalculator";
+import { ProjectMediaShowcase } from "@/components/site/ProjectMediaShowcase";
+import { ProjectLocationSection } from "@/components/site/ProjectLocationSection";
+import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getStatusLabel, useI18n } from "@/lib/i18n";
+import { getProjectGallery } from "@/lib/project-gallery";
+import { getProjectDescription } from "@/lib/project-i18n";
+import { recordProjectView } from "@/lib/project-views";
+import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
 
-const AMENITY_ICONS: Record<string, string> = {
-  Waves: "🏊",
-  Dumbbell: "💪",
-  Car: "🚗",
-  Shield: "🛡️",
-  Leaf: "🌿",
-  UtensilsCrossed: "🍽️",
-  Wifi: "📶",
-  Zap: "⚡",
+const WHATSAPP = "https://wa.me/37496799733";
+const AMENITY_VISUALS = [
+  "https://images.unsplash.com/photo-1576675784201-0e142b423952?w=600&q=80",
+  "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80",
+  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80",
+  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80",
+];
+const AMENITY_LABELS_HY: Record<string, string> = {
+  "Rooftop Pool": "Տանիքի լողավազան",
+  "Fitness Center": "Ֆիթնես կենտրոն",
+  "Parking": "Կայանատեղի",
+  "Security": "Անվտանգություն",
+  "Terrace Gardens": "Տեռասային այգիներ",
+  "Smart Home": "Խելացի տուն",
+  "Underground Parking": "Ստորգետնյա կայանատեղի",
+  "24/7 Security": "24/7 անվտանգություն",
+  "Valet Parking": "Վալետ կայանատեղի",
+  "Concierge": "Կոնսիերժ ծառայություն",
+  "Infinity Pool": "Ինֆինիտի լողավազան",
+  "Private Gardens": "Մասնավոր այգիներ",
+  "Private Security": "Մասնավոր անվտանգություն",
 };
-
-const PLACE_ICONS: Record<string, string> = {
-  transport: "🚇",
-  education: "🎓",
-  health: "🏥",
-  leisure: "🎭",
-  shopping: "🛍️",
-};
+const AMENITY_LABELS_EN: Record<string, string> = Object.fromEntries(
+  Object.entries(AMENITY_LABELS_HY).map(([enLabel, hyLabel]) => [hyLabel, enLabel]),
+);
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
-  const { getBySlug, loading: projectsLoading } = useProjects();
+  const { getBySlug, loading } = useProjects();
   const project = slug ? getBySlug(slug) : undefined;
 
-  if (projectsLoading) {
+  const galleryItems = useMemo(() => (project ? getProjectGallery(project) : []), [project]);
+
+  useEffect(() => {
+    if (project?.id) recordProjectView(project.id);
+  }, [project?.id]);
+
+  if (loading) {
     return (
-      <main className="bg-[#0C1428] min-h-screen pt-32 flex items-center justify-center">
-        <p className="text-sm text-[#5a6a7e]">Loading…</p>
+      <main className="min-h-screen pt-header flex items-center justify-center bg-white">
+        <p className="text-sm text-[#6B7280]">Loading…</p>
       </main>
     );
   }
 
   if (!project) {
     return (
-      <main className="bg-[#0C1428] min-h-screen pt-32 flex items-center justify-center">
+      <main className="min-h-screen pt-header flex items-center justify-center bg-white">
         <Seo title={t.projectNotFound} description={t.projectNotFound} path={`/projects/${slug ?? ""}`} lang={lang} noindex />
         <div className="text-center">
-          <p className="font-['Cormorant_Garamond'] text-5xl text-[#2a2520]">{t.projectNotFound}</p>
-          <Link href="/projects">
-            <span className="mt-8 inline-block text-[#c9a96e] text-sm tracking-widest uppercase cursor-pointer">
-              {t.backProjects}
-            </span>
-          </Link>
+          <p className="text-lg font-medium text-[#0c1428]">{t.projectNotFound}</p>
+          <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]">{t.backProjects} →</Link>
         </div>
       </main>
     );
   }
 
   const path = `/projects/${project.slug}`;
-  const metaDesc =
-    project.description.length > 155 ? `${project.description.slice(0, 152)}…` : project.description;
-  const ogImage = project.images[0];
+  const heroImage = galleryItems[0]?.url ?? project.images[0];
+  const description = getProjectDescription(project, lang);
+  const localizeAmenityLabel = (label: string) =>
+    lang === "hy" ? (AMENITY_LABELS_HY[label] ?? label) : (AMENITY_LABELS_EN[label] ?? label);
 
   return (
-    <main className="bg-[#0C1428] min-h-screen pt-20">
-      <Seo
-        title={`${project.title} — new construction in ${project.city}`}
-        description={metaDesc}
-        path={path}
-        image={ogImage}
-        lang={lang}
-        ogType="article"
-      />
+    <main className="bg-white min-h-screen">
+      <Seo title={`${project.title} — ${project.city}`} description={description} path={path} image={heroImage} lang={lang} ogType="article" />
       <JsonLd
         data={breadcrumbListSchema([
           { name: t.projectDetail.breadHome, path: "/" },
@@ -87,196 +96,124 @@ export default function ProjectDetailPage() {
           { name: project.title, path },
         ])}
       />
-      {/* ─── BREADCRUMB ─────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-6">
-        <div className="flex items-center gap-2 text-xs text-[#5a554f]">
-          <Link href="/"><span className="hover:text-[#c9a96e] cursor-pointer transition-colors">{t.projectDetail.breadHome}</span></Link>
-          <ChevronRight size={12} />
-          <Link href="/projects"><span className="hover:text-[#c9a96e] cursor-pointer transition-colors">{t.projectDetail.breadProjects}</span></Link>
-          <ChevronRight size={12} />
-          <span className="text-[#9a9085]">{project.title}</span>
-        </div>
-      </div>
 
-      {/* ─── HEADER ─────────────────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-10">
-        <motion.div
-          className="flex min-w-0 flex-col gap-6 md:flex-row md:items-end md:justify-between"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="min-w-0">
-            <StatusBadge status={project.status} />
-            <h1
-              className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] mt-3 leading-tight"
-              style={{ fontSize: lang === "hy" ? "clamp(2rem, 2.8vw, 2.6rem)" : "clamp(2.5rem, 3.5vw, 3.2rem)" }}
-            >
-              {project.title}
-            </h1>
-            <div className="flex items-center gap-2 text-[#9a9085] text-sm mt-2">
-              <MapPin size={14} className="text-[#c9a96e]" />
-              {project.location}
+      <ProjectMediaShowcase project={project} items={galleryItems} />
+
+      <section className="bg-[#F9FAFB] py-8 md:py-10">
+        <Container>
+          <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2 lg:gap-10">
+            <div className="h-full rounded-2xl bg-white p-4 md:p-5">
+              <DroneVideoSection
+                videos={project.droneVideos ?? []}
+                projectTitle={project.title}
+                embedded
+              />
+            </div>
+            <div className="h-full rounded-2xl bg-white p-4 md:p-5">
+              <ProjectLocationSection project={project} embedded />
             </div>
           </div>
-          <div className="w-full shrink-0 pt-2 md:w-auto md:pt-0 md:text-right">
-            <p className="text-xs tracking-widest uppercase text-[#5a554f] mb-1">{t.projectDetail.startingFrom}</p>
-            <p className="font-['Cormorant_Garamond'] text-4xl text-[#c9a96e]">
-              {formatPrice(project.startingPrice)}
+        </Container>
+      </section>
+
+      <Container className="py-8 md:py-10">
+        <dl className="flex flex-wrap items-start gap-x-8 gap-y-5 sm:gap-x-12">
+          {[
+            { label: t.home.startingFrom, value: formatPrice(project.startingPrice) },
+            { label: t.projectDetail.available, value: String(project.availableApartmentsCount) },
+            { label: t.developerDetail.constructionEnd, value: project.completionDate },
+            { label: t.projectDetail.floors, value: String(project.floors) },
+          ].map((row) => (
+            <div key={row.label} className="min-w-0">
+              <dt className="text-xs text-[#9CA3AF]">{row.label}</dt>
+              <dd className="mt-1 text-base font-semibold text-[#0c1428] tabular-nums sm:text-lg">{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        {project.amenities.length > 0 && (
+          <section className="mt-8">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <h2 className="text-xl font-semibold text-[#0c1428]">{t.projectDetail.amenitiesTitle}</h2>
+              <span className="text-xs font-medium text-[#9CA3AF]">
+                {project.amenities.length}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-start gap-4">
+              {project.amenities.slice(0, 8).map((a, idx) => (
+                <div
+                  key={a.label}
+                  className="flex w-[118px] flex-col items-center text-center"
+                >
+                  <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6] shadow-sm">
+                    <Image
+                      src={AMENITY_VISUALS[idx % AMENITY_VISUALS.length]}
+                      alt={localizeAmenityLabel(a.label)}
+                      fill
+                      unoptimized
+                      sizes="56px"
+                      className="object-cover"
+                    />
+                  </span>
+                  <span className="mt-2 line-clamp-2 text-sm font-normal text-[#0c1428]">{localizeAmenityLabel(a.label)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </Container>
+
+      <section id="apartments" className="border-t border-[#E5E7EB]">
+        <Container className="py-10 md:py-14">
+          <DeveloperFloorPlanSection project={project} />
+        </Container>
+      </section>
+
+      <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
+        <Container className="py-10 md:py-14">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#c9a96e]">
+              {t.calculator.eyebrow}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-[#0c1428] sm:text-2xl">
+              {t.calculator.title}
+            </h2>
+            <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
+              {t.calculator.subtitle}
             </p>
           </div>
-        </motion.div>
-      </section>
-
-      {/* ─── GALLERY ────────────────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-20">
-        <ProjectGallery images={project.images} title={project.title} />
-      </section>
-
-      {/* ─── DRONE VIDEOS ───────────────────────────────────────────────── */}
-      <DroneVideoSection videos={project.droneVideos ?? []} projectTitle={project.title} />
-
-      {/* ─── OVERVIEW + SIDEBAR ─────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-12">
-            {/* Description */}
-            <div>
-              <SectionTitle eyebrow={t.projectDetail.overviewEyebrow} title={t.projectDetail.overviewTitle} />
-              <p className="text-[#9a9085] leading-relaxed text-base">{project.longDescription}</p>
-            </div>
-
-            {/* Amenities */}
-            <div>
-              <SectionTitle eyebrow={t.projectDetail.amenitiesEyebrow} title={t.projectDetail.amenitiesTitle} />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {project.amenities.map((a, i) => (
-                  <motion.div
-                    key={a.label}
-                    className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-5 flex flex-col items-center text-center gap-3"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.07 }}
-                  >
-                    <span className="text-2xl">{AMENITY_ICONS[a.icon] ?? "✦"}</span>
-                    <span className="text-xs text-[#9a9085] tracking-wide">{a.label}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Payment options */}
-            <div>
-              <SectionTitle eyebrow={t.projectDetail.financeEyebrow} title={t.projectDetail.financeTitle} />
-              <div className="space-y-4">
-                {project.paymentOptions.map((opt, i) => (
-                  <motion.div
-                    key={opt.title}
-                    className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-6 flex gap-4"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    <div className="w-6 h-6 rounded-full border border-[#c9a96e] flex items-center justify-center shrink-0 mt-0.5">
-                      <Check size={12} className="text-[#c9a96e]" />
-                    </div>
-                    <div>
-                      <p className="text-[#f0ece4] font-medium text-sm">{opt.title}</p>
-                      <p className="text-[#9a9085] text-sm mt-1">{opt.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+          <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-8">
+            <MortgageCalculator key={project.id} initialPrice={project.startingPrice} />
           </div>
+        </Container>
+      </section>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick facts */}
-            <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-6">
-              <p className="text-xs tracking-[0.2em] uppercase text-[#5a554f] mb-5">{t.projectDetail.detailsLabel}</p>
-              <div className="space-y-4">
-                {[
-                  { label: t.projectDetail.developer, value: project.developer },
-                  { label: t.projectDetail.architect, value: project.architect ?? "—" },
-                  { label: t.projectDetail.floors, value: `${project.floors}` },
-                  { label: t.projectDetail.totalUnits, value: `${project.totalApartments}` },
-                  { label: t.projectDetail.available, value: `${project.availableApartmentsCount}` },
-                  { label: t.projectDetail.completion, value: project.completionDate },
-                  { label: t.projectDetail.statusLabel, value: getStatusLabel(t, project.status) },
-                ].map((row) => (
-                  <div key={row.label} className="flex justify-between items-start">
-                    <span className="text-xs text-[#5a554f] uppercase tracking-wider">{row.label}</span>
-                    <span className="text-sm text-[#f0ece4] text-right ml-4">{row.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-6">
-              <p className="text-xs tracking-[0.2em] uppercase text-[#5a554f] mb-4">{t.projectDetail.highlights}</p>
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-[#162035] border border-[#2a2520] rounded-full text-xs text-[#9a9085] capitalize"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Nearby */}
-            <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-6">
-              <p className="text-xs tracking-[0.2em] uppercase text-[#5a554f] mb-5">{t.projectDetail.nearby}</p>
-              <div className="space-y-3">
-                {project.nearbyPlaces.map((place) => (
-                  <div key={place.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-[#9a9085]">
-                      <span>{PLACE_ICONS[place.category] ?? "📍"}</span>
-                      {place.name}
-                    </div>
-                    <span className="text-xs font-['DM_Mono'] text-[#c9a96e]">{place.distance}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick contact */}
-            <div className="bg-[#c9a96e]/10 border border-[#c9a96e]/30 rounded-xl p-6">
-              <p className="text-[#c9a96e] text-sm font-medium mb-2">{t.projectDetail.interested}</p>
-              <p className="text-[#9a9085] text-xs mb-4">{t.projectDetail.interestedDesc}</p>
-              <Link href="/contact">
-                <span className="block text-center py-3 bg-[#c9a96e] text-[#0C1428] text-xs tracking-[0.2em] uppercase font-semibold hover:bg-[#e8d5b0] transition-all rounded-sm cursor-pointer">
-                  {t.projectDetail.bookViewing}
-                </span>
-              </Link>
-            </div>
+      <section className="py-12 md:py-14 bg-[#0c1428] border-t border-[#E5E7EB]">
+        <Container className="text-center">
+          <h2 className="text-2xl font-semibold text-white">{t.projectDetail.interested}</h2>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <a
+              href="tel:+37496799733"
+              className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#c9a96e]/60 bg-transparent px-6 text-sm font-semibold text-[#f7f3eb] transition-colors hover:bg-white/10"
+            >
+              <Phone size={18} /> {t.nav.call}
+            </a>
+            <a
+              href={WHATSAPP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-12 items-center gap-2 rounded-lg border border-[#c9a96e]/60 bg-transparent px-6 text-sm font-semibold text-[#f7f3eb] transition-colors hover:bg-white/10"
+            >
+              <MessageCircle size={18} /> WhatsApp
+            </a>
+            <Link
+              href="/contact"
+              className="inline-flex h-12 items-center rounded-lg border border-[#c9a96e]/60 bg-transparent px-6 text-sm font-semibold text-[#f7f3eb] transition-colors hover:bg-white/10"
+            >
+              {t.projectDetail.bookViewing}
+            </Link>
           </div>
-        </div>
-      </section>
-
-      {/* ─── APARTMENT LISTINGS ───────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-24">
-        <SectionTitle eyebrow={t.projectDetail.availabilityEyebrow} title={t.projectDetail.availabilityTitle} />
-        <ApartmentGrid apartments={project.apartments} projectSlug={project.slug} />
-      </section>
-
-      {/* ─── INQUIRY FORM ─────────────────────────────────────────────────── */}
-      <section className="bg-[#0d1829] border-t border-[#2a2520] py-24">
-        <div className="max-w-3xl mx-auto px-6 lg:px-10">
-          <SectionTitle
-            eyebrow={t.projectDetail.contactEyebrow}
-            title={t.projectDetail.contactTitle}
-            subtitle={t.projectDetail.contactSubtitle}
-            centered
-          />
-          <ContactForm defaultProject={project.title} />
-        </div>
+        </Container>
       </section>
     </main>
   );

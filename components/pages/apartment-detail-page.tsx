@@ -1,27 +1,33 @@
+"use client";
+
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { ChevronRight, BedDouble, Layers, Square, Eye, Phone, Calendar, MapPin } from "lucide-react";
+import { BedDouble, Download, Layers, Square } from "lucide-react";
 import { ProjectGallery } from "@/components/ProjectGallery";
-import { ContactForm } from "@/components/ContactForm";
+import { ApartmentInquiryModal } from "@/components/ApartmentInquiryModal";
+import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { SectionTitle } from "@/components/ui/SectionTitle";
+import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { downloadProjectInfoPdf } from "@/lib/download-project-info";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
+import { getProjectDescription } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
+import { listingCode } from "@/lib/listing-code";
 
 export default function ApartmentDetailPage() {
   const params = useParams();
   const aptId = typeof params.aptId === "string" ? params.aptId : undefined;
   const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
-  const { projects, loading: projectsLoading } = useProjects();
+  const { projects, loading } = useProjects();
+  const [inquiryType, setInquiryType] = useState<"info" | null>(null);
 
-  // Find apartment across all projects
   const result = (() => {
     for (const project of projects) {
       const apartment = project.apartments.find((a) => a.id === aptId);
@@ -30,53 +36,70 @@ export default function ApartmentDetailPage() {
     return undefined;
   })();
 
-  if (projectsLoading) {
+  if (loading) {
     return (
-      <main className="bg-[#0C1428] min-h-screen pt-32 flex items-center justify-center">
-        <p className="text-sm text-[#5a6a7e]">Loading…</p>
+      <main className="min-h-screen pt-header flex items-center justify-center bg-white">
+        <p className="text-sm text-[#6B7280]">Loading…</p>
       </main>
     );
   }
 
   if (!result) {
     return (
-      <main className="bg-[#0C1428] min-h-screen pt-32 flex items-center justify-center">
+      <main className="min-h-screen pt-header flex items-center justify-center bg-white">
         <Seo title={t.aptNotFound} description={t.aptNotFound} path={`/projects/${slug ?? "_"}/apartments/${aptId ?? ""}`} lang={lang} noindex />
         <div className="text-center">
-          <p className="font-['Cormorant_Garamond'] text-5xl text-[#2a2520]">{t.aptNotFound}</p>
-          <Link href="/projects">
-            <span className="mt-8 inline-block text-[#c9a96e] text-sm tracking-widest uppercase cursor-pointer">
-              {t.backProjects}
-            </span>
-          </Link>
+          <p className="text-lg font-medium text-[#0c1428]">{t.aptNotFound}</p>
+          <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]">{t.backProjects} →</Link>
         </div>
       </main>
     );
   }
 
   const { apartment: apt, project } = result;
-
   const path = `/projects/${project.slug}/apartments/${apt.id}`;
-  const titleSeo = `${apt.rooms}-bedroom apartment · ${project.title}`;
-  const descSeo = `${apt.rooms}BR residence at ${project.title} in ${project.location}. ${apt.area} m², ${t.aptDetail.floorLabel} ${apt.floor}. Explore availability with CasaGroup.`;
+  const sold = apt.status === "Sold";
+  const images = apt.gallery.length > 0 ? apt.gallery : project.images.slice(0, 4);
+  const aptCode = listingCode(apt.id);
+  const whatsappMessage = encodeURIComponent(
+    `Բարև, հետաքրքրված եմ ${project.title} նախագծի #${aptCode} բնակարանով (${apt.rooms} սեն., ${apt.area} մ²):`,
+  );
+  const whatsappHref = `https://wa.me/37496799733?text=${whatsappMessage}`;
 
-  const allImages = [
-    ...apt.gallery,
-    ...(apt.floorPlanImage ? [apt.floorPlanImage] : []),
-    ...project.images.slice(0, 2),
-  ];
-
-  const relatedApartments = project.apartments
-    .filter((a) => a.id !== apt.id && a.status === "Available")
-    .slice(0, 3);
+  function handleDownloadPdf() {
+    downloadProjectInfoPdf({
+      project,
+      apartment: apt,
+      statusLabel: getStatusLabel(t, apt.status),
+      description: getProjectDescription(project, lang),
+      labels: {
+        title: t.aptDetail.pdfTitle,
+        project: lang === "hy" ? "Նախագիծ" : "Project",
+        location: t.aptDetail.locationSpec,
+        city: t.admin.city,
+        status: t.aptDetail.statusLabel,
+        developer: t.projectDetail.developer,
+        completion: t.aptDetail.completionSpec,
+        floors: t.projectDetail.floors,
+        apartment: t.home.searchTypes.apartment,
+        price: t.aptDetail.price,
+        bedrooms: t.aptDetail.bedrooms,
+        area: t.aptDetail.area,
+        floor: t.aptDetail.floorSpec,
+        view: t.aptDetail.viewSpec,
+        description: t.aptDetail.pdfDescription,
+        generated: t.aptDetail.pdfGenerated,
+      },
+    });
+  }
 
   return (
-    <main className="bg-[#0C1428] min-h-screen pt-20">
+    <main className="bg-white min-h-screen pt-header pb-20">
       <Seo
-        title={titleSeo}
-        description={descSeo}
+        title={`${apt.rooms} BR · ${project.title}`}
+        description={`${apt.area} m² apartment at ${project.title}, ${project.city}.`}
         path={path}
-        image={allImages[0] ?? project.images[0]}
+        image={images[0]}
         lang={lang}
         ogType="article"
       />
@@ -85,211 +108,125 @@ export default function ApartmentDetailPage() {
           { name: t.aptDetail.breadHome, path: "/" },
           { name: t.aptDetail.breadProjects, path: "/projects" },
           { name: project.title, path: `/projects/${project.slug}` },
-          { name: `${apt.rooms}BR · ${t.aptDetail.floorLabel} ${apt.floor}`, path },
+          { name: `${apt.rooms} BR`, path },
         ])}
       />
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 py-6">
-        <div className="flex items-center gap-2 text-xs text-[#5a554f] flex-wrap">
-          <Link href="/"><span className="hover:text-[#c9a96e] cursor-pointer transition-colors">{t.aptDetail.breadHome}</span></Link>
-          <ChevronRight size={12} />
-          <Link href="/projects"><span className="hover:text-[#c9a96e] cursor-pointer transition-colors">{t.aptDetail.breadProjects}</span></Link>
-          <ChevronRight size={12} />
-          <Link href={`/projects/${project.slug}`}>
-            <span className="hover:text-[#c9a96e] cursor-pointer transition-colors">{project.title}</span>
-          </Link>
-          <ChevronRight size={12} />
-          <span className="text-[#9a9085]">{t.aptDetail.floorLabel} {apt.floor} · {apt.rooms}BR</span>
-        </div>
-      </div>
 
-      {/* Header */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-10">
-        <motion.div
-          className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div>
-            <StatusBadge status={apt.status} />
-            <h1
-              className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] mt-3 leading-tight"
-              style={{ fontSize: lang === "hy" ? "clamp(1.7rem, 2.4vw, 2.4rem)" : "clamp(2rem, 3vw, 3rem)" }}
-            >
-              {apt.rooms}-{t.aptDetail.bedroomApt}
-              <span className="text-[#9a9085]"> · {t.aptDetail.floorLabel} {apt.floor}</span>
-            </h1>
-            <div className="flex items-center gap-2 text-[#9a9085] text-sm mt-2">
-              <MapPin size={13} className="text-[#c9a96e]" />
-              <Link href={`/projects/${project.slug}`}>
-                <span className="hover:text-[#c9a96e] transition-colors cursor-pointer">{project.title}</span>
-              </Link>
-              <span>·</span>
-              <span>{project.location}</span>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-xs tracking-widest uppercase text-[#5a554f] mb-1">{t.aptDetail.priceLabel}</p>
-            <p className="font-['Cormorant_Garamond'] text-4xl text-[#c9a96e]">{formatPrice(apt.price)}</p>
-          </div>
-        </motion.div>
-      </section>
+      <Container className="py-6 md:py-10">
+        <nav className="text-sm text-[#6B7280] mb-6">
+          <Link href={`/projects/${project.slug}`} className="hover:text-[#0c1428]">{project.title}</Link>
+          <span className="mx-2">/</span>
+          <span className="text-[#0c1428]">{apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}</span>
+        </nav>
 
-      {/* Gallery */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-20">
-        {allImages.length > 0 ? (
-          <ProjectGallery images={allImages} title={`${project.title} apartment`} />
-        ) : (
-          <div className="h-80 bg-[#0d1829] border border-[#2a2520] rounded-xl flex items-center justify-center">
-            <p className="text-[#5a554f] text-sm">{t.aptDetail.noImages}</p>
-          </div>
-        )}
-      </section>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
+          <div className="space-y-6">
+            {images.length > 0 ? (
+              <div className="rounded-[5px] overflow-hidden">
+                <ProjectGallery images={images} title={project.title} />
+              </div>
+            ) : null}
 
-      {/* Details + CTA */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Specs */}
-          <div className="lg:col-span-2">
-            <SectionTitle eyebrow={t.aptDetail.specsEyebrow} title={t.aptDetail.specsTitle} />
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mb-12">
-              {[
-                { icon: BedDouble, label: t.aptDetail.bedrooms, value: `${apt.rooms} BR` },
-                { icon: Layers, label: t.aptDetail.floorSpec, value: `${apt.floor} of ${project.floors}` },
-                { icon: Square, label: t.aptDetail.area, value: `${apt.area} m²` },
-                { icon: Eye, label: t.aptDetail.viewSpec, value: apt.viewType },
-                { icon: Calendar, label: t.aptDetail.completionSpec, value: project.completionDate },
-                { icon: MapPin, label: t.aptDetail.locationSpec, value: project.city },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-5"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.07 }}
-                >
-                  <item.icon size={16} className="text-[#c9a96e] mb-3" />
-                  <p className="text-xs text-[#5a554f] uppercase tracking-wider mb-1">{item.label}</p>
-                  <p className="text-[#f0ece4] font-medium text-sm">{item.value}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Floor plan */}
             {apt.floorPlanImage && (
-              <div className="mb-12">
-                <SectionTitle eyebrow={t.aptDetail.layoutEyebrow} title={t.aptDetail.layoutTitle} />
-                <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-4">
-                  <div className="relative w-full min-h-[200px] h-96 max-h-96">
-                    <Image
-                      src={apt.floorPlanImage}
-                      alt="Floor plan"
-                      fill
-                      unoptimized
-                      sizes="(max-width: 1024px) 100vw, 66vw"
-                      className="object-contain rounded-lg"
-                    />
-                  </div>
+              <div className="rounded-[5px] bg-white p-4 sm:p-5 shadow-sm border border-[#E5E7EB]">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-[#0c1428]">{t.aptDetail.layoutTitle}</h2>
+                  <span className="rounded-[5px] bg-[#F5F0E8] px-3 py-1 text-[11px] font-medium text-[#8B6A33]">
+                    {apt.area} m²
+                  </span>
+                </div>
+                <div className="relative w-full h-72 sm:h-[28rem] overflow-hidden rounded-[5px] bg-[#F8FAFC]">
+                  <Image
+                    src={apt.floorPlanImage}
+                    alt={t.aptDetail.layoutTitle}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    sizes="(max-width:1024px) 100vw, 900px"
+                  />
                 </div>
               </div>
             )}
           </div>
 
-          {/* CTA Sidebar */}
-          <div className="space-y-5">
-            <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-6 sticky top-24">
-              <p className="font-['Cormorant_Garamond'] text-2xl text-[#f0ece4] mb-1">
-                {t.aptDetail.interested}
-              </p>
-              <p className="text-sm text-[#9a9085] mb-6">
-                {t.aptDetail.interestedDesc}
-              </p>
+          <aside className="lg:sticky lg:top-24 min-w-0 rounded-[5px] bg-[#F9FAFB] p-5 sm:p-6">
+            <StatusBadge status={apt.status} />
+            <p className="mt-4 text-3xl font-semibold text-[#0c1428] tabular-nums">
+              {sold ? "—" : formatPrice(apt.price)}
+            </p>
+            <p className="mt-1 text-sm text-[#6B7280]">{getStatusLabel(t, apt.status)}</p>
 
-              <div className="space-y-3">
-                <a
-                  href="tel:+37410123456"
-                  className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#c9a96e] text-[#0C1428] text-xs tracking-[0.2em] uppercase font-semibold hover:bg-[#e8d5b0] transition-all rounded-sm"
-                >
-                  <Phone size={14} />
-                  {t.aptDetail.requestCall}
-                </a>
-                <Link href="/contact">
-                  <span className="flex items-center justify-center gap-2 w-full py-3.5 border border-[#c9a96e] text-[#c9a96e] text-xs tracking-[0.2em] uppercase font-medium hover:bg-[#c9a96e]/10 transition-all rounded-sm cursor-pointer">
-                    <Calendar size={14} />
-                    {t.aptDetail.bookViewing}
-                  </span>
-                </Link>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-[#2a2520] space-y-3">
-                {[
-                  [t.aptDetail.price, formatPrice(apt.price)],
-                  [t.aptDetail.areaShort, `${apt.area} m²`],
-                  [t.aptDetail.floorShort, `${apt.floor}`],
-                  [t.aptDetail.viewShort, apt.viewType],
-                  [t.aptDetail.statusLabel, getStatusLabel(t, apt.status)],
-                  [t.aptDetail.balcony, apt.balcony ? t.aptDetail.yes : t.aptDetail.no],
-                ].map(([label, val]) => (
-                  <div key={label} className="flex justify-between">
-                    <span className="text-xs text-[#5a554f] uppercase tracking-wider">{label}</span>
-                    <span className="text-sm text-[#f0ece4]">{val}</span>
+            <div className="mt-5 space-y-3">
+              {[
+                { icon: BedDouble, label: t.aptDetail.bedrooms, value: `${apt.rooms}` },
+                { icon: Square, label: t.aptDetail.area, value: `${apt.area} m²` },
+                { icon: Layers, label: t.aptDetail.floorSpec, value: `${apt.floor}` },
+                { icon: Square, label: t.aptDetail.viewSpec, value: apt.viewType },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="flex items-center justify-between gap-3">
+                  <div className="inline-flex min-w-0 items-center gap-2 text-[#6B7280]">
+                    <Icon size={15} className="shrink-0" />
+                    <span className="truncate text-sm">{label}</span>
                   </div>
-                ))}
-              </div>
+                  <p className="shrink-0 text-sm font-semibold text-[#0c1428]">{value}</p>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Related apartments */}
-      {relatedApartments.length > 0 && (
-        <section className="max-w-7xl mx-auto px-6 lg:px-10 mb-24">
-          <SectionTitle eyebrow={t.aptDetail.relatedEyebrow} title={t.aptDetail.relatedTitle} />
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#2a2520]">
-                  {[t.table.floor, t.table.rooms, t.table.area, t.table.price, t.table.view, t.table.status, ""].map((h, i) => (
-                    <th key={i} className="text-left py-4 px-4 text-xs tracking-[0.2em] uppercase text-[#5a554f]">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {relatedApartments.map((a) => (
-                  <tr key={a.id} className="border-b border-[#1e2d45] hover:bg-[#0d1829] transition-colors">
-                    <td className="py-4 px-4 text-[#f0ece4] font-['DM_Mono'] text-sm">{a.floor}</td>
-                    <td className="py-4 px-4 text-[#f0ece4] text-sm">{a.rooms} BR</td>
-                    <td className="py-4 px-4 text-[#f0ece4] font-['DM_Mono'] text-sm">{a.area} m²</td>
-                    <td className="py-4 px-4 text-[#c9a96e] font-['DM_Mono'] font-medium">{formatPrice(a.price)}</td>
-                    <td className="py-4 px-4 text-[#9a9085] text-sm">{a.viewType}</td>
-                    <td className="py-4 px-4"><StatusBadge status={a.status} /></td>
-                    <td className="py-4 px-4">
-                      <Link href={`/projects/${project.slug}/apartments/${a.id}`}>
-                        <span className="text-xs tracking-widest uppercase text-[#c9a96e] cursor-pointer">{t.table.viewBtn}</span>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <div className="mt-6 space-y-2">
+              {!sold && (
+                <button
+                  type="button"
+                  onClick={() => setInquiryType("info")}
+                  className="flex h-10 w-full items-center justify-center rounded-[5px] bg-[#0c1428] px-3 text-xs font-semibold whitespace-nowrap text-white hover:bg-[#1F2937]"
+                >
+                  {t.aptDetail.requestInfo}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-[5px] border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#0c1428] hover:border-[#0c1428] transition-colors"
+              >
+                <Download size={15} />
+                {t.aptDetail.downloadPdf}
+              </button>
+            </div>
+          </aside>
+        </div>
+      </Container>
+
+      {!sold && (
+        <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
+          <Container className="py-10 md:py-14">
+            <div className="mb-8 max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#c9a96e]">
+                {t.calculator.eyebrow}
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-[#0c1428] sm:text-2xl">
+                {t.calculator.title}
+              </h2>
+              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
+                {t.calculator.subtitle}
+              </p>
+            </div>
+            <div className="rounded-[5px] bg-white p-5 shadow-sm sm:p-8">
+              <MortgageCalculator key={apt.id} initialPrice={apt.price} />
+            </div>
+          </Container>
         </section>
       )}
 
-      {/* Inquiry form */}
-      <section className="bg-[#0d1829] border-t border-[#2a2520] py-24">
-        <div className="max-w-3xl mx-auto px-6 lg:px-10">
-          <SectionTitle
-            eyebrow={t.aptDetail.inquireEyebrow}
-            title={t.aptDetail.inquireTitle}
-            subtitle={t.aptDetail.inquireSubtitle}
-            centered
-          />
-          <ContactForm defaultProject={project.title} />
-        </div>
-      </section>
+      <ApartmentInquiryModal
+        type={inquiryType}
+        onClose={() => setInquiryType(null)}
+        context={{
+          projectTitle: project.title,
+          listingCode: aptCode,
+          whatsappHref,
+          price: apt.price,
+        }}
+      />
     </main>
   );
 }

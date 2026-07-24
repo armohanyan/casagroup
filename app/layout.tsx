@@ -1,7 +1,27 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Noto_Sans_Armenian, Playfair_Display } from "next/font/google";
 import { Provider } from "@/components/provider";
 import { SiteChrome } from "@/components/SiteChrome";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const notoArmenian = Noto_Sans_Armenian({
+  subsets: ["armenian"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-armenian",
+  display: "swap",
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
 
@@ -45,8 +65,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0C1428",
-  colorScheme: "dark",
+  themeColor: "#FAF8F5",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -54,15 +74,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="hy" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Noto+Sans+Armenian:wght@300;400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="hy" suppressHydrationWarning className={`${inter.variable} ${notoArmenian.variable} ${playfair.variable}`}>
       <body>
         <Provider>
           <SiteChrome>{children}</SiteChrome>

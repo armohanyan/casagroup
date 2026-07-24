@@ -24,7 +24,7 @@ function AnimatedNumber({ value, suffix }: { value: number; suffix: string }) {
   }, [inView, value]);
 
   return (
-    <span ref={ref} className="font-['Cormorant_Garamond'] text-[#c9a96e] font-light" style={{ fontSize: "clamp(2.5rem, 3.5vw, 3.2rem)" }}>
+    <span ref={ref} className="font-sans font-bold text-[#c9a96e]" style={{ fontSize: "clamp(2.5rem, 3.5vw, 3.2rem)" }}>
       {current}{suffix}
     </span>
   );
@@ -33,7 +33,7 @@ function AnimatedNumber({ value, suffix }: { value: number; suffix: string }) {
 export function StatsSection() {
   const { t } = useI18n();
   return (
-    <section className="py-24 bg-[#0C1428] border-y border-[#2a2520]">
+    <section className="py-14 bg-[#F3EFE8] border-y border-[#E7E0D5]">
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <div className="grid min-w-0 grid-cols-2 gap-8 md:grid-cols-4 md:gap-12">
           {t.stats.map((stat, i) => (
@@ -46,7 +46,7 @@ export function StatsSection() {
               transition={{ delay: i * 0.1, duration: 0.6 }}
             >
               <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-              <p className="mt-3 text-xs tracking-[0.2em] uppercase text-[#9a9085] font-medium">
+              <p className="mt-3 text-xs tracking-[0.2em] uppercase text-[#57534E] font-medium">
                 {stat.label}
               </p>
             </motion.div>

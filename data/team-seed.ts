@@ -2,7 +2,7 @@ import { en } from "@/lib/translations-en";
 import { hyTranslations } from "@/content/hy";
 import type { TeamMemberRow } from "@/types";
 
-/** Flat rows for Airtable "Team" table — built from static EN/HY copy. */
+/** Flat team rows built from static EN/HY copy. */
 export function buildTeamSeedRows(): TeamMemberRow[] {
   const rows: TeamMemberRow[] = [];
   en.about.teamSections.forEach((enSec, si) => {

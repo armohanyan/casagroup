@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-import { MOCK_PROJECTS } from "@/data/mock";
-import { getProjectsForSite } from "@/src/lib/projects-airtable";
+import { getProjects } from "@/lib/projects-data";
 
 function baseUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.example.com").replace(/\/$/, "");
@@ -11,7 +10,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
   const now = new Date();
 
-  const staticPaths = ["/", "/projects", "/services", "/about", "/contact"];
+  const staticPaths = [
+    "/",
+    "/properties",
+    "/properties/map",
+    "/projects",
+    "/investment",
+    "/calculator",
+    "/blog",
+    "/partners",
+    "/partners/services",
+    "/about",
+    "/contact",
+  ];
   for (const path of staticPaths) {
     entries.push({
       url: `${base}${path}`,
@@ -21,12 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  let projects = MOCK_PROJECTS;
-  try {
-    projects = await getProjectsForSite();
-  } catch {
-    projects = MOCK_PROJECTS;
-  }
+  const projects = await getProjects();
 
   for (const p of projects) {
     entries.push({

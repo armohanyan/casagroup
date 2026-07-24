@@ -44,7 +44,7 @@ export function ProjectCard({ project }: { project: Project }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-      className="group bg-[#0f1e30] border border-[#2a2520] rounded-xl overflow-hidden hover:border-[#c9a96e]/40 transition-all duration-300 cursor-pointer"
+      className="group bg-white border border-[#E7E0D5] rounded-xl overflow-hidden hover:border-[#c9a96e]/40 hover:shadow-lg hover:shadow-black/5 transition-all duration-300 cursor-pointer shadow-sm shadow-black/[0.04]"
     >
       {/* Image */}
       <div className="relative h-64 overflow-hidden">
@@ -64,12 +64,12 @@ export function ProjectCard({ project }: { project: Project }) {
             />
           ) : null}
         </motion.div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0f1e30] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
         <div className="absolute top-4 left-4">
           <StatusBadge status={project.status} />
         </div>
         {project.featured && (
-          <div className="absolute top-4 right-4 px-2.5 py-1 bg-[#c9a96e] text-[#0C1428] text-xs font-semibold tracking-widest uppercase rounded-sm">
+          <div className="absolute top-4 right-4 px-2.5 py-1 bg-brand text-white text-xs font-semibold tracking-widest uppercase rounded-sm">
             {t.card.featured}
           </div>
         )}
@@ -77,36 +77,36 @@ export function ProjectCard({ project }: { project: Project }) {
 
       {/* Content */}
       <div className="p-6">
-        <h3 className="font-['Cormorant_Garamond'] text-2xl font-light text-[#f0ece4] mb-2 group-hover:text-[#c9a96e] transition-colors">
+        <h3 className="font-sans font-semibold text-2xl text-[#1C1917] mb-2 group-hover:text-[#c9a96e] transition-colors">
           {project.title}
         </h3>
 
-        <div className="flex items-center gap-1.5 text-[#9a9085] text-sm mb-4">
+        <div className="flex items-center gap-1.5 text-[#57534E] text-sm mb-4">
           <MapPin size={13} className="text-[#c9a96e]" />
           {project.location}
         </div>
 
-        <p className="text-[#9a9085] text-sm leading-relaxed mb-6 line-clamp-2">
+        <p className="text-[#57534E] text-sm leading-relaxed mb-6 line-clamp-2">
           {project.description}
         </p>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div>
-            <p className="text-xs text-[#5a554f] uppercase tracking-wider mb-1">{t.card.from}</p>
-            <p className="text-[#c9a96e] font-['DM_Mono'] font-medium">{formatPrice(project.startingPrice)}</p>
+            <p className="text-xs text-[#A8A29E] uppercase tracking-wider mb-1">{t.card.from}</p>
+            <p className="text-[#c9a96e] font-sans tabular-nums font-medium">{formatPrice(project.startingPrice)}</p>
           </div>
           <div>
-            <p className="text-xs text-[#5a554f] uppercase tracking-wider mb-1">{t.card.available}</p>
-            <p className="text-[#f0ece4] font-['DM_Mono'] font-medium">{project.availableApartmentsCount}</p>
+            <p className="text-xs text-[#A8A29E] uppercase tracking-wider mb-1">{t.card.available}</p>
+            <p className="text-[#1C1917] font-sans tabular-nums font-medium">{project.availableApartmentsCount}</p>
           </div>
           <div>
-            <p className="text-xs text-[#5a554f] uppercase tracking-wider mb-1">{t.card.completion}</p>
-            <p className="text-[#f0ece4] text-sm font-medium">{project.completionDate}</p>
+            <p className="text-xs text-[#A8A29E] uppercase tracking-wider mb-1">{t.card.completion}</p>
+            <p className="text-[#1C1917] text-sm font-medium">{project.completionDate}</p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-[#2a2520]">
-          <div className="flex items-center gap-3 text-xs text-[#9a9085]">
+        <div className="flex items-center justify-between pt-4 border-t border-[#E7E0D5]">
+          <div className="flex items-center gap-3 text-xs text-[#57534E]">
             <Building2 size={13} />
             <span>{project.floors} {t.card.floors}</span>
             <Calendar size={13} className="ml-2" />

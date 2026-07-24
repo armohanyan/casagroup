@@ -31,6 +31,23 @@ export interface Apartment {
   balcony?: boolean;
 }
 
+export type GalleryCategory =
+  | "exterior"
+  | "interior"
+  | "entrance"
+  | "lobby"
+  | "parking"
+  | "green"
+  | "rooftop"
+  | "construction"
+  | "drone"
+  | "night";
+
+export interface ProjectGalleryItem {
+  url: string;
+  category: GalleryCategory;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -38,8 +55,12 @@ export interface Project {
   location: string;
   city: string;
   description: string;
+  /** Armenian short description; falls back to `description` when missing. */
+  descriptionHy?: string;
   longDescription: string;
+  longDescriptionHy?: string;
   images: string[];
+  gallery?: ProjectGalleryItem[];
   videoUrl?: string;
   droneVideos?: { title: string; url: string; thumbnail?: string }[];
   startingPrice: number;
@@ -54,6 +75,10 @@ export interface Project {
   apartments: Apartment[];
   developer: string;
   architect?: string;
+  managementCompany?: string;
+  partnerBank?: string;
+  constructionStart?: string;
+  exclusiveSalesRights?: string;
   coordinates: { lat: number; lng: number };
   tags: string[];
   featured: boolean;
@@ -65,6 +90,7 @@ export interface InquiryFormData {
   email: string;
   interestedProject: string;
   message: string;
+  kind?: string;
 }
 
 export interface TeamMemberDisplay {
@@ -79,7 +105,7 @@ export interface TeamSectionDisplay {
   members: TeamMemberDisplay[];
 }
 
-/** One row in the Airtable "Team" table. */
+/** One row in the team seed / CMS table. */
 export interface TeamMemberRow {
   id: string;
   sectionKey: string;

@@ -1,39 +1,34 @@
+"use client";
+
 import {
   createContext,
   useContext,
   useState,
   useEffect,
   useCallback,
-  useMemo,
   type ReactNode,
 } from "react";
 import type { Project } from "@/types";
+import {
+  adminCreateProject,
+  adminDeleteProject,
+  adminUpdateProject,
+  fetchProjects,
+  getAdminToken,
+} from "@/lib/api-client";
 
 interface ProjectsContextValue {
   projects: Project[];
   loading: boolean;
   loadError: string | null;
   refreshProjects: () => Promise<void>;
-  addProject: (p: Omit<Project, "id" | "slug">) => Promise<Project>;
+  addProject: (p: Omit<Project, "id" | "slug"> & { slug?: string }) => Promise<Project>;
   updateProject: (id: string, p: Partial<Project>) => Promise<Project>;
   deleteProject: (id: string) => Promise<void>;
   getBySlug: (slug: string) => Project | undefined;
 }
 
 const ProjectsContext = createContext<ProjectsContextValue | null>(null);
-
-async function readProjectsResponse(res: Response): Promise<Project[]> {
-  const raw: unknown = await res.json();
-  if (!res.ok) {
-    const msg =
-      typeof raw === "object" && raw !== null && "error" in raw && typeof (raw as { error: unknown }).error === "string"
-        ? (raw as { error: string }).error
-        : res.statusText;
-    throw new Error(msg);
-  }
-  if (!Array.isArray(raw)) throw new Error("Invalid projects response");
-  return raw as Project[];
-}
 
 export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -43,8 +38,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const refreshProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/projects", { cache: "no-store" });
-      const data = await readProjectsResponse(res);
+      const data = await fetchProjects();
       setProjects(data);
       setLoadError(null);
     } catch (e) {
@@ -60,84 +54,49 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   }, [refreshProjects]);
 
   const addProject = useCallback(
-    async (data: Omit<Project, "id" | "slug">) => {
-      const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      const raw: unknown = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const msg =
-          typeof raw === "object" && raw !== null && "error" in raw && typeof (raw as { error: unknown }).error === "string"
-            ? (raw as { error: string }).error
-            : res.statusText;
-        throw new Error(msg);
-      }
-      const project = raw as Project;
-      await refreshProjects();
+    async (data: Omit<Project, "id" | "slug"> & { slug?: string }) => {
+      if (!getAdminToken()) throw new Error("Admin login required");
+      const project = await adminCreateProject(data);
+      setProjects((prev) => [project, ...prev.filter((p) => p.id !== project.id)]);
       return project;
     },
-    [refreshProjects]
+    []
   );
 
-  const updateProject = useCallback(
-    async (id: string, data: Partial<Project>) => {
-      const res = await fetch(`/api/projects/${encodeURIComponent(id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      const raw: unknown = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const msg =
-          typeof raw === "object" && raw !== null && "error" in raw && typeof (raw as { error: unknown }).error === "string"
-            ? (raw as { error: string }).error
-            : res.statusText;
-        throw new Error(msg);
-      }
-      await refreshProjects();
-      return raw as Project;
-    },
-    [refreshProjects]
-  );
+  const updateProject = useCallback(async (id: string, data: Partial<Project>) => {
+    if (!getAdminToken()) throw new Error("Admin login required");
+    const updated = await adminUpdateProject(id, data);
+    setProjects((prev) => prev.map((p) => (p.id === id ? updated : p)));
+    return updated;
+  }, []);
 
-  const deleteProject = useCallback(
-    async (id: string) => {
-      const res = await fetch(`/api/projects/${encodeURIComponent(id)}`, { method: "DELETE" });
-      const raw: unknown = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const msg =
-          typeof raw === "object" && raw !== null && "error" in raw && typeof (raw as { error: unknown }).error === "string"
-            ? (raw as { error: string }).error
-            : res.statusText;
-        throw new Error(msg);
-      }
-      await refreshProjects();
-    },
-    [refreshProjects]
-  );
+  const deleteProject = useCallback(async (id: string) => {
+    if (!getAdminToken()) throw new Error("Admin login required");
+    await adminDeleteProject(id);
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+  }, []);
 
   const getBySlug = useCallback(
     (slug: string) => projects.find((p) => p.slug === slug),
     [projects]
   );
 
-  const value = useMemo(
-    () => ({
-      projects,
-      loading,
-      loadError,
-      refreshProjects,
-      addProject,
-      updateProject,
-      deleteProject,
-      getBySlug,
-    }),
-    [projects, loading, loadError, refreshProjects, addProject, updateProject, deleteProject, getBySlug]
+  return (
+    <ProjectsContext.Provider
+      value={{
+        projects,
+        loading,
+        loadError,
+        refreshProjects,
+        addProject,
+        updateProject,
+        deleteProject,
+        getBySlug,
+      }}
+    >
+      {children}
+    </ProjectsContext.Provider>
   );
-
-  return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;
 }
 
 export function useProjects() {

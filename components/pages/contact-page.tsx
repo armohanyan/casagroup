@@ -1,140 +1,74 @@
-import { motion } from "framer-motion";
+"use client";
+
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Phone, Mail, MapPin, Clock } from "lucide-react";
 import { ContactForm } from "@/components/ContactForm";
-import { SectionTitle } from "@/components/ui/SectionTitle";
+import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
+import { siteImages } from "@/lib/site-images";
 import { useI18n } from "@/lib/i18n";
 
-const CONTACT_ICONS = [Phone, Mail, MapPin, Clock];
+const OfficeMap = dynamic(
+  () => import("@/components/site/OfficeMap").then((m) => m.OfficeMap),
+  { ssr: false, loading: () => <div className="h-64 bg-[#F3F4F6] rounded-[5px] animate-pulse" /> },
+);
+
+const ICONS = [Phone, Mail, MapPin, Clock];
 
 export default function ContactPage() {
   const { t, lang } = useI18n();
 
   return (
-    <main className="bg-[#0C1428] min-h-screen pt-20">
-      <Seo
-        title={t.seo.contact.title}
-        description={t.seo.contact.description}
-        path="/contact"
-        lang={lang}
-      />
-      {/* Hero */}
-      <section className="relative py-28 overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1920&q=60"
-            alt="CasaGroup contact — modern residential lobby reception area"
-            fill
-            sizes="100vw"
-            className="object-cover opacity-15"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0C1428] via-transparent to-[#0C1428]" />
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
-          <motion.p
-            className="text-[10px] sm:text-xs tracking-[0.2em] sm:tracking-[0.35em] uppercase text-[#c9a96e] mb-4"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {t.contact.eyebrow}
-          </motion.p>
-          <motion.h1
-            className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] leading-tight break-words hyphens-auto"
-            style={{ fontSize: lang === "hy" ? "clamp(1.7rem, 2.8vw, 2.6rem)" : "clamp(2rem, 3.5vw, 3.2rem)" }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            {t.contact.title}
-          </motion.h1>
-          <motion.p
-            className="text-[#9a9085] mt-4 max-w-lg text-sm sm:text-base font-light"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            {t.contact.subtitle}
-          </motion.p>
-        </div>
+    <main className="bg-white min-h-screen">
+      <Seo title={t.seo.contact.title} description={t.seo.contact.description} path="/contact" lang={lang} />
+
+      <section className="relative pt-header min-h-[340px] md:min-h-[420px] flex items-center justify-center overflow-hidden">
+        <Image
+          src={siteImages.hero.contact}
+          alt=""
+          fill
+          priority
+          unoptimized
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-[#0F172A]/70" />
+        <Container className="relative z-10 py-16 md:py-20 text-center">
+          <h1 className="font-display text-4xl md:text-5xl lg:text-[3.25rem] text-white tracking-tight">
+            {t.nav.contact}
+          </h1>
+        </Container>
       </section>
 
-      {/* Content */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 py-20 pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
-          {/* Contact Info */}
-          <div className="lg:col-span-2 space-y-8">
-            <SectionTitle eyebrow={t.contact.reachEyebrow} title={t.contact.reachTitle} />
-
+      <section className="py-10 md:py-14">
+        <Container>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="space-y-5">
               {t.contact.contactInfo.map((item, i) => {
-                const Icon = CONTACT_ICONS[i];
+                const Icon = ICONS[i];
                 return (
-                  <motion.a
-                    key={item.label}
-                    href={item.href}
-                    className="flex items-start gap-5 group"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                  >
-                    <div className="w-12 h-12 border border-[#2a2520] rounded-lg flex items-center justify-center shrink-0 group-hover:border-[#c9a96e] transition-colors">
-                      <Icon size={18} className="text-[#c9a96e]" />
+                  <a key={item.label} href={item.href} className="flex gap-4 group">
+                    <div className="w-10 h-10 flex items-center justify-center rounded-[5px] border border-[#E5E7EB] shrink-0">
+                      <Icon size={18} className="text-[#6B7280]" />
                     </div>
                     <div>
-                      <p className="text-xs tracking-widest uppercase text-[#5a554f] mb-1">{item.label}</p>
-                      <p className="text-[#f0ece4] text-sm group-hover:text-[#c9a96e] transition-colors">
-                        {item.value}
-                      </p>
+                      <p className="text-xs font-medium text-[#6B7280]">{item.label}</p>
+                      <p className="text-sm font-medium text-[#0c1428] group-hover:text-[#c9a96e]">{item.value}</p>
                     </div>
-                  </motion.a>
+                  </a>
                 );
               })}
-            </div>
-
-            {/* Map placeholder */}
-            <motion.div
-              className="relative h-52 rounded-xl overflow-hidden border border-[#2a2520] bg-[#0d1829] mt-8"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=70"
-                alt={t.contact.mapAlt}
-                fill
-                sizes="(max-width: 1024px) 100vw, 40vw"
-                className="object-cover opacity-40"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-                <MapPin size={28} className="text-[#c9a96e]" />
-                <p className="text-xs tracking-widest uppercase text-[#9a9085] text-center px-4 break-words">{t.contact.address}</p>
-              </div>
-            </motion.div>
-
-            {/* Office hours box */}
-            <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-6">
-              <p className="text-xs tracking-[0.2em] uppercase text-[#5a554f] mb-4">{t.contact.workingHours}</p>
-              <div className="space-y-2.5">
-                {t.contact.hours.map(([day, hours]) => (
-                  <div key={day} className="flex justify-between">
-                    <span className="text-sm text-[#9a9085]">{day}</span>
-                    <span className="text-sm text-[#f0ece4] font-['DM_Mono']">{hours}</span>
-                  </div>
-                ))}
+              <div className="mt-8 h-56 rounded-[5px] overflow-hidden border border-[#E5E7EB]">
+                <OfficeMap />
               </div>
             </div>
-          </div>
-
-          {/* Form */}
-          <div className="lg:col-span-3">
-            <div className="bg-[#0d1829] border border-[#2a2520] rounded-xl p-5 sm:p-8 md:p-10">
-              <SectionTitle eyebrow={t.contact.formEyebrow} title={t.contact.formTitle} />
+            <div>
+              <h2 className="text-lg font-semibold text-[#0c1428] mb-4">{t.contact.formTitle}</h2>
               <ContactForm />
             </div>
           </div>
-        </div>
+        </Container>
       </section>
     </main>
   );

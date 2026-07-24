@@ -1,25 +1,32 @@
-import { useState, useMemo } from "react";
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { ProjectCard } from "@/components/ProjectCard";
-import { FilterBar, type FilterState } from "@/components/FilterBar";
+"use client";
+
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Seo } from "@/components/seo/Seo";
+import { Container } from "@/components/site/Container";
+import { PropertyCard } from "@/components/site/PropertyCard";
+import { ProjectsMapExplorer } from "@/components/site/ProjectsMapExplorer";
+import { ProjectsSidebarFilters } from "@/components/site/ProjectsSidebarFilters";
 import { useProjects } from "@/lib/projects-context";
 import { useI18n } from "@/lib/i18n";
+import type { FilterState } from "@/components/FilterBar";
+import { cn } from "@/lib/utils";
 
 export default function ProjectsPage() {
   const { t, lang } = useI18n();
   const { projects } = useProjects();
+  const searchParams = useSearchParams();
+  const cities = useMemo(() => [...new Set(projects.map((p) => p.city))], [projects]);
 
-  const CITIES = useMemo(() => [...new Set(projects.map((p) => p.city))], [projects]);
-
-  const [filters, setFilters] = useState<FilterState>({
-    city: "",
-    status: "",
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    city: searchParams.get("city") ?? "",
+    status: searchParams.get("status") ?? "",
     minPrice: 0,
-    maxPrice: 0,
-    rooms: "",
-  });
+    maxPrice: Number(searchParams.get("maxPrice") ?? 0),
+    rooms: searchParams.get("rooms") ?? "",
+  }));
+
+  const [view, setView] = useState<"list" | "map">("list");
 
   const filtered = useMemo(() => {
     return projects.filter((p) => {
@@ -27,116 +34,62 @@ export default function ProjectsPage() {
       if (filters.status && p.status !== filters.status) return false;
       if (filters.maxPrice > 0 && p.startingPrice > filters.maxPrice) return false;
       if (filters.rooms) {
-        const r = parseInt(filters.rooms);
-        const hasRoom = p.apartments.some((a) =>
-          filters.rooms === "4" ? a.rooms >= 4 : a.rooms === r
-        );
-        if (!hasRoom) return false;
+        const r = parseInt(filters.rooms, 10);
+        const has = p.apartments.some((a) => (filters.rooms === "4" ? a.rooms >= 4 : a.rooms === r));
+        if (!has) return false;
       }
       return true;
     });
   }, [filters, projects]);
 
   return (
-    <main className="bg-[#0C1428] min-h-screen pt-20">
-      <Seo
-        title={t.seo.projects.title}
-        description={t.seo.projects.description}
-        path="/projects"
-        lang={lang}
-      />
-      {/* Page Header */}
-      <section className="relative py-24 overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1920&q=70"
-            alt="Modern apartment building facade — CasaGroup project portfolio"
-            fill
-            sizes="100vw"
-            className="object-cover opacity-20"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0C1428] via-transparent to-[#0C1428]" />
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10">
-          <motion.p
-            className="text-xs tracking-[0.4em] uppercase text-[#c9a96e] mb-4"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {t.projects.eyebrow}
-          </motion.p>
-          <motion.h1
-            className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] leading-tight"
-            style={{ fontSize: lang === "hy" ? "clamp(2rem, 3vw, 2.8rem)" : "clamp(2.5rem, 4vw, 3.5rem)" }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            {t.projects.title}
-          </motion.h1>
-          <motion.div
-            className="mt-8 flex flex-col gap-3"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <p className="text-[10px] tracking-[0.35em] uppercase text-[#5a554f]">{t.projects.categoriesEyebrow}</p>
-            <div className="flex flex-wrap gap-2">
-              {t.projects.categories.map((cat) => (
-                <span
-                  key={cat}
-                  className="text-xs text-[#9a9085] border border-[#2a2520] rounded-full px-3 py-1.5 hover:border-[#c9a96e]/30 transition-colors break-words max-w-full"
-                >
-                  {cat}
-                </span>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
+    <main className="bg-[#F9FAFB] min-h-screen pt-header">
+      <Seo title={t.seo.projects.title} description={t.seo.projects.description} path="/projects" lang={lang} />
 
-      {/* Content */}
-      <section className="max-w-7xl mx-auto px-6 lg:px-10 pb-32">
-        {/* Filters */}
-        <div className="mb-10">
-          <FilterBar filters={filters} onChange={setFilters} cities={CITIES} />
-        </div>
-
-        {/* Results count */}
-        <div className="flex items-center justify-between mb-8">
-          <p className="text-sm text-[#9a9085]">
-            {t.projects.showing} <span className="text-[#f0ece4] font-medium">{filtered.length}</span>{" "}
-            {filtered.length !== 1 ? t.projects.projectsWord : t.projects.projectWord}
-          </p>
-        </div>
-
-        {/* Grid */}
-        {filtered.length === 0 ? (
-          <motion.div
-            className="text-center py-24"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <p className="font-['Cormorant_Garamond'] text-4xl text-[#2a2520] font-light mb-4">
-              {t.projects.noResults}
+      <Container className="py-6 md:py-8">
+        <div className="flex flex-col gap-4 mb-5 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-[#0c1428]">{t.projects.title}</h1>
+            <p className="mt-1 text-sm text-[#6B7280]">
+              {filtered.length} {filtered.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
             </p>
-            <p className="text-[#5a554f] text-sm">{t.projects.noResultsHint}</p>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((project, i) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08, duration: 0.5 }}
+          </div>
+          <div className="flex w-full rounded-lg border border-[#E5E7EB] bg-white p-1 sm:w-auto sm:self-start">
+            {(["list", "map"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                className={cn(
+                  "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors sm:flex-none",
+                  view === v ? "bg-[#0c1428] text-white" : "text-[#6B7280] hover:text-[#0c1428]",
+                )}
               >
-                <ProjectCard project={project} />
-              </motion.div>
+                {v === "list" ? t.projects.viewList : t.projects.viewMap}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <ProjectsSidebarFilters filters={filters} onChange={setFilters} cities={cities} />
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-lg border border-[#E5E7EB]">
+            <p className="font-medium text-[#0c1428]">{t.projects.noResults}</p>
+            <p className="mt-1 text-sm text-[#6B7280]">{t.projects.noResultsHint}</p>
+          </div>
+        ) : view === "map" ? (
+          <ProjectsMapExplorer projects={filtered} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((project) => (
+              <PropertyCard key={project.id} project={project} />
             ))}
           </div>
         )}
-      </section>
+      </Container>
     </main>
   );
 }

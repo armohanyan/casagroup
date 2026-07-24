@@ -100,17 +100,17 @@ export default function ServicesPage() {
   ];
 
   return (
-    <main className="bg-[#0C1428] min-h-screen">
+    <main className="bg-[#FAF8F5] min-h-screen pt-16">
       <Seo
         title={t.seo.services.title}
         description={t.seo.services.description}
-        path="/services"
+        path="/partners/services"
         lang={lang}
       />
       {/* ─── HERO ─────────────────────────────────────────────────────────── */}
       <section
         ref={heroRef}
-        className="relative flex h-[100svh] items-center overflow-hidden bg-[#0C1428] md:h-screen md:min-h-[700px]"
+        className="relative flex h-[100svh] items-center overflow-hidden bg-[#FAF8F5] md:h-screen md:min-h-[700px]"
       >
         <motion.div
           className="pointer-events-none absolute inset-0 z-0 overflow-hidden will-change-transform"
@@ -124,8 +124,8 @@ export default function ServicesPage() {
             sizes="100vw"
             className="object-cover scale-110"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0C1428]/90 via-[#0C1428]/60 to-[#0C1428]/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0C1428] via-transparent to-[#0C1428]/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5]/92 via-[#FAF8F5]/75 to-[#FAF8F5]/35" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#FAF8F5] via-transparent to-[#FAF8F5]/40" />
         </motion.div>
 
         <motion.div
@@ -142,7 +142,7 @@ export default function ServicesPage() {
           </motion.p>
 
           <motion.h1
-            className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] leading-[1.1] mb-6 max-w-4xl break-words hyphens-auto"
+            className="font-sans font-semibold text-[#1C1917] leading-[1.1] mb-6 max-w-4xl break-words hyphens-auto"
             style={{ fontSize: lang === "hy" ? "clamp(1.7rem, 2.8vw, 2.8rem)" : "clamp(2rem, 3.5vw, 3.5rem)" }}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -153,28 +153,19 @@ export default function ServicesPage() {
             <span className="text-[#c9a96e]">{t.services.heroTitle2}</span>
           </motion.h1>
 
-          <motion.p
-            className="text-[#9a9085] font-light leading-relaxed max-w-lg mb-12 text-sm sm:text-base"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            {t.services.heroSubtitle}
-          </motion.p>
-
           <motion.div
             className="flex flex-wrap gap-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65, duration: 0.7 }}
+            transition={{ delay: 0.5, duration: 0.7 }}
           >
             <a href="#services-list">
-              <span className="inline-block px-10 py-4 bg-[#c9a96e] text-[#0C1428] text-xs tracking-[0.3em] uppercase font-semibold hover:bg-[#e8d5b0] transition-all duration-200 rounded-sm cursor-pointer">
+              <span className="btn-outline inline-block px-10 py-4 text-xs tracking-[0.3em] uppercase rounded-sm cursor-pointer">
                 {t.services.heroCtaEngage}
               </span>
             </a>
             <a href="#process">
-              <span className="inline-block px-10 py-4 border border-[#f0ece4]/30 text-[#f0ece4] text-xs tracking-[0.3em] uppercase font-medium hover:border-[#c9a96e] hover:text-[#c9a96e] transition-all duration-200 rounded-sm cursor-pointer">
+              <span className="btn-outline inline-block px-10 py-4 text-xs tracking-[0.3em] uppercase rounded-sm cursor-pointer">
                 {t.services.heroCtaLearn}
               </span>
             </a>
@@ -183,7 +174,7 @@ export default function ServicesPage() {
 
         {/* scroll hint */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#5a554f]"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#A8A29E]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
@@ -200,7 +191,6 @@ export default function ServicesPage() {
           <SectionTitle
             eyebrow={t.services.overviewEyebrow}
             title={t.services.overviewTitle}
-            subtitle={t.services.overviewSubtitle}
           />
           <motion.div
             className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 items-stretch"
@@ -215,14 +205,14 @@ export default function ServicesPage() {
                 <motion.a
                   key={i}
                   href={`#service-${i}`}
-                  className="bg-[#0d1829] border border-[#1e2d45] rounded-xl p-5 flex h-full min-w-0 w-full flex-col items-center text-center gap-3 hover:border-[#c9a96e]/50 transition-all cursor-pointer group"
+                  className="bg-[#F3EFE8] border border-[#E7E0D5] rounded-xl p-5 flex h-full min-w-0 w-full flex-col items-center text-center gap-3 hover:border-[#c9a96e]/50 transition-all cursor-pointer group"
                   whileHover={{ y: -4 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <div className="w-10 h-10 shrink-0 rounded-lg border border-[#1e2d45] group-hover:border-[#c9a96e] flex items-center justify-center transition-colors">
+                  <div className="w-10 h-10 shrink-0 rounded-lg border border-[#E7E0D5] group-hover:border-[#c9a96e] flex items-center justify-center transition-colors">
                     <Icon size={18} className="text-[#c9a96e]" />
                   </div>
-                  <span className="text-[10px] sm:text-xs text-[#9a9085] leading-snug min-w-0 w-full break-words">
+                  <span className="text-[10px] sm:text-xs text-[#57534E] leading-snug min-w-0 w-full break-words">
                     {svc.title}
                   </span>
                 </motion.a>
@@ -241,7 +231,7 @@ export default function ServicesPage() {
             <div
               id={`service-${i}`}
               key={i}
-              className={`py-24 ${i % 2 !== 0 ? "bg-[#0d1829] border-y border-[#1e2d45]" : ""}`}
+              className={`py-24 ${i % 2 !== 0 ? "bg-[#F3EFE8] border-y border-[#E7E0D5]" : ""}`}
             >
               <div className="max-w-7xl mx-auto px-6 lg:px-10">
                 <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 items-center ${!isEven ? "lg:grid-flow-col" : ""}`}>
@@ -261,16 +251,16 @@ export default function ServicesPage() {
                         sizes="(max-width: 1024px) 100vw, 50vw"
                         className="object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0C1428]/70 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#FAF8F5]/85 to-transparent" />
 
                       {/* Number badge */}
-                      <div className="absolute top-6 left-6 font-['Cormorant_Garamond'] text-[6rem] font-light text-white/5 leading-none select-none pointer-events-none">
+                      <div className="absolute top-6 left-6 font-sans font-semibold text-[6rem] text-white/5 leading-none select-none pointer-events-none">
                         {String(i + 1).padStart(2, "0")}
                       </div>
 
                       {/* Eyebrow pill */}
                       <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
-                        <span className="bg-[#0C1428]/80 backdrop-blur-sm border border-[#1e2d45] px-4 py-2 rounded-full text-[10px] tracking-[0.25em] uppercase text-[#c9a96e]">
+                        <span className="bg-white/90 backdrop-blur-sm border border-[#E7E0D5] px-4 py-2 rounded-full text-[10px] tracking-[0.25em] uppercase text-[#c9a96e]">
                           {svc.eyebrow}
                         </span>
                         <div className="w-12 h-12 rounded-full bg-[#c9a96e]/10 border border-[#c9a96e]/40 backdrop-blur-sm flex items-center justify-center">
@@ -293,18 +283,18 @@ export default function ServicesPage() {
                   >
                     <p className="text-xs tracking-[0.3em] uppercase text-[#c9a96e] mb-3 font-medium">{svc.eyebrow}</p>
                     <h2
-                      className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] leading-tight mb-4 break-words hyphens-auto"
+                      className="font-sans font-semibold text-[#1C1917] leading-tight mb-4 break-words hyphens-auto"
                       style={{ fontSize: lang === "hy" ? "clamp(1.3rem, 2vw, 1.9rem)" : "clamp(1.6rem, 2.5vw, 2.4rem)" }}
                     >
                       {svc.title}
                     </h2>
 
                     {/* Tagline */}
-                    <p className="text-[#c9a96e]/80 font-['Cormorant_Garamond'] text-xl font-light italic mb-6 border-l-2 border-[#c9a96e]/30 pl-4">
+                    <p className="text-[#c9a96e]/80 font-sans font-semibold text-xl italic mb-6 border-l-2 border-[#c9a96e]/30 pl-4">
                       "{svc.tagline}"
                     </p>
 
-                    <p className="text-[#9a9085] leading-relaxed text-sm mb-8">{svc.desc}</p>
+                    <p className="text-[#57534E] leading-relaxed text-sm mb-8">{svc.desc}</p>
 
                     {/* Deliverables */}
                     <div className="space-y-3">
@@ -318,7 +308,7 @@ export default function ServicesPage() {
                           transition={{ delay: 0.2 + j * 0.07 }}
                         >
                           <CheckCircle2 size={15} className="text-[#c9a96e] shrink-0" />
-                          <span className="text-sm text-[#9a9085]">{point}</span>
+                          <span className="text-sm text-[#57534E]">{point}</span>
                         </motion.div>
                       ))}
                     </div>
@@ -330,7 +320,7 @@ export default function ServicesPage() {
                       viewport={{ once: true }}
                       transition={{ delay: 0.5 }}
                     >
-                      <Link href="/contact">
+                      <Link href="/partners#contact">
                         <span className="inline-flex items-center gap-3 text-xs tracking-[0.25em] uppercase text-[#c9a96e] hover:text-[#e8d5b0] transition-colors cursor-pointer group">
                           {t.services.heroCtaEngage}
                           <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
@@ -357,27 +347,27 @@ export default function ServicesPage() {
           {t.services.processSteps.map((step, i) => (
             <motion.div
               key={i}
-              className="relative bg-[#0d1829] border border-[#1e2d45] rounded-xl p-8 hover:border-[#c9a96e]/40 transition-all group overflow-hidden"
+              className="relative bg-[#F3EFE8] border border-[#E7E0D5] rounded-xl p-8 hover:border-[#c9a96e]/40 transition-all group overflow-hidden"
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.12, duration: 0.6 }}
             >
               {/* Big number background */}
-              <div className="absolute -top-4 -right-2 font-['Cormorant_Garamond'] text-[7rem] font-light text-[#c9a96e]/5 leading-none select-none pointer-events-none group-hover:text-[#c9a96e]/10 transition-colors">
+              <div className="absolute -top-4 -right-2 font-sans font-semibold text-[7rem] text-[#c9a96e]/5 leading-none select-none pointer-events-none group-hover:text-[#c9a96e]/10 transition-colors">
                 {step.num}
               </div>
 
-              <p className="font-['DM_Mono'] text-[#c9a96e] text-sm font-medium mb-5">{step.num}</p>
-              <h3 className="font-['Cormorant_Garamond'] text-xl font-light text-[#f0ece4] mb-3">
+              <p className="font-sans tabular-nums text-[#c9a96e] text-sm font-medium mb-5">{step.num}</p>
+              <h3 className="font-sans font-semibold text-xl text-[#1C1917] mb-3">
                 {step.title}
               </h3>
-              <p className="text-[#9a9085] text-sm leading-relaxed">{step.desc}</p>
+              <p className="text-[#57534E] text-sm leading-relaxed">{step.desc}</p>
 
               {/* Connector arrow (not on last) */}
               {i < t.services.processSteps.length - 1 && (
                 <div className="hidden lg:flex absolute -right-2 top-1/2 -translate-y-1/2 z-10">
-                  <div className="w-4 h-4 border-t-2 border-r-2 border-[#1e2d45] rotate-45" />
+                  <div className="w-4 h-4 border-t-2 border-r-2 border-[#E7E0D5] rotate-45" />
                 </div>
               )}
             </motion.div>
@@ -386,7 +376,7 @@ export default function ServicesPage() {
       </section>
 
       {/* ─── WHY US / CREDENTIALS ────────────────────────────────────────── */}
-      <section className="py-28 bg-[#0d1829] border-y border-[#1e2d45]">
+      <section className="py-28 bg-[#F3EFE8] border-y border-[#E7E0D5]">
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             {/* Left: text */}
@@ -398,12 +388,12 @@ export default function ServicesPage() {
             >
               <p className="text-xs tracking-[0.35em] uppercase text-[#c9a96e] mb-4 font-medium">{t.services.whyEyebrow}</p>
               <h2
-                className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] leading-tight mb-5 break-words hyphens-auto"
+                className="font-sans font-semibold text-[#1C1917] leading-tight mb-5 break-words hyphens-auto"
                 style={{ fontSize: lang === "hy" ? "clamp(1.4rem, 2vw, 2rem)" : "clamp(1.7rem, 2.5vw, 2.5rem)" }}
               >
                 {t.services.whyTitle}
               </h2>
-              <p className="text-[#9a9085] leading-relaxed mb-12 max-w-lg">{t.services.whySubtitle}</p>
+              <p className="text-[#57534E] leading-relaxed mb-12 max-w-lg">{t.services.whySubtitle}</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {t.services.whyPoints.map((p, i) => (
@@ -415,8 +405,8 @@ export default function ServicesPage() {
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
                   >
-                    <p className="font-['Cormorant_Garamond'] text-3xl text-[#c9a96e] font-light">{p.stat}</p>
-                    <p className="text-xs text-[#9a9085] mt-1 leading-snug">{p.label}</p>
+                    <p className="font-sans font-semibold text-3xl text-[#c9a96e]">{p.stat}</p>
+                    <p className="text-xs text-[#57534E] mt-1 leading-snug">{p.label}</p>
                   </motion.div>
                 ))}
               </div>
@@ -437,11 +427,11 @@ export default function ServicesPage() {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover rounded-2xl"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0d1829]/60 to-transparent rounded-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#F3EFE8]/90 to-transparent rounded-2xl" />
 
               {/* Floating credential card */}
               <motion.div
-                className="absolute -bottom-8 -left-6 bg-[#0C1428] border border-[#1e2d45] rounded-xl p-5 w-52 hidden lg:block"
+                className="absolute -bottom-8 -left-6 bg-[#FAF8F5] border border-[#E7E0D5] rounded-xl p-5 w-52 hidden lg:block"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -449,18 +439,18 @@ export default function ServicesPage() {
               >
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 rounded-full bg-[#c9a96e] animate-pulse" />
-                  <span className="text-[10px] tracking-[0.2em] uppercase text-[#5a554f]">{t.services.credentialEyebrow}</span>
+                  <span className="text-[10px] tracking-[0.2em] uppercase text-[#A8A29E]">{t.services.credentialEyebrow}</span>
                 </div>
-                <p className="font-['Cormorant_Garamond'] text-2xl text-[#f0ece4]">{t.services.credentialTitle}</p>
-                <p className="text-xs text-[#9a9085] mt-1">{t.services.credentialSub}</p>
+                <p className="font-sans font-semibold text-2xl text-[#1C1917]">{t.services.credentialTitle}</p>
+                <p className="text-xs text-[#57534E] mt-1">{t.services.credentialSub}</p>
               </motion.div>
 
               {/* Check list overlay */}
-              <div className="absolute top-6 right-6 bg-[#0C1428]/80 backdrop-blur-sm border border-[#1e2d45] rounded-xl p-4 hidden lg:block">
+              <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm border border-[#E7E0D5] rounded-xl p-4 hidden lg:block">
                 {t.services.checklistItems.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 mb-2 last:mb-0">
                     <Check size={12} className="text-[#c9a96e]" />
-                    <span className="text-xs text-[#9a9085]">{item}</span>
+                    <span className="text-xs text-[#57534E]">{item}</span>
                   </div>
                 ))}
               </div>
@@ -480,7 +470,7 @@ export default function ServicesPage() {
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-[#0C1428]" />
+          <div className="absolute inset-0 bg-[#FAF8F5]" />
         </div>
 
         <div className="relative z-10 max-w-3xl mx-auto px-6 lg:px-10 text-center mb-16">
@@ -493,7 +483,7 @@ export default function ServicesPage() {
             {t.services.ctaEyebrow}
           </motion.p>
           <motion.h2
-            className="font-['Cormorant_Garamond'] font-light text-[#f0ece4] leading-tight mb-5 break-words hyphens-auto"
+            className="font-sans font-semibold text-[#1C1917] leading-tight mb-5 break-words hyphens-auto"
             style={{ fontSize: lang === "hy" ? "clamp(1.4rem, 2.4vw, 2.4rem)" : "clamp(1.7rem, 3vw, 3rem)" }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -503,7 +493,7 @@ export default function ServicesPage() {
             {t.services.ctaTitle}
           </motion.h2>
           <motion.p
-            className="text-[#9a9085] leading-relaxed"
+            className="text-[#57534E] leading-relaxed"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
