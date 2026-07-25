@@ -142,15 +142,71 @@ export type AdminInquiry = {
   updatedAt: string;
 };
 
+export type AdminLeadStatus = {
+  id: string;
+  value: string;
+  label: string;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export async function adminListInquiries(status?: string) {
   const q = status ? `?status=${encodeURIComponent(status)}` : "";
   return apiFetch<AdminInquiry[]>(`/api/admin/inquiries${q}`, authHeaders());
 }
 
-export async function adminUpdateInquiry(id: string, data: { status?: string }) {
+export async function adminUpdateInquiry(
+  id: string,
+  data: {
+    status?: string;
+    fullName?: string;
+    phone?: string;
+    email?: string;
+    interestedProject?: string;
+    message?: string;
+    kind?: string | null;
+  }
+) {
   return apiFetch<AdminInquiry>(`/api/admin/inquiries/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
+    ...authHeaders(),
+  });
+}
+
+export async function adminListLeadStatuses() {
+  return apiFetch<AdminLeadStatus[]>("/api/admin/lead-statuses", authHeaders());
+}
+
+export async function adminCreateLeadStatus(data: {
+  label: string;
+  value?: string;
+  sortOrder?: number;
+  active?: boolean;
+}) {
+  return apiFetch<AdminLeadStatus>("/api/admin/lead-statuses", {
+    method: "POST",
+    body: JSON.stringify(data),
+    ...authHeaders(),
+  });
+}
+
+export async function adminUpdateLeadStatus(
+  id: string,
+  data: { label?: string; value?: string; sortOrder?: number; active?: boolean }
+) {
+  return apiFetch<AdminLeadStatus>(`/api/admin/lead-statuses/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+    ...authHeaders(),
+  });
+}
+
+export async function adminDeleteLeadStatus(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/admin/lead-statuses/${id}`, {
+    method: "DELETE",
     ...authHeaders(),
   });
 }

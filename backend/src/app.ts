@@ -9,6 +9,7 @@ import { authRouter } from "./routes/auth.js";
 import { projectsRouter } from "./routes/projects.js";
 import { inquiriesRouter } from "./routes/inquiries.js";
 import { adminRouter } from "./routes/admin.js";
+import { ensureDefaultLeadStatuses } from "./services/leadStatusService.js";
 
 fs.mkdirSync(config.uploadsDir, { recursive: true });
 
@@ -28,6 +29,11 @@ export function createApp() {
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
+  });
+
+  // Seed default lead statuses once DB is reachable (non-blocking for health)
+  void ensureDefaultLeadStatuses().catch((err) => {
+    console.error("[lead-statuses] ensure defaults failed", err);
   });
 
   app.use("/api/auth", authRouter);

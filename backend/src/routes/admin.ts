@@ -6,6 +6,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { config } from "../config.js";
 import * as projectService from "../services/projectService.js";
 import * as inquiryService from "../services/inquiryService.js";
+import * as leadStatusService from "../services/leadStatusService.js";
 import { processUpload } from "../services/mediaService.js";
 
 export const adminRouter = Router();
@@ -114,6 +115,42 @@ adminRouter.patch("/inquiries/:id", async (req, res, next) => {
   try {
     const inquiry = await inquiryService.updateInquiry(req.params.id, req.body);
     res.json(inquiry);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get("/lead-statuses", async (_req, res, next) => {
+  try {
+    const statuses = await leadStatusService.listLeadStatuses();
+    res.json(statuses);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post("/lead-statuses", async (req, res, next) => {
+  try {
+    const status = await leadStatusService.createLeadStatus(req.body);
+    res.status(201).json(status);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/lead-statuses/:id", async (req, res, next) => {
+  try {
+    const status = await leadStatusService.updateLeadStatus(req.params.id, req.body);
+    res.json(status);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete("/lead-statuses/:id", async (req, res, next) => {
+  try {
+    const result = await leadStatusService.deleteLeadStatus(req.params.id);
+    res.json(result);
   } catch (err) {
     next(err);
   }
