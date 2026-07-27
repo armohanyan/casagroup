@@ -713,6 +713,7 @@ export const en = {
     bedroomApt: "Bedroom Apartment",
     floorLabel: "Floor",
     priceLabel: "Price",
+    pricePerSqm: "Price per m²",
     specsEyebrow: "Details",
     specsTitle: "Apartment Specifications",
     bedrooms: "Bedrooms",

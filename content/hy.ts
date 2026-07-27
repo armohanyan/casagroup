@@ -719,6 +719,7 @@ export const hyTranslations: Translations = {
     bedroomApt: "սենյականոց բնակարան",
     floorLabel: "Հարկ",
     priceLabel: "Գին",
+    pricePerSqm: "1 մ² գին",
     specsEyebrow: "Մանրամասներ",
     specsTitle: "Բնակարանի բնութագրեր",
     bedrooms: "Ննջասենյակներ",

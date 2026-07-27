@@ -20,14 +20,14 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getStatusLabel, useI18n } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import { getProjectDescription } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
 import { listingCode } from "@/lib/listing-code";
 
-function SpecRow({
+function SpecItem({
   icon: Icon,
   label,
   value,
@@ -37,15 +37,13 @@ function SpecRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="min-w-0 rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2.5">
-      <div className="flex items-start gap-2.5 min-w-0">
-        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0E8] text-[#8B6A33]">
-          <Icon size={14} strokeWidth={2} aria-hidden />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">{label}</p>
-          <p className="mt-0.5 break-words text-sm font-semibold leading-snug text-[#0c1428]">{value}</p>
-        </div>
+    <div className="flex min-w-0 items-start gap-3 rounded-[5px] border border-[#E8EAED] bg-[#F9FAFB] px-4 py-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0E8] text-[#8B6A33]">
+        <Icon size={16} strokeWidth={2} aria-hidden />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">{label}</p>
+        <p className="mt-1 break-words text-sm font-semibold leading-snug text-[#0c1428]">{value}</p>
       </div>
     </div>
   );
@@ -94,6 +92,7 @@ export default function ApartmentDetailPage() {
   const aptCode = listingCode(apt.id);
   const description = (apt.description?.trim() || getProjectDescription(project, lang)).trim();
   const planPdfUrl = apt.planPdfUrl?.trim() || "";
+  const pricePerSqm = apt.area > 0 ? Math.round(apt.price / apt.area) : 0;
   const whatsappMessage = encodeURIComponent(
     `Բարև, հետաքրքրված եմ ${project.title} նախագծի #${aptCode} բնակարանով (${apt.rooms} սեն., ${apt.area} մ²):`,
   );
@@ -125,7 +124,7 @@ export default function ApartmentDetailPage() {
           <span className="text-[#0c1428]">{apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}</span>
         </nav>
 
-        <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">
             {images.length > 0 ? (
               <div className="overflow-hidden rounded-[5px]">
@@ -160,6 +159,24 @@ export default function ApartmentDetailPage() {
                 <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[#4B5563]">{description}</p>
               </section>
             ) : null}
+
+            <section className="rounded-[5px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
+              <h2 className="text-lg font-semibold text-[#0c1428]">{t.aptDetail.specsTitle}</h2>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <SpecItem icon={BedDouble} label={t.aptDetail.bedrooms} value={apt.rooms} />
+                <SpecItem icon={Maximize2} label={t.aptDetail.area} value={`${apt.area} m²`} />
+                <SpecItem icon={Layers} label={t.aptDetail.floorSpec} value={apt.floor} />
+                <SpecItem icon={Eye} label={t.aptDetail.viewSpec} value={apt.viewType?.trim() || "—"} />
+                <SpecItem
+                  icon={MapPin}
+                  label={t.aptDetail.locationSpec}
+                  value={`${project.location}${project.city ? `, ${project.city}` : ""}`}
+                />
+                {apt.balcony ? (
+                  <SpecItem icon={Sun} label={t.aptDetail.balcony} value={t.aptDetail.yes} />
+                ) : null}
+              </div>
+            </section>
           </div>
 
           <aside className="min-w-0 overflow-hidden rounded-[5px] border border-[#E8EAED] bg-[#F9FAFB] p-5 lg:sticky lg:top-24 sm:p-6">
@@ -168,37 +185,26 @@ export default function ApartmentDetailPage() {
               <span className="text-xs font-medium text-[#9CA3AF]">#{aptCode}</span>
             </div>
 
-            <p className="mt-4 break-words text-3xl font-semibold tabular-nums leading-tight text-[#0c1428]">
-              {sold ? "—" : formatPrice(apt.price)}
-            </p>
-            <p className="mt-1 text-sm text-[#6B7280]">{getStatusLabel(t, apt.status)}</p>
-
-            <div className="mt-5 grid grid-cols-2 gap-2.5">
-              <SpecRow icon={BedDouble} label={t.aptDetail.bedrooms} value={apt.rooms} />
-              <SpecRow icon={Maximize2} label={t.aptDetail.area} value={`${apt.area} m²`} />
-              <SpecRow icon={Layers} label={t.aptDetail.floorSpec} value={apt.floor} />
-              <SpecRow
-                icon={Eye}
-                label={t.aptDetail.viewSpec}
-                value={apt.viewType?.trim() || "—"}
-              />
+            <div className="mt-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
+                {t.aptDetail.priceLabel}
+              </p>
+              <p className="mt-1 break-words text-3xl font-semibold tabular-nums leading-tight text-[#0c1428]">
+                {sold ? "—" : formatPrice(apt.price)}
+              </p>
             </div>
 
-            <div className="mt-3 space-y-2">
-              <div className="flex min-w-0 items-start gap-2 text-sm text-[#6B7280]">
-                <MapPin size={14} className="mt-0.5 shrink-0 text-[#c9a96e]" aria-hidden />
-                <span className="min-w-0 break-words leading-snug">
-                  {project.location}
-                  {project.city ? `, ${project.city}` : ""}
-                </span>
+            {!sold && pricePerSqm > 0 ? (
+              <div className="mt-4 border-t border-[#E8EAED] pt-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
+                  {t.aptDetail.pricePerSqm}
+                </p>
+                <p className="mt-1 break-words text-lg font-semibold tabular-nums text-[#0c1428]">
+                  {formatPrice(pricePerSqm)}
+                  <span className="ml-1 text-sm font-medium text-[#6B7280]">/ m²</span>
+                </p>
               </div>
-              {apt.balcony ? (
-                <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                  <Sun size={14} className="shrink-0 text-[#c9a96e]" aria-hidden />
-                  <span>{t.aptDetail.balcony}</span>
-                </div>
-              ) : null}
-            </div>
+            ) : null}
 
             <div className="mt-6 space-y-2">
               {!sold && (
