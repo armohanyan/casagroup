@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { createMapPinIcon } from "@/lib/leaflet-pin";
 
 const OFFICE = { lat: 40.1776, lng: 44.5126 };
 
@@ -15,7 +16,7 @@ export function OfficeMap() {
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap",
     }).addTo(map);
-    L.marker([OFFICE.lat, OFFICE.lng]).addTo(map);
+    L.marker([OFFICE.lat, OFFICE.lng], { icon: createMapPinIcon() }).addTo(map);
     return () => {
       map.remove();
     };

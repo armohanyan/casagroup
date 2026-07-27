@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PartnerChrome } from "@/components/partner/PartnerChrome";
 import { StickyCallButton } from "@/components/site/StickyCallButton";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ConsultationModal } from "@/components/ConsultationModal";
 import { ConsultationModalProvider } from "@/lib/consultation-modal";
 import { GlobalJsonLd } from "@/components/seo/GlobalJsonLd";
@@ -29,6 +30,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       {children}
       <Footer />
       <StickyCallButton />
+      <WhatsAppButton />
       <ConsultationModal />
     </ConsultationModalProvider>
   );

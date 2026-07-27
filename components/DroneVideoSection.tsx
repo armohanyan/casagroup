@@ -21,12 +21,33 @@ interface Props {
 
 const mediaHeight = "h-[280px] md:h-[320px]";
 
+function isDirectVideoUrl(url: string): boolean {
+  return /\.(mp4|webm|mov|ogg)(\?|#|$)/i.test(url) || /\/uploads\/videos\//i.test(url);
+}
+
+function toEmbedSrc(url: string): string {
+  if (url.includes("youtube.com/watch")) {
+    const id = new URL(url).searchParams.get("v");
+    if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+  }
+  if (url.includes("youtu.be/")) {
+    const id = url.split("youtu.be/")[1]?.split(/[?&]/)[0];
+    if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+  }
+  if (url.includes("/embed/")) {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}autoplay=1&rel=0&modestbranding=1`;
+  }
+  return url;
+}
+
 export function DroneVideoSection({ videos, projectTitle, embedded = false }: Props) {
   const { t } = useI18n();
   const [activeIndex, setActiveIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
 
   const active = videos[activeIndex];
+  const isFile = active ? isDirectVideoUrl(active.url) : false;
 
   const header = (
     <div className={embedded ? undefined : "max-w-2xl"}>
@@ -84,13 +105,23 @@ export function DroneVideoSection({ videos, projectTitle, embedded = false }: Pr
         )}
       >
         {playing && active ? (
-          <iframe
-            src={`${active.url}?autoplay=1&rel=0&modestbranding=1`}
-            className="absolute inset-0 h-full w-full"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            title={active.title}
-          />
+          isFile ? (
+            <video
+              src={active.url}
+              className="absolute inset-0 h-full w-full bg-black"
+              controls
+              autoPlay
+              playsInline
+            />
+          ) : (
+            <iframe
+              src={toEmbedSrc(active.url)}
+              className="absolute inset-0 h-full w-full"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              title={active.title}
+            />
+          )
         ) : (
           <>
             {active?.thumbnail ? (

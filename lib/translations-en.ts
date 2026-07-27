@@ -232,7 +232,7 @@ export const en = {
       { title: "Prime Locations", desc: "Carefully selected districts with strong lifestyle and investment potential." },
       { title: "Flexible Payment Plans", desc: "Installments and mortgage options tailored to your financial goals." },
       { title: "Modern Architecture", desc: "Contemporary design that balances aesthetics with everyday comfort." },
-      { title: "Trusted Developer", desc: "A proven track record of delivering on promises across Yerevan." },
+      { title: "Trusted partner", desc: "A proven track record of delivering on promises across Yerevan." },
       { title: "On-time Delivery", desc: "Transparent timelines and regular construction updates you can rely on." },
     ],
     mapEyebrow: "Our Portfolio",
@@ -315,7 +315,7 @@ export const en = {
     trustLocations: "Locations",
     whyMinimalTitle: "Why choose Casa Group",
     whyMinimal: [
-      { title: "Trusted developer", desc: "Years of experience and successfully completed projects." },
+      { title: "Trusted partner", desc: "We work with developers and sell their projects — with years of market experience." },
       { title: "Modern residential complexes", desc: "Thoughtful layouts, quality construction, and a comfortable environment." },
       { title: "Transparent terms", desc: "Complete information with no hidden fees." },
       { title: "Personal consultation", desc: "We help you choose the apartment that fits your needs." },
@@ -1091,7 +1091,7 @@ export const en = {
     noApartments: 'No apartments yet — click "Add Unit" to add listings',
     droneVideos: "Drone Videos",
     droneVideosHint:
-      "Embed and thumbnail must be HTTPS URLs (e.g. YouTube embed link). No file upload.",
+      "Upload a video file (mp4/webm/mov) or paste a YouTube embed HTTPS URL.",
     addVideo: "Add Video",
     videoN: "Video {n}",
     videoTitle: "Title",

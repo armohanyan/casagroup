@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { createMapPinIcon } from "@/lib/leaflet-pin";
 
 interface Props {
   lat: number;
@@ -27,7 +28,7 @@ export function ProjectMap({ lat, lng, title }: Props) {
       attribution: "&copy; OpenStreetMap",
     }).addTo(map);
 
-    L.marker([lat, lng]).addTo(map).bindPopup(title);
+    L.marker([lat, lng], { icon: createMapPinIcon() }).addTo(map).bindPopup(title);
 
     const invalidate = () => map.invalidateSize({ animate: false });
     const timers = [0, 50, 150, 300].map((ms) => window.setTimeout(invalidate, ms));

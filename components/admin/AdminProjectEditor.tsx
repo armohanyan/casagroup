@@ -11,7 +11,9 @@ import {
   MapPin,
   Plus,
   Save,
+  Star,
   Trash2,
+  Video,
   X,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -86,7 +88,9 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [seoDesc, setSeoDesc] = useState("");
   const [hydrated, setHydrated] = useState(isNew);
   const [uploading, setUploading] = useState(false);
+  const [uploadingDrone, setUploadingDrone] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const droneFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (existing) {
@@ -121,6 +125,7 @@ export function AdminProjectEditor({ projectId }: Props) {
       const payload = {
         ...form,
         featured: asDraft ? false : form.featured,
+        droneVideos: (form.droneVideos ?? []).filter((v) => v.url.trim()),
       };
       if (isNew) {
         await addProject(payload as Omit<Project, "id" | "slug">);
@@ -145,6 +150,10 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   async function handleUpload(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast("Միայն նկարներ՝ օգտագործեք թռչող տեսանյութերի բաժինը", "error");
+      return;
+    }
     setUploading(true);
     try {
       const result = await adminUploadFile(file, projectId);
@@ -155,6 +164,39 @@ export function AdminProjectEditor({ projectId }: Props) {
     } finally {
       setUploading(false);
     }
+  }
+
+  async function handleDroneUpload(file: File) {
+    if (!file.type.startsWith("video/")) {
+      toast("Միայն տեսանյութեր (mp4, webm, mov)", "error");
+      return;
+    }
+    setUploadingDrone(true);
+    try {
+      const result = await adminUploadFile(file, projectId);
+      const videos = form.droneVideos ?? [];
+      set("droneVideos", [
+        ...videos,
+        {
+          title: file.name.replace(/\.[^.]+$/, "") || a.aerialOverview,
+          url: result.url,
+          thumbnail: result.posterUrl ?? undefined,
+        },
+      ]);
+      toast("Տեսանյութը վերբեռնվեց");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), "error");
+    } finally {
+      setUploadingDrone(false);
+    }
+  }
+
+  function updateDroneVideo(index: number, patch: Partial<{ title: string; url: string; thumbnail?: string }>) {
+    const videos = [...(form.droneVideos ?? [])];
+    const current = videos[index];
+    if (!current) return;
+    videos[index] = { ...current, ...patch };
+    set("droneVideos", videos);
   }
 
   return (
@@ -311,6 +353,18 @@ export function AdminProjectEditor({ projectId }: Props) {
               />
             </Field>
           </div>
+          <label className="flex cursor-pointer items-center gap-3 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] px-4 py-3">
+            <input
+              type="checkbox"
+              checked={Boolean(form.featured)}
+              onChange={(e) => set("featured", e.target.checked)}
+              className="h-4 w-4 accent-[#c9a96e]"
+            />
+            <span className="flex items-center gap-2 text-sm font-semibold text-[#0c1428]">
+              <Star size={15} className="text-[#c9a96e]" />
+              {a.featuredHomepage}
+            </span>
+          </label>
         </Section>
 
         <Section title={a.sectionImages} icon={ImageIcon}>
@@ -334,7 +388,7 @@ export function AdminProjectEditor({ projectId }: Props) {
             <input
               ref={fileRef}
               type="file"
-              accept="image/*,video/*"
+              accept="image/*"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -348,9 +402,100 @@ export function AdminProjectEditor({ projectId }: Props) {
               className={adminBtnSecondary}
               onClick={() => fileRef.current?.click()}
             >
-              {uploading ? "Վերբեռնում…" : "Վերբեռնել ֆայլ"}
+              {uploading ? "Վերբեռնում…" : "Վերբեռնել նկար"}
             </button>
             <p className="text-xs text-[#9CA3AF]">{a.urlHintHttps}</p>
+          </div>
+        </Section>
+
+        <Section title={a.sectionDrone} icon={Video}>
+          <p className="text-xs text-[#9CA3AF]">{a.droneVideosHint}</p>
+          <div className="space-y-3">
+            {(form.droneVideos ?? []).map((video, index) => (
+              <div key={`drone-${index}`} className="space-y-3 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
+                    {a.videoN.replace("{n}", String(index + 1))}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      set(
+                        "droneVideos",
+                        (form.droneVideos ?? []).filter((_, i) => i !== index),
+                      )
+                    }
+                    className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={13} /> {a.remove}
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <Field label={a.videoTitle}>
+                    <input
+                      className={adminInputCls}
+                      value={video.title}
+                      placeholder={a.aerialOverview}
+                      onChange={(e) => updateDroneVideo(index, { title: e.target.value })}
+                    />
+                  </Field>
+                  <Field label={a.youtubeEmbed}>
+                    <input
+                      className={adminInputCls}
+                      value={video.url}
+                      placeholder="https://… կամ վերբեռնված ֆայլ"
+                      onChange={(e) => updateDroneVideo(index, { url: e.target.value })}
+                    />
+                  </Field>
+                  <div className="md:col-span-2">
+                    <Field label={a.thumbnailOptional}>
+                      <input
+                        className={adminInputCls}
+                        value={video.thumbnail ?? ""}
+                        placeholder="https://…"
+                        onChange={(e) => updateDroneVideo(index, { thumbnail: e.target.value || undefined })}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {(form.droneVideos ?? []).length === 0 && (
+              <p className="text-sm text-[#9CA3AF]">{a.noDroneVideos}</p>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              ref={droneFileRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleDroneUpload(file);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              className={adminBtnSecondary}
+              onClick={() =>
+                set("droneVideos", [
+                  ...(form.droneVideos ?? []),
+                  { title: a.aerialOverview, url: "", thumbnail: undefined },
+                ])
+              }
+            >
+              <Plus size={15} /> {a.addVideo}
+            </button>
+            <button
+              type="button"
+              disabled={uploadingDrone}
+              className={adminBtnSecondary}
+              onClick={() => droneFileRef.current?.click()}
+            >
+              {uploadingDrone ? "Վերբեռնում…" : "Վերբեռնել տեսանյութ"}
+            </button>
           </div>
         </Section>
 
