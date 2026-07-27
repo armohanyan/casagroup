@@ -57,7 +57,7 @@ export default function ProjectDetailPage() {
   const galleryItems = useMemo(() => (project ? getProjectGallery(project) : []), [project]);
 
   useEffect(() => {
-    if (project?.id) recordProjectView(project.id);
+    if (project?.id) void recordProjectView(project.id);
   }, [project?.id]);
 
   if (loading) {

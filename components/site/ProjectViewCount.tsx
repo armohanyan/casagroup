@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
-import { getBaseProjectViews, getProjectViewCount } from "@/lib/project-views";
+import { fetchProjectViewCount } from "@/lib/project-views";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -13,11 +13,19 @@ interface Props {
 
 export function ProjectViewCount({ projectId, className }: Props) {
   const { t } = useI18n();
-  const [count, setCount] = useState(() => getBaseProjectViews(projectId));
+  const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
-    setCount(getProjectViewCount(projectId));
+    let cancelled = false;
+    fetchProjectViewCount(projectId).then((views) => {
+      if (!cancelled) setCount(views);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [projectId]);
+
+  if (count === null) return null;
 
   return (
     <span

@@ -7,6 +7,7 @@ import { config } from "../config.js";
 import * as projectService from "../services/projectService.js";
 import * as inquiryService from "../services/inquiryService.js";
 import * as leadStatusService from "../services/leadStatusService.js";
+import * as statsService from "../services/statsService.js";
 import { processUpload } from "../services/mediaService.js";
 
 export const adminRouter = Router();
@@ -27,6 +28,15 @@ const upload = multer({
     }
     cb(null, true);
   },
+});
+
+adminRouter.get("/stats", async (_req, res, next) => {
+  try {
+    const stats = await statsService.getAdminDashboardStats();
+    res.json(stats);
+  } catch (err) {
+    next(err);
+  }
 });
 
 adminRouter.get("/projects", async (_req, res, next) => {

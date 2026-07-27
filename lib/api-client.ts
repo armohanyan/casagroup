@@ -142,6 +142,24 @@ export type AdminInquiry = {
   updatedAt: string;
 };
 
+export type AdminDashboardStats = {
+  projects: number;
+  available: number;
+  sold: number;
+  reserved: number;
+  inquiries: number;
+  views: number;
+  recentInquiries: Array<{
+    id: string;
+    fullName: string;
+    phone: string;
+    message: string;
+    interestedProject: string;
+    status: string;
+    createdAt: string;
+  }>;
+};
+
 export type AdminLeadStatus = {
   id: string;
   value: string;
@@ -151,6 +169,10 @@ export type AdminLeadStatus = {
   createdAt: string;
   updatedAt: string;
 };
+
+export async function adminGetStats() {
+  return apiFetch<AdminDashboardStats>("/api/admin/stats", authHeaders());
+}
 
 export async function adminListInquiries(status?: string) {
   const q = status ? `?status=${encodeURIComponent(status)}` : "";

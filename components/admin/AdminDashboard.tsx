@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -10,7 +10,6 @@ import {
   MessageSquare,
   Plus,
   ShoppingBag,
-  Users,
   Eye,
   ArrowUpRight,
 } from "lucide-react";
@@ -20,27 +19,47 @@ import { ADMIN_BASE, adminBtnPrimary, adminCardCls } from "@/components/admin/ad
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
+import { adminGetStats, type AdminDashboardStats } from "@/lib/api-client";
 import { hyTranslations } from "@/content/hy";
 
+function formatRelativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(diffMs) || diffMs < 0) return "";
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "հիմա";
+  if (mins < 60) return `${mins}ր`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}ժ`;
+  const days = Math.floor(hours / 24);
+  return `${days}օ`;
+}
+
 export function AdminDashboard() {
-  const { projects, loading } = useProjects();
+  const { projects, loading: projectsLoading } = useProjects();
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
-  const stats = useMemo(() => {
-    const apartments = projects.flatMap((p) => p.apartments);
-    const available = apartments.filter((a) => a.status === "Available").length;
-    const sold = apartments.filter((a) => a.status === "Sold").length;
-    const reserved = apartments.filter((a) => a.status === "Reserved").length;
-    return {
-      projects: projects.length,
-      available,
-      sold,
-      reserved,
-      requests: reserved + 3,
-      visitors: projects.length * 47 + available * 12,
+  useEffect(() => {
+    let cancelled = false;
+    setStatsLoading(true);
+    adminGetStats()
+      .then((data) => {
+        if (!cancelled) setStats(data);
+      })
+      .catch(() => {
+        if (!cancelled) setStats(null);
+      })
+      .finally(() => {
+        if (!cancelled) setStatsLoading(false);
+      });
+    return () => {
+      cancelled = true;
     };
-  }, [projects]);
+  }, []);
 
-  const recentProjects = useMemo(() => projects.slice(0, 5), [projects]);
+  const loading = projectsLoading || statsLoading;
+  const recentProjects = projects.slice(0, 5);
+  const recentInquiries = stats?.recentInquiries ?? [];
 
   return (
     <div>
@@ -56,11 +75,11 @@ export function AdminDashboard() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <AdminStatCard label="Նախագծեր" value={loading ? "—" : stats.projects} icon={Building2} accent delay={0} />
-        <AdminStatCard label="Հասանելի" value={loading ? "—" : stats.available} icon={Home} delay={0.05} />
-        <AdminStatCard label="Վաճառված" value={loading ? "—" : stats.sold} icon={ShoppingBag} delay={0.1} />
-        <AdminStatCard label="Հարցումներ" value={loading ? "—" : stats.requests} icon={MessageSquare} delay={0.15} />
-        <AdminStatCard label="Այցելուներ" value={loading ? "—" : stats.visitors} icon={Users} delay={0.2} />
+        <AdminStatCard label="Նախագծեր" value={loading ? "—" : stats?.projects ?? 0} icon={Building2} accent delay={0} />
+        <AdminStatCard label="Հասանելի" value={loading ? "—" : stats?.available ?? 0} icon={Home} delay={0.05} />
+        <AdminStatCard label="Վաճառված" value={loading ? "—" : stats?.sold ?? 0} icon={ShoppingBag} delay={0.1} />
+        <AdminStatCard label="Հարցումներ" value={loading ? "—" : stats?.inquiries ?? 0} icon={MessageSquare} delay={0.15} />
+        <AdminStatCard label="Դիտումներ" value={loading ? "—" : stats?.views ?? 0} icon={Eye} delay={0.2} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -81,8 +100,8 @@ export function AdminDashboard() {
             </Link>
           </div>
           <div className="divide-y divide-[#F0F1F3]">
-            {loading && <p className="px-5 py-8 text-sm text-[#9CA3AF]">Բեռնվում է…</p>}
-            {!loading && recentProjects.length === 0 && (
+            {projectsLoading && <p className="px-5 py-8 text-sm text-[#9CA3AF]">Բեռնվում է…</p>}
+            {!projectsLoading && recentProjects.length === 0 && (
               <p className="px-5 py-8 text-sm text-[#9CA3AF]">Նախագծեր չկան</p>
             )}
             {recentProjects.map((p) => (
@@ -147,31 +166,42 @@ export function AdminDashboard() {
             transition={{ delay: 0.25, duration: 0.35 }}
             className={`${adminCardCls} p-5`}
           >
-            <h2 className="text-sm font-semibold text-[#0c1428]">Վերջին հաղորդագրություններ</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-[#0c1428]">Վերջին հարցումներ</h2>
+              <Link
+                href={`${ADMIN_BASE}/inquiries`}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+              >
+                Բոլորը
+                <ArrowUpRight size={13} />
+              </Link>
+            </div>
             <div className="mt-4 space-y-3">
-              {[
-                { name: "Անի Մ.", text: "Հետաքրքրված եմ Cascade-ով", time: "2h" },
-                { name: "David K.", text: "Խնդրում եմ գնի մանրամասներ", time: "5h" },
-                { name: "Մարիամ", text: "Կցանկանայի դիտում", time: "1d" },
-              ].map((m) => (
-                <div key={m.name} className="flex gap-3">
+              {statsLoading && <p className="text-sm text-[#9CA3AF]">Բեռնվում է…</p>}
+              {!statsLoading && recentInquiries.length === 0 && (
+                <p className="text-sm text-[#9CA3AF]">Հարցումներ դեռ չկան</p>
+              )}
+              {recentInquiries.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`${ADMIN_BASE}/inquiries`}
+                  className="flex gap-3 rounded-[5px] transition-colors hover:bg-[#F9FAFB]"
+                >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-[#F3F4F6] text-xs font-semibold text-[#0c1428]">
-                    {m.name.charAt(0)}
+                    {m.fullName.charAt(0) || "?"}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-medium text-[#0c1428]">{m.name}</p>
-                      <span className="shrink-0 text-[10px] text-[#9CA3AF]">{m.time}</span>
+                      <p className="truncate text-sm font-medium text-[#0c1428]">{m.fullName}</p>
+                      <span className="shrink-0 text-[10px] text-[#9CA3AF]">{formatRelativeTime(m.createdAt)}</span>
                     </div>
-                    <p className="truncate text-xs text-[#6B7280]">{m.text}</p>
+                    <p className="truncate text-xs text-[#6B7280]">
+                      {m.message || m.interestedProject || m.phone}
+                    </p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
-            <p className="mt-4 flex items-center gap-1.5 text-[11px] text-[#9CA3AF]">
-              <Eye size={12} />
-              Օրինակային տվյալներ — հարցումները պահվում են տեղում
-            </p>
           </motion.section>
         </div>
       </div>

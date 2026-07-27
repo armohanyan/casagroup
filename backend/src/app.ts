@@ -9,6 +9,7 @@ import { authRouter } from "./routes/auth.js";
 import { projectsRouter } from "./routes/projects.js";
 import { inquiriesRouter } from "./routes/inquiries.js";
 import { adminRouter } from "./routes/admin.js";
+import { viewsRouter } from "./routes/views.js";
 import { ensureDefaultLeadStatuses } from "./services/leadStatusService.js";
 
 fs.mkdirSync(config.uploadsDir, { recursive: true });
@@ -39,6 +40,7 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api/projects", projectsRouter);
   app.use("/api/inquiries", inquiriesRouter);
+  app.use("/api/views", viewsRouter);
   app.use("/api/admin", adminRouter);
 
   app.use(notFound);

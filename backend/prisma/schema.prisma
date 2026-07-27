@@ -44,10 +44,24 @@ model Project {
   updatedAt                DateTime    @updatedAt
   apartments               Apartment[]
   media                    MediaAsset[]
+  views                    ProjectView[]
 
   @@index([city])
   @@index([status])
   @@index([featured])
+}
+
+/** One recorded project page view per browser session. */
+model ProjectView {
+  id        String   @id @default(cuid())
+  projectId String
+  sessionId String
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, sessionId])
+  @@index([projectId])
+  @@index([createdAt])
 }
 
 model Apartment {
