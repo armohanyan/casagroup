@@ -4,7 +4,15 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { BedDouble, Download, Layers, Square } from "lucide-react";
+import {
+  BedDouble,
+  Download,
+  Eye,
+  Layers,
+  MapPin,
+  Maximize2,
+  Sun,
+} from "lucide-react";
 import { ProjectGallery } from "@/components/ProjectGallery";
 import { ApartmentInquiryModal } from "@/components/ApartmentInquiryModal";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
@@ -12,13 +20,36 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { downloadProjectInfoPdf } from "@/lib/download-project-info";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { getProjectDescription } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
 import { listingCode } from "@/lib/listing-code";
+
+function SpecRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Layers;
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2.5">
+      <div className="flex items-start gap-2.5 min-w-0">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0E8] text-[#8B6A33]">
+          <Icon size={14} strokeWidth={2} aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">{label}</p>
+          <p className="mt-0.5 break-words text-sm font-semibold leading-snug text-[#0c1428]">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ApartmentDetailPage() {
   const params = useParams();
@@ -61,43 +92,18 @@ export default function ApartmentDetailPage() {
   const sold = apt.status === "Sold";
   const images = apt.gallery.length > 0 ? apt.gallery : project.images.slice(0, 4);
   const aptCode = listingCode(apt.id);
+  const description = (apt.description?.trim() || getProjectDescription(project, lang)).trim();
+  const planPdfUrl = apt.planPdfUrl?.trim() || "";
   const whatsappMessage = encodeURIComponent(
     `Բարև, հետաքրքրված եմ ${project.title} նախագծի #${aptCode} բնակարանով (${apt.rooms} սեն., ${apt.area} մ²):`,
   );
   const whatsappHref = `https://wa.me/37496799733?text=${whatsappMessage}`;
 
-  function handleDownloadPdf() {
-    downloadProjectInfoPdf({
-      project,
-      apartment: apt,
-      statusLabel: getStatusLabel(t, apt.status),
-      description: getProjectDescription(project, lang),
-      labels: {
-        title: t.aptDetail.pdfTitle,
-        project: lang === "hy" ? "Նախագիծ" : "Project",
-        location: t.aptDetail.locationSpec,
-        city: t.admin.city,
-        status: t.aptDetail.statusLabel,
-        developer: t.projectDetail.developer,
-        completion: t.aptDetail.completionSpec,
-        floors: t.projectDetail.floors,
-        apartment: t.home.searchTypes.apartment,
-        price: t.aptDetail.price,
-        bedrooms: t.aptDetail.bedrooms,
-        area: t.aptDetail.area,
-        floor: t.aptDetail.floorSpec,
-        view: t.aptDetail.viewSpec,
-        description: t.aptDetail.pdfDescription,
-        generated: t.aptDetail.pdfGenerated,
-      },
-    });
-  }
-
   return (
     <main className="bg-white min-h-screen pt-header pb-20">
       <Seo
         title={`${apt.rooms} BR · ${project.title}`}
-        description={`${apt.area} m² apartment at ${project.title}, ${project.city}.`}
+        description={description || `${apt.area} m² apartment at ${project.title}, ${project.city}.`}
         path={path}
         image={images[0]}
         lang={lang}
@@ -119,58 +125,79 @@ export default function ApartmentDetailPage() {
           <span className="text-[#0c1428]">{apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0 space-y-6">
             {images.length > 0 ? (
-              <div className="rounded-[5px] overflow-hidden">
+              <div className="overflow-hidden rounded-[5px]">
                 <ProjectGallery images={images} title={project.title} />
               </div>
             ) : null}
 
-            {apt.floorPlanImage && (
-              <div className="rounded-[5px] bg-white p-4 sm:p-5 shadow-sm border border-[#E5E7EB]">
-                <div className="mb-3 flex items-center justify-between">
+            {apt.floorPlanImage ? (
+              <div className="rounded-[5px] border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-5">
+                <div className="mb-3 flex items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold text-[#0c1428]">{t.aptDetail.layoutTitle}</h2>
-                  <span className="rounded-[5px] bg-[#F5F0E8] px-3 py-1 text-[11px] font-medium text-[#8B6A33]">
+                  <span className="shrink-0 rounded-[5px] bg-[#F5F0E8] px-3 py-1 text-[11px] font-medium text-[#8B6A33]">
                     {apt.area} m²
                   </span>
                 </div>
-                <div className="relative w-full h-72 sm:h-[28rem] overflow-hidden rounded-[5px] bg-[#F8FAFC]">
+                <div className="relative h-72 w-full overflow-hidden rounded-[5px] bg-[#F8FAFC] sm:h-[28rem]">
                   <Image
                     src={apt.floorPlanImage}
                     alt={t.aptDetail.layoutTitle}
                     fill
                     unoptimized
-                    className="object-cover"
+                    className="object-contain"
                     sizes="(max-width:1024px) 100vw, 900px"
                   />
                 </div>
               </div>
-            )}
+            ) : null}
+
+            {description ? (
+              <section className="rounded-[5px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
+                <h2 className="text-lg font-semibold text-[#0c1428]">{t.aptDetail.pdfDescription}</h2>
+                <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[#4B5563]">{description}</p>
+              </section>
+            ) : null}
           </div>
 
-          <aside className="lg:sticky lg:top-24 min-w-0 rounded-[5px] bg-[#F9FAFB] p-5 sm:p-6">
-            <StatusBadge status={apt.status} />
-            <p className="mt-4 text-3xl font-semibold text-[#0c1428] tabular-nums">
+          <aside className="min-w-0 overflow-hidden rounded-[5px] border border-[#E8EAED] bg-[#F9FAFB] p-5 lg:sticky lg:top-24 sm:p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={apt.status} />
+              <span className="text-xs font-medium text-[#9CA3AF]">#{aptCode}</span>
+            </div>
+
+            <p className="mt-4 break-words text-3xl font-semibold tabular-nums leading-tight text-[#0c1428]">
               {sold ? "—" : formatPrice(apt.price)}
             </p>
             <p className="mt-1 text-sm text-[#6B7280]">{getStatusLabel(t, apt.status)}</p>
 
-            <div className="mt-5 space-y-3">
-              {[
-                { icon: BedDouble, label: t.aptDetail.bedrooms, value: `${apt.rooms}` },
-                { icon: Square, label: t.aptDetail.area, value: `${apt.area} m²` },
-                { icon: Layers, label: t.aptDetail.floorSpec, value: `${apt.floor}` },
-                { icon: Square, label: t.aptDetail.viewSpec, value: apt.viewType },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="flex items-center justify-between gap-3">
-                  <div className="inline-flex min-w-0 items-center gap-2 text-[#6B7280]">
-                    <Icon size={15} className="shrink-0" />
-                    <span className="truncate text-sm">{label}</span>
-                  </div>
-                  <p className="shrink-0 text-sm font-semibold text-[#0c1428]">{value}</p>
+            <div className="mt-5 grid grid-cols-2 gap-2.5">
+              <SpecRow icon={BedDouble} label={t.aptDetail.bedrooms} value={apt.rooms} />
+              <SpecRow icon={Maximize2} label={t.aptDetail.area} value={`${apt.area} m²`} />
+              <SpecRow icon={Layers} label={t.aptDetail.floorSpec} value={apt.floor} />
+              <SpecRow
+                icon={Eye}
+                label={t.aptDetail.viewSpec}
+                value={apt.viewType?.trim() || "—"}
+              />
+            </div>
+
+            <div className="mt-3 space-y-2">
+              <div className="flex min-w-0 items-start gap-2 text-sm text-[#6B7280]">
+                <MapPin size={14} className="mt-0.5 shrink-0 text-[#c9a96e]" aria-hidden />
+                <span className="min-w-0 break-words leading-snug">
+                  {project.location}
+                  {project.city ? `, ${project.city}` : ""}
+                </span>
+              </div>
+              {apt.balcony ? (
+                <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+                  <Sun size={14} className="shrink-0 text-[#c9a96e]" aria-hidden />
+                  <span>{t.aptDetail.balcony}</span>
                 </div>
-              ))}
+              ) : null}
             </div>
 
             <div className="mt-6 space-y-2">
@@ -178,19 +205,23 @@ export default function ApartmentDetailPage() {
                 <button
                   type="button"
                   onClick={() => setInquiryType("info")}
-                  className="flex h-10 w-full items-center justify-center rounded-[5px] bg-[#0c1428] px-3 text-xs font-semibold whitespace-nowrap text-white hover:bg-[#1F2937]"
+                  className="flex h-11 w-full items-center justify-center rounded-[5px] bg-[#0c1428] px-3 text-sm font-semibold text-white hover:bg-[#1F2937]"
                 >
                   {t.aptDetail.requestInfo}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={handleDownloadPdf}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-[5px] border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#0c1428] hover:border-[#0c1428] transition-colors"
-              >
-                <Download size={15} />
-                {t.aptDetail.downloadPdf}
-              </button>
+              {planPdfUrl ? (
+                <a
+                  href={planPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-[5px] border border-[#E5E7EB] bg-white px-3 text-sm font-semibold text-[#0c1428] transition-colors hover:border-[#0c1428]"
+                >
+                  <Download size={16} />
+                  {t.aptDetail.downloadPdf}
+                </a>
+              ) : null}
             </div>
           </aside>
         </div>
@@ -206,7 +237,7 @@ export default function ApartmentDetailPage() {
               <h2 className="mt-2 text-xl font-semibold text-[#0c1428] sm:text-2xl">
                 {t.calculator.title}
               </h2>
-              <p className="mt-2 text-sm text-[#6B7280] leading-relaxed">
+              <p className="mt-2 text-sm leading-relaxed text-[#6B7280]">
                 {t.calculator.subtitle}
               </p>
             </div>

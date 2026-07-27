@@ -125,6 +125,8 @@ export async function createProject(input: Record<string, unknown>) {
             status: String(a.status || "Available"),
             viewType: String(a.viewType || ""),
             floorPlanImage: String(a.floorPlanImage || ""),
+            planPdfUrl: (a.planPdfUrl as string) || null,
+            description: (a.description as string) || null,
             gallery: parseJsonField(a.gallery, []),
             balcony: Boolean(a.balcony),
           };
@@ -215,6 +217,8 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
         status: String(raw.status || "Available"),
         viewType: String(raw.viewType || ""),
         floorPlanImage: String(raw.floorPlanImage || ""),
+        planPdfUrl: (raw.planPdfUrl as string) || null,
+        description: (raw.description as string) || null,
         gallery: parseJsonField(raw.gallery, []),
         balcony: Boolean(raw.balcony),
       };
@@ -280,6 +284,8 @@ export async function createApartment(projectId: string, input: Record<string, u
       status: String(input.status || "Available"),
       viewType: String(input.viewType || ""),
       floorPlanImage: String(input.floorPlanImage || ""),
+      planPdfUrl: (input.planPdfUrl as string) || null,
+      description: (input.description as string) || null,
       gallery: parseJsonField(input.gallery, []),
       balcony: Boolean(input.balcony),
     },
@@ -309,6 +315,8 @@ export async function updateApartment(projectId: string, aptId: string, input: R
   if (input.status !== undefined) data.status = String(input.status);
   if (input.viewType !== undefined) data.viewType = String(input.viewType);
   if (input.floorPlanImage !== undefined) data.floorPlanImage = String(input.floorPlanImage);
+  if (input.planPdfUrl !== undefined) data.planPdfUrl = input.planPdfUrl ? String(input.planPdfUrl) : null;
+  if (input.description !== undefined) data.description = input.description ? String(input.description) : null;
   if (input.gallery !== undefined) data.gallery = parseJsonField(input.gallery, []);
   if (input.balcony !== undefined) data.balcony = Boolean(input.balcony);
 

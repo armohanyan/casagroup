@@ -21,7 +21,10 @@ const upload = multer({
   dest: tmpDir,
   limits: { fileSize: config.maxVideoBytes },
   fileFilter(_req, file, cb) {
-    const ok = file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/");
+    const ok =
+      file.mimetype.startsWith("image/") ||
+      file.mimetype.startsWith("video/") ||
+      file.mimetype === "application/pdf";
     if (!ok) {
       cb(new Error("Unsupported file type"));
       return;

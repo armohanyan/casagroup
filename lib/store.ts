@@ -50,6 +50,8 @@ export function emptyApartment(projectId: string): Apartment {
     status: "Available",
     viewType: "City",
     floorPlanImage: "",
+    planPdfUrl: "",
+    description: "",
     gallery: [],
     balcony: false,
   };

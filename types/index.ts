@@ -27,6 +27,8 @@ export interface Apartment {
   status: ApartmentStatus;
   viewType: string;
   floorPlanImage: string;
+  planPdfUrl?: string;
+  description?: string;
   gallery: string[];
   balcony?: boolean;
 }

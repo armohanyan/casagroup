@@ -89,8 +89,11 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [hydrated, setHydrated] = useState(isNew);
   const [uploading, setUploading] = useState(false);
   const [uploadingDrone, setUploadingDrone] = useState(false);
+  const [uploadingPdfId, setUploadingPdfId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const droneFileRef = useRef<HTMLInputElement>(null);
+  const pdfFileRef = useRef<HTMLInputElement>(null);
+  const pdfTargetAptId = useRef<string | null>(null);
 
   useEffect(() => {
     if (existing) {
@@ -188,6 +191,24 @@ export function AdminProjectEditor({ projectId }: Props) {
       toast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setUploadingDrone(false);
+    }
+  }
+
+  async function handlePlanPdfUpload(file: File, aptId: string) {
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      toast("Միայն PDF ֆայլ", "error");
+      return;
+    }
+    setUploadingPdfId(aptId);
+    try {
+      const result = await adminUploadFile(file, projectId);
+      updateApt(aptId, { planPdfUrl: result.url });
+      toast("PDF-ը վերբեռնվեց");
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), "error");
+    } finally {
+      setUploadingPdfId(null);
     }
   }
 
@@ -640,8 +661,66 @@ export function AdminProjectEditor({ projectId }: Props) {
                     </label>
                   </Field>
                 </div>
+                <Field label={a.unitDescription}>
+                  <textarea
+                    className={adminTextareaCls}
+                    value={apt.description ?? ""}
+                    placeholder={a.unitDescriptionPlaceholder}
+                    onChange={(e) => updateApt(apt.id, { description: e.target.value })}
+                  />
+                </Field>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                  <Field label={a.planPdf}>
+                    <input
+                      className={adminInputCls}
+                      value={apt.planPdfUrl ?? ""}
+                      placeholder="https://… կամ վերբեռնեք PDF"
+                      onChange={(e) => updateApt(apt.id, { planPdfUrl: e.target.value })}
+                    />
+                  </Field>
+                  <button
+                    type="button"
+                    disabled={uploadingPdfId === apt.id}
+                    className={cn(adminBtnSecondary, "h-11")}
+                    onClick={() => {
+                      pdfTargetAptId.current = apt.id;
+                      pdfFileRef.current?.click();
+                    }}
+                  >
+                    {uploadingPdfId === apt.id ? "Վերբեռնում…" : a.uploadPdf}
+                  </button>
+                </div>
+                {apt.planPdfUrl ? (
+                  <p className="text-xs text-[#6B7280]">
+                    PDF կցված է —{" "}
+                    <a href={apt.planPdfUrl} target="_blank" rel="noopener noreferrer" className="text-[#c9a96e] hover:underline">
+                      բացել
+                    </a>
+                    {" · "}
+                    <button
+                      type="button"
+                      className="text-red-500 hover:underline"
+                      onClick={() => updateApt(apt.id, { planPdfUrl: "" })}
+                    >
+                      հեռացնել
+                    </button>
+                  </p>
+                ) : null}
               </div>
             ))}
+            <input
+              ref={pdfFileRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                const aptId = pdfTargetAptId.current;
+                if (file && aptId) void handlePlanPdfUpload(file, aptId);
+                e.target.value = "";
+                pdfTargetAptId.current = null;
+              }}
+            />
             <button
               type="button"
               onClick={() => set("apartments", [...form.apartments, emptyApartment(apartmentProjectId)])}

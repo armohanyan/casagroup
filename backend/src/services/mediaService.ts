@@ -8,6 +8,7 @@ import { ensureVideoDir, generateVideoPoster } from "../utils/optimizeVideo.js";
 
 const IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const VIDEO_MIME = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+const PDF_MIME = new Set(["application/pdf"]);
 
 export async function processUpload(file: Express.Multer.File, projectId?: string) {
   const basename = `${Date.now()}-${randomUUID().slice(0, 8)}`;
@@ -67,6 +68,30 @@ export async function processUpload(file: Express.Multer.File, projectId?: strin
       kind: "video" as const,
       url: toPublicUrl(dest),
       posterUrl: posterPath ? toPublicUrl(posterPath) : null,
+    };
+  }
+
+  if (PDF_MIME.has(file.mimetype) || file.originalname.toLowerCase().endsWith(".pdf")) {
+    const docsDir = path.join(config.uploadsDir, "docs");
+    await fs.mkdir(docsDir, { recursive: true });
+    const dest = path.join(docsDir, `${basename}.pdf`);
+    await fs.rename(file.path, dest);
+    const size = (await fs.stat(dest)).size;
+
+    const asset = await prisma.mediaAsset.create({
+      data: {
+        projectId: projectId || null,
+        originalPath: dest,
+        mimeType: "application/pdf",
+        kind: "pdf",
+        sizeBytes: size,
+      },
+    });
+
+    return {
+      id: asset.id,
+      kind: "pdf" as const,
+      url: toPublicUrl(dest),
     };
   }
 

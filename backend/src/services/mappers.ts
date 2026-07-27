@@ -17,6 +17,8 @@ export function mapApartment(apt: Apartment) {
     status: apt.status,
     viewType: apt.viewType,
     floorPlanImage: apt.floorPlanImage,
+    planPdfUrl: apt.planPdfUrl ?? undefined,
+    description: apt.description ?? undefined,
     gallery: asArray<string>(apt.gallery),
     balcony: apt.balcony,
   };
