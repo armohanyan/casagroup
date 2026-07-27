@@ -16,7 +16,10 @@ export default function HomePage() {
   const { t, lang } = useI18n();
   const { projects } = useProjects();
 
-  const featured = useMemo(() => projects.filter((p) => p.featured), [projects]);
+  const featured = useMemo(() => {
+    const marked = projects.filter((p) => p.featured);
+    return marked.length > 0 ? marked : projects;
+  }, [projects]);
 
   const startingPrice = useMemo(() => {
     const prices = featured.map((p) => p.startingPrice).filter((p) => p > 0);

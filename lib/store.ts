@@ -35,7 +35,7 @@ export function emptyProject(): Omit<Project, "id" | "slug"> {
     architect: "",
     coordinates: { lat: 40.1872, lng: 44.5152 },
     tags: [],
-    featured: false,
+    featured: true,
   };
 }
 

@@ -353,16 +353,21 @@ export function AdminProjectEditor({ projectId }: Props) {
               />
             </Field>
           </div>
-          <label className="flex cursor-pointer items-center gap-3 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] px-4 py-3">
+          <label className="flex cursor-pointer items-start gap-3 rounded-[5px] border border-[#c9a96e]/40 bg-[#c9a96e]/10 px-4 py-3">
             <input
               type="checkbox"
               checked={Boolean(form.featured)}
               onChange={(e) => set("featured", e.target.checked)}
-              className="h-4 w-4 accent-[#c9a96e]"
+              className="mt-0.5 h-4 w-4 accent-[#c9a96e]"
             />
-            <span className="flex items-center gap-2 text-sm font-semibold text-[#0c1428]">
-              <Star size={15} className="text-[#c9a96e]" />
-              {a.featuredHomepage}
+            <span>
+              <span className="flex items-center gap-2 text-sm font-semibold text-[#0c1428]">
+                <Star size={15} className="text-[#c9a96e]" />
+                {a.featuredHomepage}
+              </span>
+              <span className="mt-1 block text-xs text-[#6B7280]">
+                Միացրեք՝ նախագիծը գլխավոր էջում ցուցադրելու համար
+              </span>
             </span>
           </label>
         </Section>
