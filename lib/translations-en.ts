@@ -934,9 +934,9 @@ export const en = {
     pageTitle: "About CASA GROUP",
     pageSubtitle: "CASA GROUP specializes in sales and consultation for new-build residential projects. We help families and investors choose an apartment that fits their goals — with a simple, transparent, and trusted process.",
     whyEyebrow: "Why CasaGroup?",
-    whyTitle: "We put buyers first",
+    whyTitle: "The buyer is our priority",
     whyBody:
-      "From property selection to purchase — we offer transparent pricing, verified new construction, and a direct line to someone who answers quickly.",
+      "From property selection to a successful closing, we provide full support, transparent terms, and verified new-build projects. You work with a dedicated specialist who offers fast, clear, and professional guidance at every stage.",
     stats: [
       { value: "25+", label: "Years experience" },
       { value: "4", label: "Active projects" },
