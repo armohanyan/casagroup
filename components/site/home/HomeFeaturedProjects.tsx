@@ -83,14 +83,14 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
             onClick={() => scroll("prev")}
             disabled={!canPrev}
             aria-label={t.home.featuredPrev}
-            className={cn(sideArrowCls(canPrev), "-left-1 lg:-left-5")}
+            className={cn(sideArrowCls(canPrev), "-left-6")}
           >
             <ChevronLeft size={22} />
           </button>
 
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 md:px-14 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {projects.map((project) => (
               <div
@@ -107,7 +107,7 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
             onClick={() => scroll("next")}
             disabled={!canNext}
             aria-label={t.home.featuredNext}
-            className={cn(sideArrowCls(canNext), "-right-1 lg:-right-5")}
+            className={cn(sideArrowCls(canNext), "-right-6")}
           >
             <ChevronRight size={22} />
           </button>

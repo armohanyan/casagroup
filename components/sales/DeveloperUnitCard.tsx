@@ -44,12 +44,12 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
       </div>
       <div className="p-4">
         <p className="text-lg sm:text-xl font-bold text-[#1C1917] tabular-nums leading-tight">
-          {sold ? "—" : formatPrice(apartment.price)}
+          {formatPrice(apartment.price)}
         </p>
         <p className="mt-1 text-xs text-[#57534E]">
           {t.developerDetail.monthlyPayment}{" "}
           <span className="font-semibold text-[#1C1917] tabular-nums">
-            {sold ? "—" : formatPrice(Math.round(monthly))}
+            {formatPrice(Math.round(monthly))}
           </span>
         </p>
         <p className="mt-3 text-xs text-[#57534E] leading-relaxed">
@@ -74,24 +74,18 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
         <span className="text-[11px] font-semibold text-[#57534E] tabular-nums tracking-wide">{code}</span>
       </div>
       {sold && (
-        <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center">
-          <span className="px-4 py-2 rounded-md text-sm font-bold uppercase tracking-wide bg-brand/90 text-white">
-            {t.developerDetail.sold}
-          </span>
-        </div>
+        <span className="absolute right-2 top-2 z-10 rounded-[5px] bg-[#DC2626] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm">
+          {t.developerDetail.sold}
+        </span>
       )}
     </>
   );
 
-  const className =
-    "relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all";
-
-  if (sold) {
-    return <article className={className}>{body}</article>;
-  }
-
   return (
-    <Link href={href} className={className}>
+    <Link
+      href={href}
+      className="relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all"
+    >
       {body}
     </Link>
   );
