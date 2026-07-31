@@ -23,43 +23,53 @@ const notoArmenian = Noto_Sans_Armenian({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://casagroup.am";
+
+const DEFAULT_TITLE = "CASA GROUP — նոր բնակարաններ Երևանում կառուցապատողից";
+const DEFAULT_DESCRIPTION =
+  "CASA GROUP-ը օգնում է գնել նորակառույց բնակարան Երևանում՝ ստուգված նախագծեր, թափանցիկ գներ, դիտումներ և մասնագիտական աջակցություն՝ ընտրությունից մինչև գործարքի ավարտ։";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "CASA GROUP — կառուցապատման նախագծերի զարգացում և վաճառք",
+    default: DEFAULT_TITLE,
     template: "%s | CasaGroup",
   },
-  description:
-    "CASA GROUP — կառուցապատման նախագծերի զարգացման և վաճառքի ինստիտուցիոնալ հարթակ։ Նոր կառուցապատում, պրեմիում բնակարաններ և մասնագիտական ծառայություններ Հայաստանում։",
+  description: DEFAULT_DESCRIPTION,
   keywords: [
     "CasaGroup",
-    "Armenia real estate",
-    "new construction Yerevan",
-    "premium apartments",
-    "residential complexes",
-    "new build sales",
-    "property buying",
+    "նոր բնակարաններ Երևանում",
+    "նորակառույց բնակարան",
+    "բնակարան կառուցապատողից",
+    "բնակարան գնել Երևանում",
+    "apartments in Yerevan",
+    "new developments Armenia",
+    "buy apartment Armenia",
+    "new construction apartments",
+    "primary market real estate",
+    "investment property Armenia",
+    "premium apartments Armenia",
   ],
   authors: [{ name: "CasaGroup" }],
   robots: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
   applicationName: "CasaGroup",
   appleWebApp: { title: "CasaGroup" },
   formatDetection: { telephone: false },
+  alternates: { canonical: "/" },
   openGraph: {
-    siteName: "CASA GROUP",
-    title: "CASA GROUP — կառուցապատման նախագծերի զարգացում և վաճառք",
-    description:
-      "Կառուցապատման նախագծերի զարգացման, վաճառքի և կառավարման ինստիտուցիոնալ հարթակ։ Նոր կառուցապատում և պրեմիում բնակարաններ Հայաստանում։",
+    siteName: "CasaGroup",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
     type: "website",
     locale: "hy_AM",
+    url: "/",
+    images: [{ url: "/yerevan.png", width: 1536, height: 1024, alt: "CasaGroup — Yerevan" }],
   },
   twitter: {
-    card: "summary",
-    title: "CASA GROUP — կառուցապատման նախագծերի զարգացում և վաճառք",
-    description:
-      "Կառուցապատման նախագծերի զարգացման, վաճառքի և կառավարման ինստիտուցիոնալ հարթակ։ Նոր կառուցապատում և պրեմիում բնակարաններ Հայաստանում։",
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: ["/yerevan.png"],
   },
   manifest: "/site.webmanifest",
 };

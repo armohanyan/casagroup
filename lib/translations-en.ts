@@ -56,6 +56,8 @@ export const en = {
     evaluation: "Calculator",
     recentlyViewed: "Recently Viewed",
     whatsappLabel: "Contact us on WhatsApp",
+    callLabel: "Call us",
+    contactFabLabel: "Contact us",
   },
   trust: {
     eyebrow: "Why CasaGroup",
@@ -1235,22 +1237,22 @@ export const en = {
         "CasaGroup helps developers and buyers with strategy, branding, sales systems, and CRM for residential and mixed-use projects — from market analysis through premium apartment sales.",
     },
     about: {
-      title: "About CasaGroup — real estate development & sales",
+      title: "About us — new construction sales & buyer consultation",
       description:
-        "Learn how CasaGroup supports new construction in Armenia with institutional sales, branding, and CRM — built for developers and buyers of premium apartments.",
+        "CasaGroup specializes in selling new-build apartments in Yerevan — helping families and investors choose the right apartment through a clear, transparent, and trusted process.",
     },
     contact: {
-      title: "Contact CasaGroup — schedule a new construction consultation",
+      title: "Contact us — schedule a new construction consultation",
       description:
         "Reach CasaGroup in Yerevan for premium apartments and new-build projects. Call, email, or send a message — our team responds quickly to buyer and developer inquiries.",
     },
     owner: {
-      title: "Meet the founder — CasaGroup",
+      title: "Meet the founder",
       description:
         "A direct contact for new apartments in Yerevan. Call, WhatsApp, or message — no corporate runaround.",
     },
     notFound: {
-      title: "Page not found — CasaGroup",
+      title: "Page not found",
       description: "The page you are looking for does not exist. Return to CasaGroup home or explore projects.",
     },
   },

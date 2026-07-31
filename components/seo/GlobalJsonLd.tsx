@@ -14,12 +14,21 @@ export function GlobalJsonLd() {
     name: SITE_NAME,
     url,
     description: t.schema.organizationDescription,
+    telephone: "+37496799733",
+    email: "info@casagroup.am",
     areaServed: { "@type": "Country", name: "Armenia" },
     address: {
       "@type": "PostalAddress",
       streetAddress: "Sayat-Nova 40",
       addressLocality: "Yerevan",
       addressCountry: "AM",
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "sales",
+      telephone: "+37496799733",
+      email: "info@casagroup.am",
+      availableLanguage: ["hy", "en", "ru"],
     },
   };
 

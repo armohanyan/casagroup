@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getProjects } from "@/lib/projects-data";
 
 function baseUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.example.com").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://casagroup.am").replace(/\/$/, "");
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -12,12 +12,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPaths = [
     "/",
-    "/properties",
-    "/properties/map",
     "/projects",
     "/investment",
     "/calculator",
-    "/blog",
     "/partners",
     "/partners/services",
     "/about",

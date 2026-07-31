@@ -1,17 +1,17 @@
 {
-  "name": "CasaGroup — New construction & premium apartments",
+  "name": "CasaGroup — New apartments in Yerevan from developers",
   "short_name": "CasaGroup",
-  "description": "CasaGroup — new construction sales, modern residential complexes, and premium apartments in Armenia.",
+  "description": "CasaGroup helps you buy new-construction apartments in Yerevan — verified projects, transparent prices, and expert support from selection to closing.",
   "start_url": "/",
   "display": "browser",
   "background_color": "#FAF8F5",
   "theme_color": "#FAF8F5",
-  "lang": "en",
+  "lang": "hy",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon",
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { PageIntro } from "@/components/site/PageIntro";
 import { Container } from "@/components/site/Container";

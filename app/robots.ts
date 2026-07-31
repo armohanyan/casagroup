@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 function baseUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.example.com").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://casagroup.am").replace(/\/$/, "");
 }
 
 export default function robots(): MetadataRoute.Robots {
