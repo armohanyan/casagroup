@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import Image from "next/image";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Phone, MessageCircle } from "lucide-react";
+import { Phone, MessageCircle, BadgeCheck } from "lucide-react";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
@@ -22,12 +21,6 @@ import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
 
 const WHATSAPP = "https://wa.me/37496799733";
-const AMENITY_VISUALS = [
-  "https://images.unsplash.com/photo-1576675784201-0e142b423952?w=600&q=80",
-  "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80",
-  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80",
-  "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80",
-];
 const AMENITY_LABELS_HY: Record<string, string> = {
   "Rooftop Pool": "Տանիքի լողավազան",
   "Fitness Center": "Ֆիթնես կենտրոն",
@@ -101,17 +94,12 @@ export default function ProjectDetailPage() {
 
       <section className="bg-[#F9FAFB] py-8 md:py-10">
         <Container>
-          <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2 lg:gap-10">
-            <div className="h-full rounded-2xl bg-white p-4 md:p-5">
-              <DroneVideoSection
-                videos={project.droneVideos ?? []}
-                projectTitle={project.title}
-                embedded
-              />
-            </div>
-            <div className="h-full rounded-2xl bg-white p-4 md:p-5">
-              <ProjectLocationSection project={project} embedded />
-            </div>
+          <div className="rounded-2xl bg-white p-4 md:p-5">
+            <DroneVideoSection
+              videos={project.droneVideos ?? []}
+              projectTitle={project.title}
+              embedded
+            />
           </div>
         </Container>
       </section>
@@ -139,24 +127,15 @@ export default function ProjectDetailPage() {
                 {project.amenities.length}
               </span>
             </div>
-            <div className="flex flex-wrap items-start gap-4">
-              {project.amenities.slice(0, 8).map((a, idx) => (
-                <div
+            <div className="flex flex-wrap gap-2.5">
+              {project.amenities.map((a) => (
+                <span
                   key={a.label}
-                  className="flex w-[118px] flex-col items-center text-center"
+                  className="inline-flex items-center gap-2 rounded-[5px] border border-[#E5E7EB] bg-[#F9FAFB] px-3.5 py-2 text-sm font-medium text-[#0c1428]"
                 >
-                  <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-[#F3F4F6] shadow-sm">
-                    <Image
-                      src={AMENITY_VISUALS[idx % AMENITY_VISUALS.length]}
-                      alt={localizeAmenityLabel(a.label)}
-                      fill
-                      unoptimized
-                      sizes="56px"
-                      className="object-cover"
-                    />
-                  </span>
-                  <span className="mt-2 line-clamp-2 text-sm font-normal text-[#0c1428]">{localizeAmenityLabel(a.label)}</span>
-                </div>
+                  <BadgeCheck size={16} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
+                  {localizeAmenityLabel(a.label)}
+                </span>
               ))}
             </div>
           </section>
@@ -187,6 +166,8 @@ export default function ProjectDetailPage() {
           </div>
         </Container>
       </section>
+
+      <ProjectLocationSection project={project} />
 
       <section className="py-12 md:py-14 bg-[#0c1428] border-t border-[#E5E7EB]">
         <Container className="text-center">

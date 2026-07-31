@@ -3,15 +3,16 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { createMapPinIcon } from "@/lib/leaflet-pin";
+import { TILE_URL, TILE_ATTRIBUTION, brandMarkerIcon } from "@/components/site/map-style";
 
 interface Props {
   lat: number;
   lng: number;
   title: string;
+  scrollWheelZoom?: boolean;
 }
 
-export function ProjectMap({ lat, lng, title }: Props) {
+export function ProjectMap({ lat, lng, title, scrollWheelZoom = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,14 +22,12 @@ export function ProjectMap({ lat, lng, title }: Props) {
     const map = L.map(el, {
       center: [lat, lng],
       zoom: 15,
-      scrollWheelZoom: false,
+      scrollWheelZoom,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap",
-    }).addTo(map);
+    L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION }).addTo(map);
 
-    L.marker([lat, lng], { icon: createMapPinIcon() }).addTo(map).bindPopup(title);
+    L.marker([lat, lng], { icon: brandMarkerIcon() }).addTo(map).bindPopup(title);
 
     const invalidate = () => map.invalidateSize({ animate: false });
     const timers = [0, 50, 150, 300].map((ms) => window.setTimeout(invalidate, ms));
@@ -43,7 +42,7 @@ export function ProjectMap({ lat, lng, title }: Props) {
       window.removeEventListener("resize", invalidate);
       map.remove();
     };
-  }, [lat, lng, title]);
+  }, [lat, lng, title, scrollWheelZoom]);
 
   return <div ref={ref} className="absolute inset-0 h-full w-full" />;
 }

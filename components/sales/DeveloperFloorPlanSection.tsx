@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DeveloperUnitCard } from "@/components/sales/DeveloperUnitCard";
 import { BrandMultiSelect } from "@/components/ui/BrandMultiSelect";
 import { BrandSelect } from "@/components/ui/BrandSelect";
@@ -10,6 +11,8 @@ import type { Apartment, Project } from "@/types";
 
 type SortKey = "price-asc" | "price-desc" | "area-asc" | "floor-asc";
 type PaymentKey = "mortgage" | "installment";
+
+const PAGE_SIZE = 9;
 
 interface Props {
   project: Project;
@@ -53,6 +56,11 @@ export function DeveloperFloorPlanSection({ project }: Props) {
   const [areaMax, setAreaMax] = useState(() => areaRange(marketOf(project.apartments)).max);
   const [payments, setPayments] = useState<PaymentKey[]>(["mortgage", "installment"]);
   const [sort, setSort] = useState<SortKey>("price-asc");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedRooms, selectedFloors, areaMin, areaMax, payments, sort]);
 
   const filtered = useMemo(() => {
     let list = [...marketApartments];
@@ -92,6 +100,14 @@ export function DeveloperFloorPlanSection({ project }: Props) {
     { value: "mortgage", label: t.developerDetail.paymentMortgage },
     { value: "installment", label: t.developerDetail.paymentInstallment },
   ];
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function goToPage(next: number) {
+    setPage(Math.min(Math.max(1, next), totalPages));
+    document.getElementById("floor-plans")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <section id="floor-plans" className="scroll-mt-24">
@@ -181,15 +197,55 @@ export function DeveloperFloorPlanSection({ project }: Props) {
           {t.properties.noResults}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((apartment) => (
-            <DeveloperUnitCard
-              key={apartment.id}
-              apartment={apartment}
-              projectSlug={project.slug}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {pageItems.map((apartment) => (
+              <DeveloperUnitCard
+                key={apartment.id}
+                apartment={apartment}
+                projectSlug={project.slug}
+              />
+            ))}
+          </div>
+
+          {totalPages > 1 && (
+            <nav className="mt-8 flex items-center justify-center gap-1.5" aria-label="Pagination">
+              <button
+                type="button"
+                onClick={() => goToPage(page - 1)}
+                disabled={page === 1}
+                aria-label="Previous page"
+                className="flex h-10 w-10 items-center justify-center rounded-[5px] border border-[#E5E7EB] bg-white text-[#0c1428] transition-colors hover:border-[#c9a96e] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => goToPage(n)}
+                  aria-current={n === page ? "page" : undefined}
+                  className={
+                    n === page
+                      ? "flex h-10 w-10 items-center justify-center rounded-[5px] bg-[#0c1428] text-sm font-semibold text-white"
+                      : "flex h-10 w-10 items-center justify-center rounded-[5px] border border-[#E5E7EB] bg-white text-sm font-medium text-[#0c1428] transition-colors hover:border-[#c9a96e]"
+                  }
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => goToPage(page + 1)}
+                disabled={page === totalPages}
+                aria-label="Next page"
+                className="flex h-10 w-10 items-center justify-center rounded-[5px] border border-[#E5E7EB] bg-white text-[#0c1428] transition-colors hover:border-[#c9a96e] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </nav>
+          )}
+        </>
       )}
     </section>
   );

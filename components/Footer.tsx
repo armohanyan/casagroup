@@ -37,8 +37,8 @@ export function Footer() {
             <a href="tel:+37496799733" className="flex items-center gap-2 hover:text-[#0c1428]">
               <Phone size={14} className="shrink-0" /> +374 96 799733
             </a>
-            <a href="mailto:casagroup@gmail.com" className="flex items-start gap-2 hover:text-[#0c1428] break-all">
-              <Mail size={14} className="shrink-0 mt-0.5" /> casagroup@gmail.com
+            <a href="mailto:info@casagroup.am" className="flex items-start gap-2 hover:text-[#0c1428] break-all">
+              <Mail size={14} className="shrink-0 mt-0.5" /> info@casagroup.am
             </a>
             <p className="flex items-start gap-2">
               <MapPin size={14} className="shrink-0 mt-0.5" />

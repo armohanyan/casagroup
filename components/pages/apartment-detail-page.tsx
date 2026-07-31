@@ -13,9 +13,9 @@ import {
   Maximize2,
   Sun,
 } from "lucide-react";
-import { ProjectGallery } from "@/components/ProjectGallery";
 import { ApartmentInquiryModal } from "@/components/ApartmentInquiryModal";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
+import { ProjectLocationSection } from "@/components/site/ProjectLocationSection";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
@@ -88,7 +88,6 @@ export default function ApartmentDetailPage() {
   const { apartment: apt, project } = result;
   const path = `/projects/${project.slug}/apartments/${apt.id}`;
   const sold = apt.status === "Sold";
-  const images = apt.gallery.length > 0 ? apt.gallery : project.images.slice(0, 4);
   const aptCode = listingCode(apt.id);
   const description = (apt.description?.trim() || getProjectDescription(project, lang)).trim();
   const planPdfUrl = apt.planPdfUrl?.trim() || "";
@@ -99,12 +98,12 @@ export default function ApartmentDetailPage() {
   const whatsappHref = `https://wa.me/37496799733?text=${whatsappMessage}`;
 
   return (
-    <main className="bg-white min-h-screen pt-header pb-20">
+    <main className="bg-white min-h-screen pt-header">
       <Seo
         title={`${apt.rooms} BR · ${project.title}`}
         description={description || `${apt.area} m² apartment at ${project.title}, ${project.city}.`}
         path={path}
-        image={images[0]}
+        image={apt.floorPlanImage || undefined}
         lang={lang}
         ogType="article"
       />
@@ -126,12 +125,6 @@ export default function ApartmentDetailPage() {
 
         <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">
-            {images.length > 0 ? (
-              <div className="overflow-hidden rounded-[5px]">
-                <ProjectGallery images={images} title={project.title} />
-              </div>
-            ) : null}
-
             {apt.floorPlanImage ? (
               <div className="rounded-[5px] border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-5">
                 <div className="mb-3 flex items-center justify-between gap-3">
@@ -253,6 +246,8 @@ export default function ApartmentDetailPage() {
           </Container>
         </section>
       )}
+
+      <ProjectLocationSection project={project} />
 
       <ApartmentInquiryModal
         type={inquiryType}

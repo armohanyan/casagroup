@@ -8,7 +8,7 @@ const AGENTS = [
   {
     name: "CasaGroup Sales",
     roleKey: "agent" as const,
-    email: "casagroup@gmail.com",
+    email: "info@casagroup.am",
     phone: "+374 96 799733",
     tel: "tel:+37496799733",
   },

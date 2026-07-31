@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { BedDouble, Layers, Maximize2 } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
-import { listingCode } from "@/lib/listing-code";
 import { estimateMonthlyPayment } from "@/lib/mortgage-estimate";
 import { formatUnitLine } from "@/lib/unit-summary";
 import { useI18n } from "@/lib/i18n";
@@ -20,7 +19,6 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
   const { t, lang } = useI18n();
   const sold = apartment.status === "Sold";
   const monthly = estimateMonthlyPayment(apartment.price);
-  const code = listingCode(apartment.id);
   const href = `/projects/${projectSlug}/apartments/${apartment.id}`;
   const cover = apartment.floorPlanImage || apartment.gallery[0];
 
@@ -69,9 +67,6 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
             {apartment.area} m²
           </span>
         </div>
-      </div>
-      <div className="px-4 pb-4">
-        <span className="text-[11px] font-semibold text-[#57534E] tabular-nums tracking-wide">{code}</span>
       </div>
       {sold && (
         <div className="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center">
