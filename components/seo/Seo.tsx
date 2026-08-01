@@ -6,6 +6,7 @@ import {
   THEME_COLOR,
   absoluteUrl,
 } from "@/lib/site-config";
+import { DEFAULT_OG_IMAGE } from "@/lib/seo-meta";
 
 export interface SeoProps {
   title: string;
@@ -35,10 +36,6 @@ function upsertLink(rel: string, href: string) {
     document.head.appendChild(el);
   }
   el.setAttribute("href", href);
-}
-
-function removeMeta(attr: "name" | "property", key: string) {
-  document.querySelector(`meta[${attr}="${key}"]`)?.remove();
 }
 
 export function Seo({
@@ -74,16 +71,13 @@ export function Seo({
     upsertMeta("property", "og:type", ogType);
     upsertMeta("property", "og:locale", lang === "hy" ? "hy_AM" : "en_US");
 
-    if (image) {
-      const ogImage = absoluteUrl(image);
-      upsertMeta("property", "og:image", ogImage);
-      upsertMeta("name", "twitter:card", "summary_large_image");
-      upsertMeta("name", "twitter:image", ogImage);
-    } else {
-      removeMeta("property", "og:image");
-      removeMeta("name", "twitter:image");
-      upsertMeta("name", "twitter:card", "summary");
-    }
+    // Never remove head nodes here: the server metadata (buildPageMetadata)
+    // renders these tags, so they are React-managed. Deleting them crashes
+    // React's next head update ("removeChild of null") and breaks navigation.
+    const ogImage = absoluteUrl(image ?? DEFAULT_OG_IMAGE);
+    upsertMeta("property", "og:image", ogImage);
+    upsertMeta("name", "twitter:card", "summary_large_image");
+    upsertMeta("name", "twitter:image", ogImage);
 
     upsertMeta("name", "twitter:title", fullHeadline);
     upsertMeta("name", "twitter:description", description);
