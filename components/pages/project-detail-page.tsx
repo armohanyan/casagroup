@@ -92,17 +92,17 @@ export default function ProjectDetailPage() {
 
       <ProjectMediaShowcase project={project} items={galleryItems} />
 
-      <section className="bg-[#F9FAFB] py-8 md:py-10">
-        <Container>
-          <div className="rounded-2xl bg-white p-4 md:p-5">
+      {(project.droneVideos?.length ?? 0) > 0 && (
+        <section className="border-t border-[#E5E7EB] bg-[#F9FAFB] py-8 md:py-11">
+          <Container>
             <DroneVideoSection
               videos={project.droneVideos ?? []}
               projectTitle={project.title}
               embedded
             />
-          </div>
-        </Container>
-      </section>
+          </Container>
+        </section>
+      )}
 
       <Container className="py-8 md:py-10">
         <dl className="flex flex-wrap items-start gap-x-8 gap-y-5 sm:gap-x-12">

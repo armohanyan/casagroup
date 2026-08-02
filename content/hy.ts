@@ -63,6 +63,7 @@ export const hyTranslations: Translations = {
     whatsappLabel: "Կապվել WhatsApp-ով",
     callLabel: "Զանգահարել",
     contactFabLabel: "Կապ մեզ հետ",
+    contactFabBubble: "Օգնություն է պե՞տք",
   },
   trust: {
     eyebrow: "Ինչու CasaGroup",
@@ -678,6 +679,12 @@ export const hyTranslations: Translations = {
     droneNoVideo: "Օդային տեսագրությունը շուտով",
     dronePlaying: "Նվագում է",
     dronePaused: "Դադարեցված",
+    dronePlay: "Նվագարկել դրոնի տեսանյութը",
+    droneStop: "Վերադառնալ նախադիտմանը",
+    droneExpand: "Լիաէկրան դիտում",
+    droneClose: "Փակել տեսանյութը",
+    dronePrev: "Նախորդ",
+    droneNext: "Հաջորդ",
   },
   developerDetail: {
     details: "Մանրամասներ",

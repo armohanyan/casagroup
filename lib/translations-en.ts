@@ -58,6 +58,7 @@ export const en = {
     whatsappLabel: "Contact us on WhatsApp",
     callLabel: "Call us",
     contactFabLabel: "Contact us",
+    contactFabBubble: "Need help?",
   },
   trust: {
     eyebrow: "Why CasaGroup",
@@ -672,6 +673,12 @@ export const en = {
     droneNoVideo: "Aerial video coming soon",
     dronePlaying: "Playing",
     dronePaused: "Paused",
+    dronePlay: "Play drone video",
+    droneStop: "Back to preview",
+    droneExpand: "Watch fullscreen",
+    droneClose: "Close video",
+    dronePrev: "Previous",
+    droneNext: "Next",
   },
   developerDetail: {
     details: "Details",

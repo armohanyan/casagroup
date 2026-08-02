@@ -193,8 +193,14 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
   return (
     <article
       data-card
-      className="group/card flex flex-col h-full bg-white rounded-[5px] overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
+      className="group/card relative flex flex-col h-full bg-white rounded-[5px] overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
     >
+      <Link
+        href={`/projects/${project.slug}`}
+        className="absolute inset-0 z-10"
+        aria-label={project.title}
+      />
+
       <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
         <CardImageSlider images={images} title={project.title} />
 
@@ -211,11 +217,9 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
       </div>
 
       <div className="flex flex-col flex-1 p-5">
-        <Link href={`/projects/${project.slug}`} className="group/title">
-          <h3 className="font-display text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/title:text-[#c9a96e] transition-colors">
-            {project.title}
-          </h3>
-        </Link>
+        <h3 className="font-display text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/card:text-[#c9a96e] transition-colors">
+          {project.title}
+        </h3>
         <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
           <MapPin size={14} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
           <span className="truncate">{project.location}</span>

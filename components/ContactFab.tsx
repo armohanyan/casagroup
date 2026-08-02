@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { MessageCircle, Phone, X } from "lucide-react";
+import { Phone, X } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { useI18n } from "@/lib/i18n";
 
@@ -40,16 +41,47 @@ function buildWhatsAppUrl(pathname: string, lang: string): string {
   return `${WHATSAPP_BASE}?text=${encodeURIComponent(message)}`;
 }
 
+const BUBBLE_INTERVAL_MS = 5000;
+const BUBBLE_VISIBLE_MS = 4000;
+
 export function ContactFab() {
   const pathname = usePathname();
   const { lang, t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [bubbleVisible, setBubbleVisible] = useState(false);
   const [whatsAppHref, setWhatsAppHref] = useState(WHATSAPP_BASE);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setWhatsAppHref(buildWhatsAppUrl(pathname, lang));
   }, [pathname, lang]);
+
+  useEffect(() => {
+    if (open) {
+      setBubbleVisible(false);
+      return;
+    }
+
+    let showTimer: ReturnType<typeof setTimeout>;
+    let hideTimer: ReturnType<typeof setTimeout>;
+
+    const schedule = () => {
+      showTimer = setTimeout(() => {
+        setBubbleVisible(true);
+        hideTimer = setTimeout(() => {
+          setBubbleVisible(false);
+          schedule();
+        }, BUBBLE_VISIBLE_MS);
+      }, BUBBLE_INTERVAL_MS);
+    };
+
+    schedule();
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -77,7 +109,7 @@ export function ContactFab() {
   return (
     <div
       ref={rootRef}
-      className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 flex flex-col items-center gap-3"
+      className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 flex flex-col items-end gap-3"
     >
       <a
         href={PHONE_HREF}
@@ -102,26 +134,53 @@ export function ContactFab() {
       >
         <FaWhatsapp size={24} aria-hidden />
       </a>
-      <button
-        type="button"
-        aria-label={t.sales.contactFabLabel}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#c9a96e] text-white shadow-lg shadow-black/20 transition-all hover:scale-105 hover:bg-[#b8975c] hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c1428]"
-      >
-        <span className="relative flex h-7 w-7 items-center justify-center">
-          <MessageCircle
-            size={26}
+
+      <div className="relative">
+        <button
+          type="button"
+          aria-hidden={!bubbleVisible || open}
+          tabIndex={bubbleVisible && !open ? 0 : -1}
+          onClick={() => setOpen(true)}
+          className={`absolute right-16 top-1/2 z-10 -translate-y-1/2 whitespace-nowrap rounded-2xl bg-white px-3.5 py-2 text-sm font-medium text-[#0c1428] shadow-lg shadow-black/15 ring-1 ring-black/5 transition-all duration-300 hover:bg-[#faf8f5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a96e] ${
+            bubbleVisible && !open
+              ? "pointer-events-auto translate-x-0 scale-100 opacity-100"
+              : "pointer-events-none translate-x-2 scale-95 opacity-0"
+          }`}
+        >
+          {t.sales.contactFabBubble}
+          <span
             aria-hidden
-            className={`absolute transition-all duration-200 ${open ? "rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100"}`}
+            className="absolute top-1/2 right-0 h-0 w-0 translate-x-full -translate-y-1/2 border-y-[6px] border-l-[8px] border-y-transparent border-l-white drop-shadow-sm"
           />
-          <X
-            size={26}
+        </button>
+
+        <button
+          type="button"
+          aria-label={t.sales.contactFabLabel}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="relative h-14 w-14 overflow-hidden rounded-full shadow-lg shadow-black/20 ring-2 ring-white transition-all hover:scale-105 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a96e]"
+        >
+          <Image
+            src="/assistant-casagroup.jpg"
+            alt=""
+            fill
+            sizes="56px"
+            className={`object-cover object-[center_18%] transition-all duration-200 ${
+              open ? "scale-110 brightness-75" : "scale-100 brightness-100"
+            }`}
+            priority
+          />
+          <span
             aria-hidden
-            className={`absolute transition-all duration-200 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-50 opacity-0"}`}
-          />
-        </span>
-      </button>
+            className={`absolute inset-0 flex items-center justify-center bg-[#0c1428]/55 transition-all duration-200 ${
+              open ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <X size={22} className="text-white" />
+          </span>
+        </button>
+      </div>
     </div>
   );
 }
