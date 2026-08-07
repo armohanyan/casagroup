@@ -4,8 +4,10 @@ import { useMemo } from "react";
 import { Seo } from "@/components/seo/Seo";
 import { HomeHero } from "@/components/site/home/HomeHero";
 import { HomeFeaturedProjects } from "@/components/site/home/HomeFeaturedProjects";
+import { HomeProjectsMap } from "@/components/site/home/HomeProjectsMap";
 import { HomeWhy } from "@/components/site/home/HomeWhy";
 import { OwnerProfile } from "@/components/site/OwnerProfile";
+import { FaqSection } from "@/components/site/FaqSection";
 import { HomeContactStrip } from "@/components/site/home/HomeContactStrip";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { Container } from "@/components/site/Container";
@@ -32,6 +34,7 @@ export default function HomePage() {
       <Seo title={t.seo.home.title} description={t.seo.home.description} path="/" lang={lang} />
       <HomeHero />
       <HomeFeaturedProjects projects={featured} />
+      <HomeProjectsMap projects={projects} />
       <HomeWhy />
 
       <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
@@ -53,6 +56,7 @@ export default function HomePage() {
         </Container>
       </section>
 
+      <FaqSection previewCount={5} />
       <OwnerProfile />
       <HomeContactStrip />
     </main>

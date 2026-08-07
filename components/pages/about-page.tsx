@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BadgeCheck, Building2, Globe2, Tag, Zap } from "lucide-react";
 import { Container } from "@/components/site/Container";
 import { HomeContactStrip } from "@/components/site/home/HomeContactStrip";
+import { FaqSection } from "@/components/site/FaqSection";
 import { OwnerProfile } from "@/components/site/OwnerProfile";
 import { Seo } from "@/components/seo/Seo";
 import { siteImages } from "@/lib/site-images";
@@ -86,6 +87,7 @@ export default function AboutPage() {
         </Container>
       </section>
 
+      <FaqSection previewCount={5} />
       <OwnerProfile />
       <HomeContactStrip />
     </main>

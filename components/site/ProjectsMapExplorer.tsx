@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MapPin, ArrowRight } from "lucide-react";
+import { MapPin, ArrowRight, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
 import type { Project } from "@/types";
@@ -20,12 +20,29 @@ interface Props {
   projects: Project[];
 }
 
+function matchesMapQuery(project: Project, query: string) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return (
+    project.title.toLowerCase().includes(q) ||
+    project.location.toLowerCase().includes(q) ||
+    project.city.toLowerCase().includes(q) ||
+    project.tags.some((tag) => tag.toLowerCase().includes(q))
+  );
+}
+
 export function ProjectsMapExplorer({ projects }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [centerId, setCenterId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const mobileScrollRef = useRef<HTMLDivElement>(null);
+
+  const visible = useMemo(
+    () => projects.filter((p) => matchesMapQuery(p, query)),
+    [projects, query],
+  );
 
   const highlightId = hoverId ?? centerId;
 
@@ -35,11 +52,20 @@ export function ProjectsMapExplorer({ projects }: Props) {
     el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [centerId]);
 
+  useEffect(() => {
+    if (centerId && !visible.some((p) => p.id === centerId)) {
+      setCenterId(null);
+    }
+    if (hoverId && !visible.some((p) => p.id === hoverId)) {
+      setHoverId(null);
+    }
+  }, [visible, centerId, hoverId]);
+
   return (
     <div className="relative isolate z-0 rounded-2xl overflow-hidden border border-[#E5E7EB] bg-white shadow-[0_8px_30px_rgba(12,20,40,0.06)]">
       <div className="h-[min(70vh,520px)] lg:h-[560px] relative">
         <ProjectsMapCanvas
-          projects={projects}
+          projects={visible}
           highlightId={highlightId}
           centerId={centerId}
           onMarkerClick={(p) => router.push(`/projects/${p.slug}`)}
@@ -47,29 +73,64 @@ export function ProjectsMapExplorer({ projects }: Props) {
         />
 
         <div className="hidden lg:flex absolute z-[400] left-4 top-4 bottom-4 w-[340px] flex-col rounded-xl bg-white/95 backdrop-blur-md border border-[#E5E7EB] shadow-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#E5E7EB] shrink-0">
+          <div className="px-4 py-3 border-b border-[#E5E7EB] shrink-0 space-y-2.5">
             <p className="text-sm font-semibold text-[#0c1428]">
-              {projects.length} {projects.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
+              {visible.length} {visible.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
             </p>
+            <label className="relative block">
+              <span className="sr-only">{t.projects.searchPlaceholder}</span>
+              <Search
+                size={14}
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]"
+              />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t.projects.searchPlaceholder}
+                className="h-9 w-full rounded-lg border border-[#E5E7EB] bg-white pl-8 pr-3 text-xs text-[#0c1428] outline-none transition-colors placeholder:text-[#9CA3AF] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20"
+              />
+            </label>
           </div>
           <ul className="overflow-y-auto flex-1 divide-y divide-[#F0F1F3]">
-            {projects.map((project) => (
-              <ProjectListRow
-                key={project.id}
-                project={project}
-                active={highlightId === project.id}
-                onHover={setHoverId}
-                onSelect={() => setCenterId(project.id)}
-                viewLabel={t.home.viewProject}
-              />
-            ))}
+            {visible.length === 0 ? (
+              <li className="px-4 py-8 text-center text-sm text-[#6B7280]">{t.projects.noResults}</li>
+            ) : (
+              visible.map((project) => (
+                <ProjectListRow
+                  key={project.id}
+                  project={project}
+                  active={highlightId === project.id}
+                  onHover={setHoverId}
+                  onSelect={() => setCenterId(project.id)}
+                  viewLabel={t.home.viewProject}
+                />
+              ))
+            )}
           </ul>
+        </div>
+
+        <div className="lg:hidden absolute z-[400] inset-x-0 top-3 px-3 pointer-events-none">
+          <label className="relative block pointer-events-auto">
+            <span className="sr-only">{t.projects.searchPlaceholder}</span>
+            <Search
+              size={14}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]"
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.projects.searchPlaceholder}
+              className="h-10 w-full rounded-xl border border-[#E5E7EB] bg-white/95 pl-9 pr-3 text-sm text-[#0c1428] shadow-lg outline-none backdrop-blur-md placeholder:text-[#9CA3AF] focus:border-[#c9a96e] focus:ring-2 focus:ring-[#c9a96e]/20"
+            />
+          </label>
         </div>
 
         <div className="lg:hidden absolute z-[400] inset-x-0 bottom-0 pb-3 pt-8 bg-gradient-to-t from-black/35 via-black/10 to-transparent pointer-events-none">
           <div className="px-3 mb-2 pointer-events-none">
             <p className="text-xs font-medium text-white drop-shadow">
-              {projects.length} {projects.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
+              {visible.length} {visible.length === 1 ? t.projects.projectWord : t.projects.projectsWord}
               <span className="opacity-80 font-normal"> · {t.projects.mapListHintMobile}</span>
             </p>
           </div>
@@ -77,7 +138,7 @@ export function ProjectsMapExplorer({ projects }: Props) {
             ref={mobileScrollRef}
             className="flex gap-3 overflow-x-auto px-3 snap-x snap-mandatory scroll-smooth pointer-events-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {projects.map((project) => {
+            {visible.map((project) => {
               const active = highlightId === project.id;
               return (
                 <div

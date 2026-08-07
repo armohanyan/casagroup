@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type TouchEvent as ReactTouchEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type TouchEvent as ReactTouchEvent } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Expand, Play, Video, X } from "lucide-react";
@@ -18,6 +18,8 @@ interface Props {
   videos: DroneVideo[];
   projectTitle: string;
   embedded?: boolean;
+  /** Project stats / amenities shown beside the video on desktop */
+  sideContent?: ReactNode;
 }
 
 function isDirectVideoUrl(url: string): boolean {
@@ -110,7 +112,7 @@ function VideoFrame({
               alt={video.title}
               fill
               unoptimized
-              sizes={expanded ? "100vw" : "(max-width: 768px) 100vw, 1100px"}
+              sizes={expanded ? "100vw" : "(max-width: 1024px) 100vw, 560px"}
               className="object-cover"
               priority={expanded}
             />
@@ -168,7 +170,7 @@ function VideoFrame({
   );
 }
 
-export function DroneVideoSection({ videos, projectTitle, embedded = false }: Props) {
+export function DroneVideoSection({ videos, projectTitle, embedded = false, sideContent }: Props) {
   const { t } = useI18n();
   const [activeIndex, setActiveIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -248,7 +250,7 @@ export function DroneVideoSection({ videos, projectTitle, embedded = false }: Pr
   }
 
   const header = (
-    <div className={cn(embedded ? "mb-4 md:mb-5" : "max-w-2xl")}>
+    <div className={cn(!embedded ? "max-w-2xl" : !sideContent && "mb-4 md:mb-5")}>
       <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#c9a96e]">
         {t.projectDetail.droneEyebrow}
       </p>
@@ -442,6 +444,21 @@ export function DroneVideoSection({ videos, projectTitle, embedded = false }: Pr
     ) : null;
 
   if (embedded) {
+    if (sideContent) {
+      return (
+        <>
+          <div className="flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 xl:gap-12">
+            <div className="order-2 flex min-w-0 flex-col lg:order-1">
+              {header}
+              <div className="mt-6 md:mt-8">{sideContent}</div>
+            </div>
+            <div className="order-1 min-w-0 lg:order-2">{player}</div>
+          </div>
+          {lightbox}
+        </>
+      );
+    }
+
     return (
       <>
         <div className="flex flex-col">

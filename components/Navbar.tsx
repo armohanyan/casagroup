@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: "/projects", key: "projects" as const },
   { href: "/calculator", key: "calculator" as const },
   { href: "/about", key: "about" as const },
+  { href: "/faq", key: "faq" as const },
   { href: "/contact", key: "contact" as const },
 ] as const;
 
@@ -121,6 +122,7 @@ export function Navbar() {
       projects: t.nav.projects,
       calculator: t.nav.calculatorShort,
       about: t.nav.about,
+      faq: t.nav.faq,
       contact: t.nav.contact,
     })[key];
 

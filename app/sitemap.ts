@@ -18,6 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/partners",
     "/partners/services",
     "/about",
+    "/faq",
     "/contact",
   ];
   for (const path of staticPaths) {

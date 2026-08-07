@@ -8,6 +8,7 @@ export const siteImages = {
     calculator: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=1920&q=85&auto=format&fit=crop",
     contact: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=85&auto=format&fit=crop",
     about: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=85&auto=format&fit=crop",
+    faq: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=85&auto=format&fit=crop",
     blog: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1920&q=85&auto=format&fit=crop",
     default: "/yerevan.png",
   },
@@ -31,6 +32,7 @@ export function getHeroImage(pathname: string): string {
   if (pathname === "/calculator") return siteImages.hero.calculator;
   if (pathname === "/contact") return siteImages.hero.contact;
   if (pathname === "/about") return siteImages.hero.about;
+  if (pathname === "/faq") return siteImages.hero.faq;
   if (pathname === "/blog") return siteImages.hero.blog;
   return siteImages.hero.default;
 }

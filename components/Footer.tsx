@@ -30,6 +30,7 @@ export function Footer() {
           <nav className="flex flex-col gap-2 text-sm text-[#6B7280]">
             <Link href="/projects" className="hover:text-[#0c1428]">{t.nav.projects}</Link>
             <Link href="/about" className="hover:text-[#0c1428]">{t.nav.about}</Link>
+            <Link href="/faq" className="hover:text-[#0c1428]">{t.nav.faq}</Link>
             <Link href="/contact" className="hover:text-[#0c1428]">{t.nav.contact}</Link>
           </nav>
 

@@ -576,6 +576,7 @@ export const en = {
     noResultsHint: "Try adjusting your filters",
     mapListTitle: "Projects on the map",
     mapListHintMobile: "Swipe cards · Tap marker to open",
+    searchPlaceholder: "Search by name or district…",
     filtersTitle: "Filters",
     viewList: "List",
     viewMap: "Map",
@@ -1019,6 +1020,55 @@ export const en = {
       },
     ],
   },
+  faq: {
+    eyebrow: "FAQ",
+    title: "Frequently asked questions",
+    subtitle:
+      "Clear answers about reserving, buying, mortgages, and working with Casa Group on new construction.",
+    viewAll: "View all questions",
+    items: [
+      {
+        q: "How do I reserve an apartment?",
+        a: "After choosing an apartment, you can reserve it through Casa Group. Reservation requires an identity document and the reservation fee set by the developer. Terms and timelines may vary by project — our specialists will explain every detail in advance.",
+      },
+      {
+        q: "In what condition is the apartment handed over?",
+        a: "Handover condition depends on the project and developer. As a rule, apartments are delivered with an entrance door, installed windows, all main utilities connected, partitions in place, and ready for interior finishing. Before the deal, we present the project's exact technical specifications.",
+      },
+      {
+        q: "What is a bank guarantee?",
+        a: "Some projects use a bank guarantee system: the money you pay is held by the bank and transferred to the developer only after contract milestones or construction completion. This adds financial protection for the buyer and reduces transaction risk.",
+      },
+      {
+        q: "What is the income tax refund program?",
+        a: "The income tax refund program lets eligible buyers who purchase a primary-market apartment with a mortgage reclaim paid income tax under legally defined conditions. Eligibility depends on the apartment's location, purchase date, and current law. Casa Group will help you understand whether you qualify.",
+      },
+      {
+        q: "Which banks do you work with?",
+        a: "Casa Group partners with leading banks in Armenia. We help you choose the most suitable mortgage program, compare terms, and guide you through the entire loan process.",
+      },
+      {
+        q: "Can I buy an apartment with a mortgage?",
+        a: "Yes. Our specialists help you choose a mortgage program, prepare the required documents, and support you through closing.",
+      },
+      {
+        q: "How do I choose the right apartment?",
+        a: "When choosing, we consider your budget, family needs, size, layout, floor, view, location, and investment potential. Casa Group presents projects from different developers so you can make the best choice.",
+      },
+      {
+        q: "How do you choose developers?",
+        a: "We work only with developers who have the required permits, a strong reputation, transparent contract terms, and quality construction experience.",
+      },
+      {
+        q: "What documents are needed to buy an apartment?",
+        a: "Required documents depend on how you buy (cash, mortgage, or installment). Our specialists will share the full list in advance and guide you through preparing everything.",
+      },
+      {
+        q: "Why buy through Casa Group?",
+        a: "Casa Group brings many developers' projects onto one platform. We compare offers, help you pick the best option, review documents, support mortgage processing, and accompany you at every stage — saving time and ensuring a trusted process.",
+      },
+    ],
+  },
   contact: {
     pageSubtitle: "Call, email, or send a message. We reply within one business day.",
     eyebrow: "Contact Us",
@@ -1283,6 +1333,11 @@ export const en = {
       title: "About us — new construction sales & buyer consultation",
       description:
         "CasaGroup specializes in selling new-build apartments in Yerevan — helping families and investors choose the right apartment through a clear, transparent, and trusted process.",
+    },
+    faq: {
+      title: "FAQ — buying new apartments with Casa Group",
+      description:
+        "Answers about reserving apartments, handover condition, bank guarantees, income tax refund, mortgages, documents, and why buy through Casa Group.",
     },
     contact: {
       title: "Contact us — schedule a new construction consultation",

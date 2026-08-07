@@ -20,6 +20,7 @@ import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
+import { cn } from "@/lib/utils";
 
 const WHATSAPP = "https://wa.me/37496799733";
 const AMENITY_LABELS_HY: Record<string, string> = {
@@ -79,6 +80,48 @@ export default function ProjectDetailPage() {
   const description = getProjectDescription(project, lang);
   const localizeAmenityLabel = (label: string) =>
     lang === "hy" ? (AMENITY_LABELS_HY[label] ?? label) : (AMENITY_LABELS_EN[label] ?? label);
+  const hasDroneVideos = (project.droneVideos?.length ?? 0) > 0;
+
+  const projectInfo = (
+    <>
+      <dl className="flex flex-wrap items-start gap-x-8 gap-y-5 sm:gap-x-12">
+        {[
+          { label: t.home.startingFrom, value: formatPrice(project.startingPrice) },
+          { label: t.projectDetail.available, value: String(project.availableApartmentsCount) },
+          { label: t.developerDetail.constructionEnd, value: project.completionDate },
+          { label: t.projectDetail.floors, value: String(project.floors) },
+        ].map((row) => (
+          <div key={row.label} className="min-w-0">
+            <dt className="text-xs text-[#9CA3AF]">{row.label}</dt>
+            <dd className="mt-1 text-base font-semibold text-[#0c1428] tabular-nums sm:text-lg">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {project.amenities.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <h2 className="text-xl font-semibold text-[#0c1428]">{t.projectDetail.amenitiesTitle}</h2>
+            <span className="text-xs font-medium text-[#9CA3AF]">{project.amenities.length}</span>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            {project.amenities.map((a) => (
+              <span
+                key={a.label}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-[5px] border border-[#E5E7EB] px-3.5 py-2 text-sm font-medium text-[#0c1428]",
+                  hasDroneVideos ? "bg-white" : "bg-[#F9FAFB]",
+                )}
+              >
+                <BadgeCheck size={16} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
+                {localizeAmenityLabel(a.label)}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+    </>
+  );
 
   return (
     <main className="bg-white min-h-screen">
@@ -93,55 +136,20 @@ export default function ProjectDetailPage() {
 
       <ProjectMediaShowcase project={project} items={galleryItems} />
 
-      {(project.droneVideos?.length ?? 0) > 0 && (
+      {hasDroneVideos ? (
         <section className="border-t border-[#E5E7EB] bg-[#F9FAFB] py-8 md:py-11">
           <Container>
             <DroneVideoSection
               videos={project.droneVideos ?? []}
               projectTitle={project.title}
               embedded
+              sideContent={projectInfo}
             />
           </Container>
         </section>
+      ) : (
+        <Container className="py-8 md:py-10">{projectInfo}</Container>
       )}
-
-      <Container className="py-8 md:py-10">
-        <dl className="flex flex-wrap items-start gap-x-8 gap-y-5 sm:gap-x-12">
-          {[
-            { label: t.home.startingFrom, value: formatPrice(project.startingPrice) },
-            { label: t.projectDetail.available, value: String(project.availableApartmentsCount) },
-            { label: t.developerDetail.constructionEnd, value: project.completionDate },
-            { label: t.projectDetail.floors, value: String(project.floors) },
-          ].map((row) => (
-            <div key={row.label} className="min-w-0">
-              <dt className="text-xs text-[#9CA3AF]">{row.label}</dt>
-              <dd className="mt-1 text-base font-semibold text-[#0c1428] tabular-nums sm:text-lg">{row.value}</dd>
-            </div>
-          ))}
-        </dl>
-
-        {project.amenities.length > 0 && (
-          <section className="mt-8">
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <h2 className="text-xl font-semibold text-[#0c1428]">{t.projectDetail.amenitiesTitle}</h2>
-              <span className="text-xs font-medium text-[#9CA3AF]">
-                {project.amenities.length}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2.5">
-              {project.amenities.map((a) => (
-                <span
-                  key={a.label}
-                  className="inline-flex items-center gap-2 rounded-[5px] border border-[#E5E7EB] bg-[#F9FAFB] px-3.5 py-2 text-sm font-medium text-[#0c1428]"
-                >
-                  <BadgeCheck size={16} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
-                  {localizeAmenityLabel(a.label)}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-      </Container>
 
       <BuildingFloorMapSection project={project} />
 

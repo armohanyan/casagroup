@@ -188,8 +188,8 @@ export function ProjectMediaShowcase({ project, items }: Props) {
               </p>
             </div>
             {active && (
-              <p className="mt-3 text-xs text-white/55">
-                {categoryLabel(active.category)} · {safeIndex + 1} / {items.length}
+              <p className="mt-3 text-xs text-white/55 tabular-nums">
+                {safeIndex + 1} / {items.length}
               </p>
             )}
           </div>
