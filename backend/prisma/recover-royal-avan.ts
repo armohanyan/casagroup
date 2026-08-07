@@ -18,7 +18,11 @@ const COVER = `${publicBase}/uploads/images/1785238891300-f578f2d0.webp`;
 
 /** Plan images still hosted on norakaruyc CDN (from original cards). */
 const IMG = {
+  /** ~58 m² layout */
+  s58: "https://api.norakaruyc.am/api/images/69a54d6a1d2509032c4615a2/3",
+  /** ~59 m² layout */
   a: "https://api.norakaruyc.am/api/images/69a54d901d2509032c4615ab/3",
+  a2: "https://api.norakaruyc.am/api/images/69a54d901d2509032c4615ab/2",
   b: "https://api.norakaruyc.am/api/images/69a54dc61d2509032c4615bd/3",
   c: "https://api.norakaruyc.am/api/images/69a54dae1d2509032c4615b4/3",
   d: "https://api.norakaruyc.am/api/images/69a54de41d2509032c4615c6/3",
@@ -38,9 +42,20 @@ type Plan = {
   floorPlanImage: string;
 };
 
-/** Parsed from apartment cards HTML (entrance 1). */
+/** Parsed from apartment cards HTML (entrance 1) — all pages. */
 const PLANS: Plan[] = [
-  // Sold (no href id in HTML)
+  // —— page 1 (missed earlier): 58 / 59.2 m² ——
+  { id: "cms0bktlq00157t8ck79fokz7", floor: 1, rooms: 2, area: 58, price: 35_960_000, status: "Available", floorPlanImage: IMG.s58 },
+  { id: "cms0c05wq001n7t8ctjqlzy9e", floor: 2, rooms: 2, area: 58, price: 36_540_000, status: "Available", floorPlanImage: IMG.s58 },
+  { id: "cms0a2gba000p7t8cbnvziyqa", floor: 1, rooms: 2, area: 59.2, price: 36_890_000, status: "Available", floorPlanImage: IMG.a },
+  { id: "cms-sold-58-f3", floor: 3, rooms: 2, area: 58, price: 0, status: "Sold", floorPlanImage: IMG.s58 },
+  { id: "cms0d1lqk002n7t8cvhwyo7x1", floor: 4, rooms: 2, area: 58, price: 37_700_000, status: "Available", floorPlanImage: IMG.s58 },
+  { id: "cms0c05vb00177t8cvy0fdhja", floor: 2, rooms: 2, area: 59.2, price: 38_080_000, status: "Available", floorPlanImage: IMG.a },
+  { id: "cms0cjiai001p7t8c3mrhppxa", floor: 3, rooms: 2, area: 59.2, price: 38_675_000, status: "Available", floorPlanImage: IMG.a2 },
+  { id: "cms-sold-58-f5", floor: 5, rooms: 2, area: 58, price: 0, status: "Sold", floorPlanImage: IMG.s58 },
+  { id: "cms0d1lpe00277t8ciu9jjm26", floor: 4, rooms: 2, area: 59.2, price: 39_270_000, status: "Available", floorPlanImage: IMG.a },
+
+  // —— page 2+ ——
   { id: "cms-sold-59-5-f5", floor: 5, rooms: 2, area: 59.5, price: 0, status: "Sold", floorPlanImage: IMG.a },
 
   { id: "cms0b81qr000v7t8c9d4h0ct5", floor: 1, rooms: 2, area: 75.9, price: 46_299_000, status: "Available", floorPlanImage: IMG.b },
@@ -67,7 +82,6 @@ const PLANS: Plan[] = [
   { id: "cms0dg0oy00337t8cv6vv36z2", floor: 5, rooms: 2, area: 80.2, price: 53_734_000, status: "Available", floorPlanImage: IMG.e },
 
   { id: "cms0b81ql000t7t8cel2lcv1n", floor: 1, rooms: 3, area: 98.5, price: 60_085_000, status: "Available", floorPlanImage: IMG.f },
-  // Sold (no href id in HTML)
   { id: "cms-sold-100-f5", floor: 5, rooms: 3, area: 100, price: 0, status: "Sold", floorPlanImage: IMG.g },
 
   { id: "cms0c05vn001b7t8cuh5je6fs", floor: 2, rooms: 3, area: 98.5, price: 62_055_000, status: "Available", floorPlanImage: IMG.f },
