@@ -12,6 +12,16 @@ export interface ProjectFilters {
   featured?: boolean;
 }
 
+const projectInclude = {
+  apartments: true,
+  buildings: {
+    orderBy: [{ sortOrder: "asc" as const }, { name: "asc" as const }],
+    include: {
+      floors: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
+    },
+  },
+};
+
 function parseJsonField<T>(value: unknown, fallback: T): T {
   if (value === undefined || value === null) return fallback;
   return value as T;
@@ -23,6 +33,134 @@ function jsonOrNull(value: unknown): Prisma.InputJsonValue | typeof Prisma.JsonN
   return value as Prisma.InputJsonValue;
 }
 
+function normalizeHotspots(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((h) => {
+      if (!h || typeof h !== "object") return null;
+      const item = h as Record<string, unknown>;
+      const apartmentId = typeof item.apartmentId === "string" ? item.apartmentId : "";
+      if (!apartmentId) return null;
+      const points = Array.isArray(item.points)
+        ? item.points
+            .filter((p): p is [number, number] => Array.isArray(p) && p.length >= 2)
+            .map((p) => [Number(p[0]), Number(p[1])] as [number, number])
+            .filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]))
+        : [];
+      if (points.length < 3) return null;
+      return { apartmentId, points };
+    })
+    .filter((h): h is { apartmentId: string; points: [number, number][] } => h !== null);
+}
+
+function floorCreateData(raw: Record<string, unknown>, sortOrder: number) {
+  return {
+    label: String(raw.label || "").trim() || String(sortOrder + 1),
+    sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
+    imageUrl: String(raw.imageUrl || ""),
+    hotspots: normalizeHotspots(raw.hotspots),
+  };
+}
+
+function aptCreateData(a: Record<string, unknown>) {
+  return {
+    floor: Number(a.floor || 1),
+    rooms: Number(a.rooms || 1),
+    area: Number(a.area || 0),
+    price: Number(a.price || 0),
+    status: String(a.status || "Available"),
+    viewType: String(a.viewType || ""),
+    floorPlanImage: String(a.floorPlanImage || ""),
+    planPdfUrl: (a.planPdfUrl as string) || null,
+    description: (a.description as string) || null,
+    gallery: parseJsonField(a.gallery, []),
+    balcony: Boolean(a.balcony),
+    buildingId: typeof a.buildingId === "string" && a.buildingId ? a.buildingId : null,
+  };
+}
+
+async function syncBuildingFloors(buildingId: string, incoming: Record<string, unknown>[]) {
+  const existing = await prisma.buildingFloor.findMany({ where: { buildingId } });
+  const keepIds = new Set(
+    incoming.map((f) => f.id).filter((x): x is string => typeof x === "string" && x.length > 0),
+  );
+
+  for (const old of existing) {
+    if (!keepIds.has(old.id)) {
+      await prisma.buildingFloor.delete({ where: { id: old.id } });
+    }
+  }
+
+  for (let i = 0; i < incoming.length; i++) {
+    const raw = incoming[i];
+    const data = floorCreateData(raw, i);
+
+    if (typeof raw.id === "string" && existing.some((e) => e.id === raw.id)) {
+      await prisma.buildingFloor.update({ where: { id: raw.id }, data });
+    } else {
+      await prisma.buildingFloor.create({
+        data: {
+          buildingId,
+          ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
+          ...data,
+        },
+      });
+    }
+  }
+}
+
+async function syncBuildings(projectId: string, incoming: Record<string, unknown>[]) {
+  const existing = await prisma.building.findMany({ where: { projectId } });
+  const keepIds = new Set(
+    incoming.map((b) => b.id).filter((x): x is string => typeof x === "string" && x.length > 0)
+  );
+
+  for (const old of existing) {
+    if (!keepIds.has(old.id)) {
+      await prisma.building.delete({ where: { id: old.id } });
+    }
+  }
+
+  const idMap = new Map<string, string>();
+
+  for (let i = 0; i < incoming.length; i++) {
+    const raw = incoming[i];
+    const name = String(raw.name || "").trim();
+    if (!name) continue;
+
+    const data = {
+      name,
+      sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : i,
+    };
+
+    let buildingId: string;
+    if (typeof raw.id === "string" && existing.some((e) => e.id === raw.id)) {
+      await prisma.building.update({ where: { id: raw.id }, data });
+      buildingId = raw.id;
+      idMap.set(raw.id, raw.id);
+    } else {
+      const created = await prisma.building.create({
+        data: {
+          projectId,
+          ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
+          ...data,
+        },
+      });
+      buildingId = created.id;
+      if (typeof raw.id === "string" && raw.id) {
+        idMap.set(raw.id, created.id);
+      }
+      idMap.set(created.id, created.id);
+    }
+
+    if (Array.isArray(raw.floors)) {
+      await syncBuildingFloors(buildingId, raw.floors as Record<string, unknown>[]);
+    }
+  }
+
+  return idMap;
+}
+
 export async function listProjects(filters: ProjectFilters = {}) {
   const where: Record<string, unknown> = {};
   if (filters.city) where.city = filters.city;
@@ -32,7 +170,7 @@ export async function listProjects(filters: ProjectFilters = {}) {
 
   let projects = await prisma.project.findMany({
     where,
-    include: { apartments: true },
+    include: projectInclude,
     orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
   });
 
@@ -46,7 +184,7 @@ export async function listProjects(filters: ProjectFilters = {}) {
 export async function getProjectBySlug(slug: string) {
   const project = await prisma.project.findUnique({
     where: { slug },
-    include: { apartments: true },
+    include: projectInclude,
   });
   if (!project) throw httpError(404, "Project not found");
   return mapProject(project);
@@ -55,7 +193,7 @@ export async function getProjectBySlug(slug: string) {
 export async function getApartmentByProjectSlug(slug: string, apartmentId: string) {
   const project = await prisma.project.findUnique({
     where: { slug },
-    include: { apartments: true },
+    include: projectInclude,
   });
   if (!project) throw httpError(404, "Project not found");
   const apt = project.apartments.find((a) => a.id === apartmentId);
@@ -78,7 +216,8 @@ export async function createProject(input: Record<string, unknown>) {
   const title = String(input.title || "");
   const slug = await uniqueSlug(String(input.slug || title));
   const coords = (input.coordinates as { lat?: number; lng?: number }) || {};
-  const apartments = Array.isArray(input.apartments) ? input.apartments : [];
+  const buildings = Array.isArray(input.buildings) ? (input.buildings as Record<string, unknown>[]) : [];
+  const apartments = Array.isArray(input.apartments) ? (input.apartments as Record<string, unknown>[]) : [];
 
   const project = await prisma.project.create({
     data: {
@@ -113,27 +252,37 @@ export async function createProject(input: Record<string, unknown>) {
       lng: Number(coords.lng ?? 44.5152),
       tags: parseJsonField(input.tags, []),
       featured: Boolean(input.featured),
+      buildings: {
+        create: buildings
+          .map((raw, i) => {
+            const name = String(raw.name || "").trim();
+            if (!name) return null;
+            const floors = Array.isArray(raw.floors) ? (raw.floors as Record<string, unknown>[]) : [];
+            return {
+              ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
+              name,
+              sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : i,
+              floors: {
+                create: floors.map((f, fi) => ({
+                  ...(typeof f.id === "string" && f.id ? { id: f.id } : {}),
+                  ...floorCreateData(f, fi),
+                })),
+              },
+            };
+          })
+          .filter((b): b is NonNullable<typeof b> => b !== null),
+      },
       apartments: {
         create: apartments.map((raw) => {
           const a = raw as Record<string, unknown>;
           return {
             ...(typeof a.id === "string" && a.id ? { id: a.id } : {}),
-            floor: Number(a.floor || 1),
-            rooms: Number(a.rooms || 1),
-            area: Number(a.area || 0),
-            price: Number(a.price || 0),
-            status: String(a.status || "Available"),
-            viewType: String(a.viewType || ""),
-            floorPlanImage: String(a.floorPlanImage || ""),
-            planPdfUrl: (a.planPdfUrl as string) || null,
-            description: (a.description as string) || null,
-            gallery: parseJsonField(a.gallery, []),
-            balcony: Boolean(a.balcony),
+            ...aptCreateData(a),
           };
         }),
       },
     },
-    include: { apartments: true },
+    include: projectInclude,
   });
 
   return mapProject(project);
@@ -189,11 +338,14 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
   assign("tags", input.tags !== undefined ? parseJsonField(input.tags, []) : undefined);
   assign("featured", input.featured !== undefined ? Boolean(input.featured) : undefined);
 
-  const project = await prisma.project.update({
+  await prisma.project.update({
     where: { id },
     data,
-    include: { apartments: true },
   });
+
+  if (Array.isArray(input.buildings)) {
+    await syncBuildings(id, input.buildings as Record<string, unknown>[]);
+  }
 
   if (Array.isArray(input.apartments)) {
     const incoming = input.apartments as Record<string, unknown>[];
@@ -209,25 +361,17 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
     }
 
     for (const raw of incoming) {
-      const aptData = {
-        floor: Number(raw.floor || 1),
-        rooms: Number(raw.rooms || 1),
-        area: Number(raw.area || 0),
-        price: Number(raw.price || 0),
-        status: String(raw.status || "Available"),
-        viewType: String(raw.viewType || ""),
-        floorPlanImage: String(raw.floorPlanImage || ""),
-        planPdfUrl: (raw.planPdfUrl as string) || null,
-        description: (raw.description as string) || null,
-        gallery: parseJsonField(raw.gallery, []),
-        balcony: Boolean(raw.balcony),
-      };
+      const aptData = aptCreateData(raw);
 
       if (typeof raw.id === "string" && existingApts.some((e) => e.id === raw.id)) {
         await prisma.apartment.update({ where: { id: raw.id }, data: aptData });
       } else {
         await prisma.apartment.create({
-          data: { projectId: id, ...aptData },
+          data: {
+            projectId: id,
+            ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
+            ...aptData,
+          },
         });
       }
     }
@@ -247,11 +391,9 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
           input.totalApartments !== undefined ? Number(input.totalApartments) : total,
       },
     });
-
-    return getProjectById(id);
   }
 
-  return mapProject(project);
+  return getProjectById(id);
 }
 
 export async function deleteProject(id: string) {
@@ -264,7 +406,7 @@ export async function deleteProject(id: string) {
 export async function getProjectById(id: string) {
   const project = await prisma.project.findUnique({
     where: { id },
-    include: { apartments: true },
+    include: projectInclude,
   });
   if (!project) throw httpError(404, "Project not found");
   return mapProject(project);
@@ -277,17 +419,7 @@ export async function createApartment(projectId: string, input: Record<string, u
   const apt = await prisma.apartment.create({
     data: {
       projectId,
-      floor: Number(input.floor || 1),
-      rooms: Number(input.rooms || 1),
-      area: Number(input.area || 0),
-      price: Number(input.price || 0),
-      status: String(input.status || "Available"),
-      viewType: String(input.viewType || ""),
-      floorPlanImage: String(input.floorPlanImage || ""),
-      planPdfUrl: (input.planPdfUrl as string) || null,
-      description: (input.description as string) || null,
-      gallery: parseJsonField(input.gallery, []),
-      balcony: Boolean(input.balcony),
+      ...aptCreateData(input),
     },
   });
 
@@ -319,6 +451,9 @@ export async function updateApartment(projectId: string, aptId: string, input: R
   if (input.description !== undefined) data.description = input.description ? String(input.description) : null;
   if (input.gallery !== undefined) data.gallery = parseJsonField(input.gallery, []);
   if (input.balcony !== undefined) data.balcony = Boolean(input.balcony);
+  if (input.buildingId !== undefined) {
+    data.buildingId = typeof input.buildingId === "string" && input.buildingId ? input.buildingId : null;
+  }
 
   const apt = await prisma.apartment.update({ where: { id: aptId }, data });
 

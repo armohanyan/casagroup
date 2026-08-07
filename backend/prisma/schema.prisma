@@ -43,12 +43,44 @@ model Project {
   createdAt                DateTime    @default(now())
   updatedAt                DateTime    @updatedAt
   apartments               Apartment[]
+  buildings                Building[]
   media                    MediaAsset[]
   views                    ProjectView[]
 
   @@index([city])
   @@index([status])
   @@index([featured])
+}
+
+/** Named building / block within a project (e.g. 4A, 2B/2G). */
+model Building {
+  id         String         @id @default(cuid())
+  projectId  String
+  name       String
+  sortOrder  Int            @default(0)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  apartments Apartment[]
+  floors     BuildingFloor[]
+
+  @@index([projectId])
+}
+
+/** Full-floor plate image with apartment hotspot polygons for interactive selection. */
+model BuildingFloor {
+  id         String   @id @default(cuid())
+  buildingId String
+  label      String
+  sortOrder  Int      @default(0)
+  imageUrl   String   @default("")
+  /** Array of { apartmentId, points: [x,y][] } with x/y as % of image (0–100). */
+  hotspots   Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+
+  @@index([buildingId])
 }
 
 /** One recorded project page view per browser session. */
@@ -65,24 +97,27 @@ model ProjectView {
 }
 
 model Apartment {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   projectId      String
+  buildingId     String?
   floor          Int
   rooms          Int
   area           Float
   price          Int
   status         String
-  viewType       String   @default("")
-  floorPlanImage String   @default("")
+  viewType       String    @default("")
+  floorPlanImage String    @default("")
   planPdfUrl     String?
-  description    String?  @db.Text
+  description    String?   @db.Text
   gallery        Json
-  balcony        Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  balcony        Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  building       Building? @relation(fields: [buildingId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
+  @@index([buildingId])
   @@index([status])
   @@index([rooms])
 }

@@ -1,15 +1,45 @@
-import type { Apartment, Project } from "@prisma/client";
+import type { Apartment, Building, BuildingFloor, Project } from "@prisma/client";
 
-type ProjectWithApartments = Project & { apartments?: Apartment[] };
+type BuildingWithFloors = Building & { floors?: BuildingFloor[] };
+
+type ProjectWithRelations = Project & {
+  apartments?: Apartment[];
+  buildings?: BuildingWithFloors[];
+};
 
 function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
+}
+
+export function mapBuildingFloor(floor: BuildingFloor) {
+  return {
+    id: floor.id,
+    buildingId: floor.buildingId,
+    label: floor.label,
+    sortOrder: floor.sortOrder,
+    imageUrl: floor.imageUrl,
+    hotspots: asArray<{ apartmentId: string; points: [number, number][] }>(floor.hotspots),
+  };
+}
+
+export function mapBuilding(building: BuildingWithFloors) {
+  const floors = [...(building.floors ?? [])].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true }),
+  );
+  return {
+    id: building.id,
+    projectId: building.projectId,
+    name: building.name,
+    sortOrder: building.sortOrder,
+    floors: floors.map(mapBuildingFloor),
+  };
 }
 
 export function mapApartment(apt: Apartment) {
   return {
     id: apt.id,
     projectId: apt.projectId,
+    buildingId: apt.buildingId ?? undefined,
     floor: apt.floor,
     rooms: apt.rooms,
     area: apt.area,
@@ -24,7 +54,8 @@ export function mapApartment(apt: Apartment) {
   };
 }
 
-export function mapProject(project: ProjectWithApartments) {
+export function mapProject(project: ProjectWithRelations) {
+  const buildings = [...(project.buildings ?? [])].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
   return {
     id: project.id,
     title: project.title,
@@ -48,6 +79,7 @@ export function mapProject(project: ProjectWithApartments) {
     amenities: asArray(project.amenities),
     nearbyPlaces: asArray(project.nearbyPlaces),
     paymentOptions: asArray(project.paymentOptions),
+    buildings: buildings.map(mapBuilding),
     apartments: (project.apartments ?? []).map(mapApartment),
     developer: project.developer,
     architect: project.architect ?? undefined,

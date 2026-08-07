@@ -27,12 +27,13 @@ import {
   adminSelectCls,
   adminTextareaCls,
 } from "@/components/admin/admin-config";
-import { emptyApartment, emptyProject, generateId } from "@/lib/store";
+import { FloorHotspotEditor } from "@/components/admin/FloorHotspotEditor";
+import { emptyApartment, emptyBuilding, emptyBuildingFloor, emptyProject, generateId } from "@/lib/store";
 import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
 import { hyTranslations } from "@/content/hy";
-import type { Apartment, ApartmentStatus, Project, ProjectStatus } from "@/types";
+import type { Apartment, ApartmentStatus, Building, BuildingFloor, Project, ProjectStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
@@ -90,14 +91,22 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [uploading, setUploading] = useState(false);
   const [uploadingDrone, setUploadingDrone] = useState(false);
   const [uploadingPdfId, setUploadingPdfId] = useState<string | null>(null);
+  const [uploadingFloorId, setUploadingFloorId] = useState<string | null>(null);
+  const [amenityDraft, setAmenityDraft] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const droneFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
+  const floorImageRef = useRef<HTMLInputElement>(null);
   const pdfTargetAptId = useRef<string | null>(null);
+  const floorImageTarget = useRef<{ buildingId: string; floorId: string } | null>(null);
 
   useEffect(() => {
     if (existing) {
-      setForm({ ...existing });
+      setForm({
+        ...existing,
+        buildings: (existing.buildings ?? []).map((b) => ({ ...b, floors: b.floors ?? [] })),
+        apartments: existing.apartments ?? [],
+      });
       setHydrated(true);
     } else if (!loading && isNew) {
       setHydrated(true);
@@ -106,6 +115,92 @@ export function AdminProjectEditor({ projectId }: Props) {
 
   const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
   const apartmentProjectId = useMemo(() => form.id ?? generateId(), [form.id]);
+  const buildings = form.buildings ?? [];
+  const amenityPresets = [
+    a.amenityPool,
+    a.amenityGym,
+    a.amenityParking,
+    a.amenitySecurity,
+    a.amenityGarden,
+    a.amenityRestaurant,
+    a.amenityWifi,
+    a.amenitySmartHome,
+  ];
+  const customAmenities = form.amenities.filter((x) => !amenityPresets.includes(x.label));
+
+  function toggleAmenity(label: string) {
+    if (form.amenities.some((x) => x.label === label)) {
+      set(
+        "amenities",
+        form.amenities.filter((x) => x.label !== label),
+      );
+    } else {
+      set("amenities", [...form.amenities, { icon: "check", label }]);
+    }
+  }
+
+  function addCustomAmenity() {
+    const label = amenityDraft.trim();
+    if (!label) return;
+    if (form.amenities.some((x) => x.label.toLowerCase() === label.toLowerCase())) {
+      setAmenityDraft("");
+      return;
+    }
+    set("amenities", [...form.amenities, { icon: "check", label }]);
+    setAmenityDraft("");
+  }
+
+  function removeAmenity(label: string) {
+    set(
+      "amenities",
+      form.amenities.filter((x) => x.label !== label),
+    );
+  }
+
+  function updateBuilding(id: string, patch: Partial<Building>) {
+    set(
+      "buildings",
+      buildings.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    );
+  }
+
+  function updateBuildingFloor(buildingId: string, floorId: string, patch: Partial<BuildingFloor>) {
+    set(
+      "buildings",
+      buildings.map((b) =>
+        b.id === buildingId
+          ? {
+              ...b,
+              floors: (b.floors ?? []).map((f) => (f.id === floorId ? { ...f, ...patch } : f)),
+            }
+          : b,
+      ),
+    );
+  }
+
+  function removeBuilding(id: string) {
+    set(
+      "buildings",
+      buildings.filter((b) => b.id !== id),
+    );
+    set(
+      "apartments",
+      form.apartments.map((apt) => (apt.buildingId === id ? { ...apt, buildingId: undefined } : apt)),
+    );
+  }
+
+  async function handleFloorImageUpload(file: File, buildingId: string, floorId: string) {
+    setUploadingFloorId(floorId);
+    try {
+      const res = await adminUploadFile(file, form.id);
+      const url = res.jpegUrl || res.url;
+      if (url) updateBuildingFloor(buildingId, floorId, { imageUrl: url });
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Upload failed", "error");
+    } finally {
+      setUploadingFloorId(null);
+    }
+  }
 
   if (!isNew && !loading && !existing) {
     return (
@@ -125,8 +220,29 @@ export function AdminProjectEditor({ projectId }: Props) {
   async function handleSave(asDraft = false) {
     setSaving(true);
     try {
+      const cleanedBuildings = (form.buildings ?? [])
+        .map((b, i) => ({
+          ...b,
+          name: b.name.trim(),
+          sortOrder: i,
+          floors: (b.floors ?? []).map((f, fi) => ({
+            ...f,
+            label: f.label.trim() || String(fi + 1),
+            sortOrder: fi,
+            imageUrl: f.imageUrl.trim(),
+            hotspots: f.hotspots ?? [],
+          })),
+        }))
+        .filter((b) => b.name.length > 0);
+      const buildingIds = new Set(cleanedBuildings.map((b) => b.id));
+      const cleanedApartments = form.apartments.map((apt) => ({
+        ...apt,
+        buildingId: apt.buildingId && buildingIds.has(apt.buildingId) ? apt.buildingId : undefined,
+      }));
       const payload = {
         ...form,
+        buildings: cleanedBuildings,
+        apartments: cleanedApartments,
         featured: asDraft ? false : form.featured,
         droneVideos: (form.droneVideos ?? []).filter((v) => v.url.trim()),
       };
@@ -527,31 +643,13 @@ export function AdminProjectEditor({ projectId }: Props) {
 
         <Section title={a.sectionAmenities} icon={Layers}>
           <div className="flex flex-wrap gap-2">
-            {[
-              a.amenityPool,
-              a.amenityGym,
-              a.amenityParking,
-              a.amenitySecurity,
-              a.amenityGarden,
-              a.amenityRestaurant,
-              a.amenityWifi,
-              a.amenitySmartHome,
-            ].map((label) => {
+            {amenityPresets.map((label) => {
               const active = form.amenities.some((x) => x.label === label);
               return (
                 <button
                   key={label}
                   type="button"
-                  onClick={() => {
-                    if (active) {
-                      set(
-                        "amenities",
-                        form.amenities.filter((x) => x.label !== label),
-                      );
-                    } else {
-                      set("amenities", [...form.amenities, { icon: "check", label }]);
-                    }
-                  }}
+                  onClick={() => toggleAmenity(label)}
                   className={cn(
                     "rounded-[5px] border px-3 py-1.5 text-xs font-semibold transition-all",
                     active
@@ -563,6 +661,53 @@ export function AdminProjectEditor({ projectId }: Props) {
                 </button>
               );
             })}
+          </div>
+
+          {customAmenities.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {customAmenities.map((item) => (
+                <span
+                  key={item.label}
+                  className="inline-flex items-center gap-1.5 rounded-[5px] border border-[#c9a96e] bg-[#c9a96e]/15 px-3 py-1.5 text-xs font-semibold text-[#0c1428]"
+                >
+                  {item.label}
+                  <button
+                    type="button"
+                    aria-label={a.remove}
+                    onClick={() => removeAmenity(item.label)}
+                    className="rounded text-[#6B7280] transition-colors hover:text-[#0c1428]"
+                  >
+                    <X size={13} strokeWidth={2.25} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {form.amenities.length === 0 && (
+            <p className="text-sm text-[#9CA3AF]">{a.noAmenities}</p>
+          )}
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="min-w-0 flex-1">
+              <Field label={a.amenities}>
+                <input
+                  className={adminInputCls}
+                  value={amenityDraft}
+                  placeholder={a.amenityPlaceholder}
+                  onChange={(e) => setAmenityDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCustomAmenity();
+                    }
+                  }}
+                />
+              </Field>
+            </div>
+            <button type="button" className={adminBtnSecondary} onClick={addCustomAmenity}>
+              <Plus size={15} /> {a.addAmenity}
+            </button>
           </div>
         </Section>
 
@@ -577,11 +722,195 @@ export function AdminProjectEditor({ projectId }: Props) {
           </div>
         </Section>
 
+        <Section title={a.sectionBuildings} icon={Building2}>
+          <p className="text-xs text-[#9CA3AF]">{a.buildingsHint}</p>
+          <div className="space-y-4">
+            {buildings.map((building, index) => {
+              const buildingApts = form.apartments.filter((apt) => apt.buildingId === building.id);
+              const floors = building.floors ?? [];
+              return (
+                <div
+                  key={building.id}
+                  className="space-y-4 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                    <div className="min-w-0 flex-1">
+                      <Field label={a.buildingName}>
+                        <input
+                          className={adminInputCls}
+                          value={building.name}
+                          placeholder={a.buildingNamePlaceholder}
+                          onChange={(e) =>
+                            updateBuilding(building.id, { name: e.target.value, sortOrder: index })
+                          }
+                        />
+                      </Field>
+                    </div>
+                    <p className="pb-3 text-xs tabular-nums text-[#9CA3AF] sm:w-24">
+                      {buildingApts.length} {a.plansAttached}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => removeBuilding(building.id)}
+                      className="inline-flex h-11 items-center justify-center gap-1 rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
+                    >
+                      <Trash2 size={14} /> {a.remove}
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 border-t border-[#E8EAED] pt-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
+                      {a.buildingFloorsTitle}
+                    </p>
+                    {floors.length === 0 && (
+                      <p className="text-xs text-[#9CA3AF]">{a.noFloorPlates}</p>
+                    )}
+                    {floors.map((floor, fi) => (
+                      <div
+                        key={floor.id}
+                        className="space-y-3 rounded-[5px] border border-[#E5E7EB] bg-white p-3"
+                      >
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-[120px_1fr_auto] md:items-end">
+                          <Field label={a.floorLabelField}>
+                            <input
+                              className={adminInputCls}
+                              value={floor.label}
+                              placeholder={a.floorLabelPlaceholder}
+                              onChange={(e) =>
+                                updateBuildingFloor(building.id, floor.id, {
+                                  label: e.target.value,
+                                  sortOrder: fi,
+                                })
+                              }
+                            />
+                          </Field>
+                          <Field label={a.floorImageUrl}>
+                            <input
+                              className={adminInputCls}
+                              value={floor.imageUrl}
+                              onChange={(e) =>
+                                updateBuildingFloor(building.id, floor.id, {
+                                  imageUrl: e.target.value,
+                                })
+                              }
+                            />
+                          </Field>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              disabled={uploadingFloorId === floor.id}
+                              className={cn(adminBtnSecondary, "h-11")}
+                              onClick={() => {
+                                floorImageTarget.current = {
+                                  buildingId: building.id,
+                                  floorId: floor.id,
+                                };
+                                floorImageRef.current?.click();
+                              }}
+                            >
+                              {uploadingFloorId === floor.id ? "…" : a.uploadFloorImage}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateBuilding(building.id, {
+                                  floors: floors.filter((f) => f.id !== floor.id),
+                                })
+                              }
+                              className="inline-flex h-11 items-center gap-1 rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
+                            >
+                              <Trash2 size={14} /> {a.removeFloorPlate}
+                            </button>
+                          </div>
+                        </div>
+                        <FloorHotspotEditor
+                          floor={floor}
+                          apartments={buildingApts}
+                          onChange={(patch) => updateBuildingFloor(building.id, floor.id, patch)}
+                          labels={{
+                            selectApartment: a.hotspotSelectApartment,
+                            drawHint: a.hotspotDrawHint,
+                            finishPolygon: a.hotspotFinish,
+                            undoPoint: a.hotspotUndo,
+                            clearDraft: a.hotspotClear,
+                            removeHotspot: a.hotspotRemove,
+                            noApartments: a.hotspotNoApartments,
+                            hotspotCount: a.hotspotCount,
+                          }}
+                        />
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateBuilding(building.id, {
+                          floors: [...floors, emptyBuildingFloor(building.id, floors.length)],
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+                    >
+                      <Plus size={15} /> {a.addFloorPlate}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            {buildings.length === 0 && (
+              <p className="text-sm text-[#9CA3AF]">{a.noBuildings}</p>
+            )}
+          </div>
+          <input
+            ref={floorImageRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              const target = floorImageTarget.current;
+              if (file && target) {
+                void handleFloorImageUpload(file, target.buildingId, target.floorId);
+              }
+              e.target.value = "";
+              floorImageTarget.current = null;
+            }}
+          />
+          <button
+            type="button"
+            onClick={() =>
+              set("buildings", [
+                ...buildings,
+                emptyBuilding(apartmentProjectId, buildings.length),
+              ])
+            }
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+          >
+            <Plus size={15} /> {a.addBuilding}
+          </button>
+        </Section>
+
         <Section title={a.sectionApartments} icon={Home}>
           <div className="space-y-3">
             {form.apartments.map((apt) => (
               <div key={apt.id} className="space-y-3 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3">
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+                  <Field label={a.buildingLabel}>
+                    <select
+                      className={adminSelectCls}
+                      value={apt.buildingId ?? ""}
+                      onChange={(e) =>
+                        updateApt(apt.id, { buildingId: e.target.value || undefined })
+                      }
+                    >
+                      <option value="">{a.noBuildingAssigned}</option>
+                      {buildings
+                        .filter((b) => b.name.trim())
+                        .map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.name}
+                          </option>
+                        ))}
+                    </select>
+                  </Field>
                   <Field label={a.floorLabel}>
                     <input
                       type="number"
@@ -625,15 +954,15 @@ export function AdminProjectEditor({ projectId }: Props) {
                       <option value="Sold">{getStatusLabel(hyTranslations, "Sold")}</option>
                     </select>
                   </Field>
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={() => set("apartments", form.apartments.filter((x) => x.id !== apt.id))}
-                      className="flex h-11 w-full items-center justify-center gap-1 rounded-[5px] text-xs text-red-500 hover:bg-red-50"
-                    >
-                      <Trash2 size={14} /> {a.remove}
-                    </button>
-                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => set("apartments", form.apartments.filter((x) => x.id !== apt.id))}
+                    className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600"
+                  >
+                    <Trash2 size={14} /> {a.remove}
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Field label="Տեսարան">
@@ -723,7 +1052,12 @@ export function AdminProjectEditor({ projectId }: Props) {
             />
             <button
               type="button"
-              onClick={() => set("apartments", [...form.apartments, emptyApartment(apartmentProjectId)])}
+              onClick={() =>
+                set("apartments", [
+                  ...form.apartments,
+                  emptyApartment(apartmentProjectId, buildings[0]?.id),
+                ])
+              }
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
             >
               <Plus size={15} /> {a.addUnit}

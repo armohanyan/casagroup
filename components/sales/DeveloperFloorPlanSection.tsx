@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { DeveloperUnitCard } from "@/components/sales/DeveloperUnitCard";
 import { BrandMultiSelect } from "@/components/ui/BrandMultiSelect";
 import { BrandSelect } from "@/components/ui/BrandSelect";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { useI18n } from "@/lib/i18n";
-import type { Apartment, Project } from "@/types";
+import type { Apartment, Building, Project } from "@/types";
+import { cn } from "@/lib/utils";
 
 type SortKey = "price-asc" | "price-desc" | "area-asc" | "floor-asc";
 type PaymentKey = "mortgage" | "installment";
@@ -32,10 +33,48 @@ function areaRange(apartments: Apartment[]) {
   return { min: Math.min(...areas), max: Math.max(...areas) };
 }
 
-export function DeveloperFloorPlanSection({ project }: Props) {
-  const { t } = useI18n();
+function sortedBuildings(buildings: Building[] | undefined) {
+  return [...(buildings ?? [])]
+    .filter((b) => b.name.trim())
+    .map((b) => ({ ...b, floors: b.floors ?? [] }))
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+}
 
-  const marketApartments = useMemo(() => marketOf(project.apartments), [project.apartments]);
+function formatUpdatedDate(lang: string) {
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  if (lang === "hy") return `${dd}.${mm}.${yyyy}`;
+  return `${mm}/${dd}/${yyyy}`;
+}
+
+export function DeveloperFloorPlanSection({ project }: Props) {
+  const { t, lang } = useI18n();
+
+  const buildings = useMemo(() => sortedBuildings(project.buildings), [project.buildings]);
+  const hasBuildings = buildings.length > 0;
+
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(
+    () => buildings[0]?.id ?? null,
+  );
+
+  useEffect(() => {
+    if (!hasBuildings) {
+      setSelectedBuildingId(null);
+      return;
+    }
+    if (!selectedBuildingId || !buildings.some((b) => b.id === selectedBuildingId)) {
+      setSelectedBuildingId(buildings[0]?.id ?? null);
+    }
+  }, [buildings, hasBuildings, selectedBuildingId]);
+
+  const buildingApartments = useMemo(() => {
+    if (!hasBuildings || !selectedBuildingId) return project.apartments;
+    return project.apartments.filter((a) => a.buildingId === selectedBuildingId);
+  }, [project.apartments, hasBuildings, selectedBuildingId]);
+
+  const marketApartments = useMemo(() => marketOf(buildingApartments), [buildingApartments]);
   const roomOptions = useMemo(
     () => uniqueSorted(marketApartments.map((a) => a.rooms)),
     [marketApartments],
@@ -46,17 +85,24 @@ export function DeveloperFloorPlanSection({ project }: Props) {
   );
   const areaBounds = useMemo(() => areaRange(marketApartments), [marketApartments]);
 
-  const [selectedRooms, setSelectedRooms] = useState(() =>
-    uniqueSorted(marketOf(project.apartments).map((a) => a.rooms)),
-  );
-  const [selectedFloors, setSelectedFloors] = useState(() =>
-    uniqueSorted(marketOf(project.apartments).map((a) => a.floor)),
-  );
-  const [areaMin, setAreaMin] = useState(() => areaRange(marketOf(project.apartments)).min);
-  const [areaMax, setAreaMax] = useState(() => areaRange(marketOf(project.apartments)).max);
+  const [selectedRooms, setSelectedRooms] = useState<number[]>([]);
+  const [selectedFloors, setSelectedFloors] = useState<number[]>([]);
+  const [areaMin, setAreaMin] = useState(0);
+  const [areaMax, setAreaMax] = useState(100);
   const [payments, setPayments] = useState<PaymentKey[]>(["mortgage", "installment"]);
   const [sort, setSort] = useState<SortKey>("price-asc");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const rooms = uniqueSorted(marketApartments.map((a) => a.rooms));
+    const floors = uniqueSorted(marketApartments.map((a) => a.floor));
+    const bounds = areaRange(marketApartments);
+    setSelectedRooms(rooms);
+    setSelectedFloors(floors);
+    setAreaMin(bounds.min);
+    setAreaMax(bounds.max);
+    setPage(1);
+  }, [selectedBuildingId, buildingApartments.length, marketApartments]);
 
   useEffect(() => {
     setPage(1);
@@ -111,9 +157,61 @@ export function DeveloperFloorPlanSection({ project }: Props) {
 
   return (
     <section id="floor-plans" className="scroll-mt-24">
+      {hasBuildings && (
+        <div className="mb-8">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <h2 className="text-xl font-bold text-[#1C1917] sm:text-2xl">
+              {t.developerDetail.buildingsTitle}
+            </h2>
+            <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-medium text-[#6B7280]">
+              {t.developerDetail.buildingsUpdated.replace("{date}", formatUpdatedDate(lang))}
+            </span>
+          </div>
+
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.08em] text-[#9CA3AF]">
+            {t.developerDetail.buildingBlockLabel}
+          </p>
+
+          <div className="overflow-x-auto rounded-[5px] border border-[#E5E7EB] bg-white">
+            <div className="flex min-w-max" role="tablist" aria-label={t.developerDetail.buildingsTitle}>
+              {buildings.map((building) => {
+                const active = building.id === selectedBuildingId;
+                return (
+                  <button
+                    key={building.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setSelectedBuildingId(building.id)}
+                    className={cn(
+                      "relative flex shrink-0 items-center gap-2 border-r border-[#E5E7EB] px-4 py-3 text-sm font-semibold transition-colors last:border-r-0",
+                      active
+                        ? "bg-[#E8F5F3] text-[#0c1428]"
+                        : "bg-white text-[#4B5563] hover:bg-[#FAFAFA]",
+                    )}
+                  >
+                    <Building2
+                      size={16}
+                      strokeWidth={1.75}
+                      className={active ? "text-[#0F766E]" : "text-[#6B7280]"}
+                    />
+                    <span>{building.name}</span>
+                    {active && (
+                      <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[#0F766E]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#1C1917]">{t.developerDetail.floorPlansTitle}</h2>
+          <h2 className="text-xl font-bold text-[#1C1917] sm:text-2xl">
+            {t.developerDetail.floorPlansTitle}
+          </h2>
           <p className="mt-1 text-sm text-[#57534E]">
             {t.developerDetail.floorPlansTotal}{" "}
             <span className="font-semibold text-[#1C1917]">{marketApartments.length}</span>
@@ -193,7 +291,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl bg-white py-16 text-center shadow-sm text-[#57534E]">
+        <div className="rounded-xl bg-white py-16 text-center text-[#57534E] shadow-sm">
           {t.properties.noResults}
         </div>
       ) : (

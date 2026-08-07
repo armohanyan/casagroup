@@ -64,9 +64,14 @@ const MOCK_PROJECTS = [
       { title: "Full Payment", description: "Ready to move in immediately" },
       { title: "Mortgage", description: "Available through all major Armenian banks" },
     ],
+    buildings: [
+      { id: "bldg-2-a", name: "4A", sortOrder: 0, floors: [] },
+      { id: "bldg-2-b", name: "5A", sortOrder: 1, floors: [] },
+    ],
     apartments: [
       {
         id: "apt-2-1",
+        buildingId: "bldg-2-a",
         floor: 4,
         rooms: 2,
         area: 82,
@@ -79,6 +84,7 @@ const MOCK_PROJECTS = [
       },
       {
         id: "apt-2-2",
+        buildingId: "bldg-2-b",
         floor: 8,
         rooms: 3,
         area: 112,
@@ -91,6 +97,7 @@ const MOCK_PROJECTS = [
       },
       {
         id: "apt-2-3",
+        buildingId: "bldg-2-a",
         floor: 14,
         rooms: 4,
         area: 155,
@@ -251,10 +258,25 @@ async function main() {
   await prisma.mediaAsset.deleteMany();
   await prisma.inquiry.deleteMany();
   await prisma.apartment.deleteMany();
+  await prisma.buildingFloor.deleteMany();
+  await prisma.building.deleteMany();
   await prisma.project.deleteMany();
 
   for (const p of MOCK_PROJECTS) {
-    const { apartments, ...project } = p;
+    const { apartments, buildings = [], ...project } = p as typeof p & {
+      buildings?: {
+        id: string;
+        name: string;
+        sortOrder?: number;
+        floors?: {
+          id?: string;
+          label: string;
+          sortOrder?: number;
+          imageUrl?: string;
+          hotspots?: { apartmentId: string; points: [number, number][] }[];
+        }[];
+      }[];
+    };
     await prisma.project.create({
       data: {
         id: project.id,
@@ -288,9 +310,26 @@ async function main() {
         lng: project.lng,
         tags: [...project.tags],
         featured: project.featured,
+        buildings: {
+          create: buildings.map((b, i) => ({
+            id: b.id,
+            name: b.name,
+            sortOrder: b.sortOrder ?? i,
+            floors: {
+              create: (b.floors ?? []).map((f, fi) => ({
+                ...(f.id ? { id: f.id } : {}),
+                label: f.label,
+                sortOrder: f.sortOrder ?? fi,
+                imageUrl: f.imageUrl ?? "",
+                hotspots: f.hotspots ?? [],
+              })),
+            },
+          })),
+        },
         apartments: {
           create: apartments.map((a) => ({
             id: a.id,
+            buildingId: "buildingId" in a ? (a.buildingId as string | undefined) ?? null : null,
             floor: a.floor,
             rooms: a.rooms,
             area: a.area,

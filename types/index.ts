@@ -17,9 +17,35 @@ export interface PaymentOption {
   description: string;
 }
 
+/** Polygon overlay on a building floor plate; points are % of image width/height (0–100). */
+export interface FloorHotspot {
+  apartmentId: string;
+  points: [number, number][];
+}
+
+/** One floor plate for a building (image + apartment hotspots). */
+export interface BuildingFloor {
+  id: string;
+  buildingId: string;
+  /** Display label: "18", "P", "-1", etc. */
+  label: string;
+  sortOrder: number;
+  imageUrl: string;
+  hotspots: FloorHotspot[];
+}
+
+export interface Building {
+  id: string;
+  projectId: string;
+  name: string;
+  sortOrder: number;
+  floors: BuildingFloor[];
+}
+
 export interface Apartment {
   id: string;
   projectId: string;
+  buildingId?: string;
   floor: number;
   rooms: number;
   area: number;
@@ -74,6 +100,7 @@ export interface Project {
   amenities: Amenity[];
   nearbyPlaces: NearbyPlace[];
   paymentOptions: PaymentOption[];
+  buildings: Building[];
   apartments: Apartment[];
   developer: string;
   architect?: string;

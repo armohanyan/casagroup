@@ -72,10 +72,15 @@ export const MOCK_PROJECTS: Project[] = [
       { title: "Full Payment", description: "Ready to move in immediately" },
       { title: "Mortgage", description: "Available through all major Armenian banks" },
     ],
+    buildings: [
+      { id: "bldg-2-a", projectId: "2", name: "4A", sortOrder: 0, floors: [] },
+      { id: "bldg-2-b", projectId: "2", name: "5A", sortOrder: 1, floors: [] },
+    ],
     apartments: [
       {
         id: "apt-2-1",
         projectId: "2",
+        buildingId: "bldg-2-a",
         floor: 4,
         rooms: 2,
         area: 82,
@@ -89,6 +94,7 @@ export const MOCK_PROJECTS: Project[] = [
       {
         id: "apt-2-2",
         projectId: "2",
+        buildingId: "bldg-2-b",
         floor: 8,
         rooms: 3,
         area: 112,
@@ -102,6 +108,7 @@ export const MOCK_PROJECTS: Project[] = [
       {
         id: "apt-2-3",
         projectId: "2",
+        buildingId: "bldg-2-a",
         floor: 14,
         rooms: 4,
         area: 155,
@@ -153,6 +160,7 @@ export const MOCK_PROJECTS: Project[] = [
     paymentOptions: [
       { title: "Installment Plan", description: "Flexible payment schedule during construction" },
     ],
+    buildings: [],
     apartments: [
       {
         id: "apt-3-1",
@@ -207,6 +215,7 @@ export const MOCK_PROJECTS: Project[] = [
     paymentOptions: [
       { title: "Full Payment", description: "Immediate move-in available" },
     ],
+    buildings: [],
     apartments: [
       {
         id: "apt-4-1",
@@ -261,6 +270,7 @@ export const MOCK_PROJECTS: Project[] = [
     paymentOptions: [
       { title: "Early Bird Pricing", description: "Special rates for pre-launch reservations" },
     ],
+    buildings: [],
     apartments: [],
   },
 ];

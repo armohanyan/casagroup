@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Phone, MessageCircle, BadgeCheck } from "lucide-react";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
+import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { ProjectMediaShowcase } from "@/components/site/ProjectMediaShowcase";
@@ -141,6 +142,8 @@ export default function ProjectDetailPage() {
           </section>
         )}
       </Container>
+
+      <BuildingFloorMapSection project={project} />
 
       <section id="apartments" className="border-t border-[#E5E7EB]">
         <Container className="py-10 md:py-14">
