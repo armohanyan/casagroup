@@ -158,9 +158,9 @@ export function DeveloperFloorPlanSection({ project }: Props) {
   return (
     <section id="floor-plans" className="scroll-mt-24">
       {hasBuildings && (
-        <div className="mb-8">
+        <div className="mb-8 overflow-visible pt-1">
           <div className="mb-4 flex flex-wrap items-center gap-3">
-            <h2 className="text-xl font-bold text-[#1C1917] sm:text-2xl">
+            <h2 className="text-xl font-bold leading-tight text-[#1C1917] sm:text-2xl">
               {t.developerDetail.buildingsTitle}
             </h2>
             <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-xs font-medium text-[#6B7280]">

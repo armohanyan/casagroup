@@ -32,6 +32,7 @@ export function AdminApartmentsList() {
           return (
             p.title.toLowerCase().includes(query) ||
             apt.id.toLowerCase().includes(query) ||
+            (apt.apartmentNumber ?? "").toLowerCase().includes(query) ||
             String(apt.rooms).includes(query)
           );
         })
@@ -77,7 +78,7 @@ export function AdminApartmentsList() {
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead>
               <tr className="border-b border-[#F0F1F3] bg-[#FAFAFA] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
-                <th className="px-4 py-3">ID</th>
+                <th className="px-4 py-3">Համար</th>
                 <th className="px-4 py-3">Նախագիծ</th>
                 <th className="px-4 py-3">Հարկ</th>
                 <th className="px-4 py-3">Սեն.</th>
@@ -105,7 +106,12 @@ export function AdminApartmentsList() {
               )}
               {rows.map(({ apt, project }) => (
                 <tr key={`${project.id}-${apt.id}`} className="border-b border-[#F0F1F3] last:border-0 hover:bg-[#F9FAFB]">
-                  <td className="px-4 py-3 font-mono text-xs text-[#6B7280]">{apt.id.slice(0, 8)}</td>
+                  <td className="px-4 py-3">
+                    <span className="font-semibold tabular-nums text-[#0c1428]">
+                      {apt.apartmentNumber?.trim() || "—"}
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[10px] text-[#9CA3AF]">{apt.id.slice(0, 8)}</span>
+                  </td>
                   <td className="px-4 py-3">
                     <Link href={`${ADMIN_BASE}/projects/${project.id}`} className="font-medium text-[#0c1428] hover:text-[#c9a96e]">
                       {project.title}

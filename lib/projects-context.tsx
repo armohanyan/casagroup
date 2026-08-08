@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Project } from "@/types";
+import { MOCK_PROJECTS } from "@/data/mock";
 import {
   adminCreateProject,
   adminDeleteProject,
@@ -43,7 +44,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       setLoadError(null);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : String(e));
-      setProjects([]);
+      // Keep the UI usable offline / when the API is slow or down.
+      setProjects(MOCK_PROJECTS);
     } finally {
       setLoading(false);
     }

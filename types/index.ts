@@ -46,6 +46,8 @@ export interface Apartment {
   id: string;
   projectId: string;
   buildingId?: string;
+  /** Human-facing unit number set in admin (e.g. "12A", "405"). */
+  apartmentNumber?: string;
   floor: number;
   rooms: number;
   area: number;

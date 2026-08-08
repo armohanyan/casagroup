@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" fill="none">
+  <rect width="900" height="600" fill="#f7f4ef"/>
+  <rect x="30" y="30" width="840" height="540" fill="#fff" stroke="#1a2338" stroke-width="3"/>
+  <rect x="30" y="30" width="320" height="250" fill="#c9a96e18" stroke="#1a2338" stroke-width="2"/>
+  <text x="190" y="160" text-anchor="middle" font-family="Arial,sans-serif" font-size="22" fill="#1a2338">LIVING / DINING</text>
+  <rect x="350" y="30" width="260" height="160" fill="#1a233810" stroke="#1a2338" stroke-width="2"/>
+  <text x="480" y="120" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">KITCHEN</text>
+  <rect x="610" y="30" width="260" height="120" fill="#e8f0f8" stroke="#1a2338" stroke-width="2"/>
+  <text x="740" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#1a2338">BALCONY</text>
+  <rect x="30" y="280" width="220" height="290" fill="#1a233810" stroke="#1a2338" stroke-width="2"/>
+  <text x="140" y="430" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">MASTER</text>
+  <rect x="250" y="280" width="200" height="290" fill="#1a233810" stroke="#1a2338" stroke-width="2"/>
+  <text x="350" y="430" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">BED 2</text>
+  <rect x="450" y="280" width="200" height="290" fill="#1a233810" stroke="#1a2338" stroke-width="2"/>
+  <text x="550" y="430" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">BED 3</text>
+  <rect x="650" y="150" width="110" height="130" fill="#eeeae3" stroke="#1a2338" stroke-width="2"/>
+  <text x="705" y="225" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#1a2338">BATH</text>
+  <rect x="760" y="150" width="110" height="130" fill="#eeeae3" stroke="#1a2338" stroke-width="2"/>
+  <text x="815" y="225" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#1a2338">WC</text>
+  <rect x="650" y="280" width="220" height="290" fill="#c9a96e18" stroke="#1a2338" stroke-width="2"/>
+  <text x="760" y="430" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">HALL</text>
+  <text x="450" y="585" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#8a8578">3 BEDROOM � ~110 m�</text>
+</svg>

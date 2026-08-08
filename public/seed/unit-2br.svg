@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" fill="none">
+  <rect width="800" height="560" fill="#f7f4ef"/>
+  <rect x="30" y="30" width="740" height="500" fill="#fff" stroke="#1a2338" stroke-width="3"/>
+  <rect x="30" y="30" width="280" height="220" fill="#c9a96e18" stroke="#1a2338" stroke-width="2"/>
+  <text x="170" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">LIVING</text>
+  <rect x="310" y="30" width="240" height="220" fill="#1a233810" stroke="#1a2338" stroke-width="2"/>
+  <text x="430" y="145" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">KITCHEN</text>
+  <rect x="550" y="30" width="220" height="120" fill="#e8f0f8" stroke="#1a2338" stroke-width="2"/>
+  <text x="660" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#1a2338">BALCONY</text>
+  <rect x="30" y="250" width="240" height="280" fill="#1a233810" stroke="#1a2338" stroke-width="2"/>
+  <text x="150" y="395" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">BED 1</text>
+  <rect x="270" y="250" width="240" height="280" fill="#1a233810" stroke="#1a2338" stroke-width="2"/>
+  <text x="390" y="395" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">BED 2</text>
+  <rect x="510" y="150" width="130" height="150" fill="#eeeae3" stroke="#1a2338" stroke-width="2"/>
+  <text x="575" y="230" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#1a2338">BATH</text>
+  <rect x="640" y="150" width="130" height="150" fill="#eeeae3" stroke="#1a2338" stroke-width="2"/>
+  <text x="705" y="230" text-anchor="middle" font-family="Arial,sans-serif" font-size="16" fill="#1a2338">WC</text>
+  <rect x="510" y="300" width="260" height="230" fill="#c9a96e18" stroke="#1a2338" stroke-width="2"/>
+  <text x="640" y="420" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" fill="#1a2338">HALL</text>
+  <text x="400" y="545" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#8a8578">2 BEDROOM � ~80 m�</text>
+</svg>

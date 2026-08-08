@@ -64,6 +64,7 @@ function floorCreateData(raw: Record<string, unknown>, sortOrder: number) {
 
 function aptCreateData(a: Record<string, unknown>) {
   return {
+    apartmentNumber: String(a.apartmentNumber || "").trim(),
     floor: Number(a.floor || 1),
     rooms: Number(a.rooms || 1),
     area: Number(a.area || 0),
@@ -440,6 +441,7 @@ export async function updateApartment(projectId: string, aptId: string, input: R
   if (!existing) throw httpError(404, "Apartment not found");
 
   const data: Record<string, unknown> = {};
+  if (input.apartmentNumber !== undefined) data.apartmentNumber = String(input.apartmentNumber || "").trim();
   if (input.floor !== undefined) data.floor = Number(input.floor);
   if (input.rooms !== undefined) data.rooms = Number(input.rooms);
   if (input.area !== undefined) data.area = Number(input.area);

@@ -1,21 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   BedDouble,
   Download,
+  Expand,
   Eye,
   Layers,
   MapPin,
   Maximize2,
   Sun,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { ApartmentInquiryModal } from "@/components/ApartmentInquiryModal";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { ProjectLocationSection } from "@/components/site/ProjectLocationSection";
+import { ApartmentFloorLocationSection } from "@/components/sales/ApartmentFloorLocationSection";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
@@ -25,7 +32,7 @@ import { getProjectDescription } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
-import { listingCode } from "@/lib/listing-code";
+import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 
 function SpecItem({
   icon: Icon,
@@ -49,6 +56,18 @@ function SpecItem({
   );
 }
 
+function collectApartmentImages(floorPlanImage: string, gallery: string[]) {
+  const seen = new Set<string>();
+  const images: string[] = [];
+  for (const url of [floorPlanImage, ...gallery]) {
+    const trimmed = url?.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    images.push(trimmed);
+  }
+  return images;
+}
+
 export default function ApartmentDetailPage() {
   const params = useParams();
   const aptId = typeof params.aptId === "string" ? params.aptId : undefined;
@@ -56,6 +75,7 @@ export default function ApartmentDetailPage() {
   const { t, lang } = useI18n();
   const { projects, loading } = useProjects();
   const [inquiryType, setInquiryType] = useState<"info" | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const result = (() => {
     for (const project of projects) {
@@ -64,6 +84,34 @@ export default function ApartmentDetailPage() {
     }
     return undefined;
   })();
+
+  const images = useMemo(
+    () =>
+      result
+        ? collectApartmentImages(result.apartment.floorPlanImage, result.apartment.gallery ?? [])
+        : [],
+    [result],
+  );
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxIndex(null);
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((i) => (i !== null ? (i - 1 + images.length) % images.length : null));
+      }
+      if (e.key === "ArrowRight") {
+        setLightboxIndex((i) => (i !== null ? (i + 1) % images.length : null));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [lightboxIndex, images.length]);
 
   if (loading) {
     return (
@@ -88,19 +136,31 @@ export default function ApartmentDetailPage() {
   const { apartment: apt, project } = result;
   const path = `/projects/${project.slug}/apartments/${apt.id}`;
   const sold = apt.status === "Sold";
-  const aptCode = listingCode(apt.id);
+  const aptNumber = apartmentDisplayNumber(apt);
+  const showUnitPlaque = hasApartmentNumber(apt);
   const description = (apt.description?.trim() || getProjectDescription(project, lang)).trim();
   const planPdfUrl = apt.planPdfUrl?.trim() || "";
   const pricePerSqm = apt.area > 0 ? Math.round(apt.price / apt.area) : 0;
-  const whatsappMessage = encodeURIComponent(
-    `Բարև, հետաքրքրված եմ ${project.title} նախագծի #${aptCode} բնակարանով (${apt.rooms} սեն., ${apt.area} մ²):`,
-  );
-  const whatsappHref = `https://wa.me/37496799733?text=${whatsappMessage}`;
+  const address = `${project.location}${project.city ? `, ${project.city}` : ""}`;
+  const priceLabel = sold ? "—" : formatPrice(apt.price);
+  const whatsappMessage =
+    lang === "hy"
+      ? `Բարև, հետաքրքրված եմ ${project.title} նախագծի №${aptNumber} բնակարանով։\nՀասցե՝ ${address}\nՄակերես՝ ${apt.area} մ²\nԳին՝ ${priceLabel}`
+      : `Hello, I'm interested in apartment №${aptNumber} at ${project.title}.\nAddress: ${address}\nArea: ${apt.area} m²\nPrice: ${priceLabel}`;
+  const whatsappHref = `https://wa.me/37496799733?text=${encodeURIComponent(whatsappMessage)}`;
+  const galleryImages = (apt.gallery ?? []).map((u) => u.trim()).filter(Boolean);
+  const floorPlanIndex = apt.floorPlanImage?.trim()
+    ? images.indexOf(apt.floorPlanImage.trim())
+    : -1;
+
+  const openLightbox = (index: number) => {
+    if (index >= 0 && index < images.length) setLightboxIndex(index);
+  };
 
   return (
     <main className="bg-white min-h-screen pt-header">
       <Seo
-        title={`${apt.rooms} BR · ${project.title}`}
+        title={`${showUnitPlaque ? `№${aptNumber} · ` : ""}${apt.rooms} BR · ${project.title}`}
         description={description || `${apt.area} m² apartment at ${project.title}, ${project.city}.`}
         path={path}
         image={apt.floorPlanImage || undefined}
@@ -112,7 +172,7 @@ export default function ApartmentDetailPage() {
           { name: t.aptDetail.breadHome, path: "/" },
           { name: t.aptDetail.breadProjects, path: "/projects" },
           { name: project.title, path: `/projects/${project.slug}` },
-          { name: `${apt.rooms} BR`, path },
+          { name: showUnitPlaque ? `№${aptNumber}` : `${apt.rooms} BR`, path },
         ])}
       />
 
@@ -120,8 +180,40 @@ export default function ApartmentDetailPage() {
         <nav className="text-sm text-[#6B7280] mb-6">
           <Link href={`/projects/${project.slug}`} className="hover:text-[#0c1428]">{project.title}</Link>
           <span className="mx-2">/</span>
-          <span className="text-[#0c1428]">{apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}</span>
+          <span className="text-[#0c1428]">
+            {showUnitPlaque ? `№${aptNumber} · ` : null}
+            {apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}
+          </span>
         </nav>
+
+        {showUnitPlaque ? (
+          <div className="mb-8 overflow-hidden rounded-[5px] border border-[#E8EAED] bg-gradient-to-br from-[#0c1428] via-[#152038] to-[#1a2744] px-5 py-6 sm:px-8 sm:py-7">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a96e]">
+                  {t.aptDetail.apartmentNumberLabel}
+                </p>
+                <p className="mt-2 font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl">
+                  <span className="mr-1 text-3xl font-medium text-[#c9a96e] sm:text-4xl">№</span>
+                  {aptNumber}
+                </p>
+                <p className="mt-3 text-sm text-white/55">
+                  {apt.rooms} BR · {apt.area} m² · {t.aptDetail.floorLabel} {apt.floor}
+                </p>
+              </div>
+              <div className="hidden h-16 w-px bg-white/10 sm:block" aria-hidden />
+              <div className="sm:text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
+                  {project.title}
+                </p>
+                <p className="mt-1 text-sm text-white/70">
+                  {project.location}
+                  {project.city ? `, ${project.city}` : ""}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-6">
@@ -133,17 +225,54 @@ export default function ApartmentDetailPage() {
                     {apt.area} m²
                   </span>
                 </div>
-                <div className="relative h-72 w-full overflow-hidden rounded-[5px] bg-[#F8FAFC] sm:h-[28rem]">
+                <button
+                  type="button"
+                  onClick={() => openLightbox(floorPlanIndex >= 0 ? floorPlanIndex : 0)}
+                  className="group relative block h-72 w-full overflow-hidden rounded-[5px] bg-[#F8FAFC] sm:h-[28rem]"
+                  aria-label={t.aptDetail.openImage}
+                >
                   <Image
                     src={apt.floorPlanImage}
                     alt={t.aptDetail.layoutTitle}
                     fill
                     unoptimized
-                    className="object-contain"
+                    className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
                     sizes="(max-width:1024px) 100vw, 900px"
                   />
-                </div>
+                  <span className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-[5px] bg-black/45 text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                    <Expand size={16} aria-hidden />
+                  </span>
+                </button>
               </div>
+            ) : null}
+
+            {galleryImages.length > 0 ? (
+              <section className="rounded-[5px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
+                <h2 className="text-lg font-semibold text-[#0c1428]">{t.aptDetail.galleryTitle}</h2>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {galleryImages.map((url) => {
+                    const index = images.indexOf(url);
+                    return (
+                      <button
+                        key={url}
+                        type="button"
+                        onClick={() => openLightbox(index)}
+                        className="group relative aspect-[4/3] overflow-hidden rounded-[5px] bg-[#F8FAFC]"
+                        aria-label={t.aptDetail.openImage}
+                      >
+                        <Image
+                          src={url}
+                          alt=""
+                          fill
+                          unoptimized
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(max-width:640px) 50vw, 280px"
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
             ) : null}
 
             {description ? (
@@ -175,7 +304,9 @@ export default function ApartmentDetailPage() {
           <aside className="min-w-0 overflow-hidden rounded-[5px] border border-[#E8EAED] bg-[#F9FAFB] p-5 lg:sticky lg:top-24 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={apt.status} />
-              <span className="text-xs font-medium text-[#9CA3AF]">#{aptCode}</span>
+              <span className="inline-flex items-center rounded-[5px] border border-[#E8EAED] bg-white px-2.5 py-1 text-xs font-semibold tabular-nums text-[#0c1428]">
+                № {aptNumber}
+              </span>
             </div>
 
             <div className="mt-5">
@@ -201,13 +332,24 @@ export default function ApartmentDetailPage() {
 
             <div className="mt-6 space-y-2">
               {!sold && (
-                <button
-                  type="button"
-                  onClick={() => setInquiryType("info")}
-                  className="flex h-11 w-full items-center justify-center rounded-[5px] bg-[#0c1428] px-3 text-sm font-semibold text-white hover:bg-[#1F2937]"
-                >
-                  {t.aptDetail.requestInfo}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setInquiryType("info")}
+                    className="flex h-11 w-full items-center justify-center rounded-[5px] bg-[#0c1428] px-3 text-sm font-semibold text-white hover:bg-[#1F2937]"
+                  >
+                    {t.aptDetail.requestInfo}
+                  </button>
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-[5px] bg-[#25D366] px-3 text-sm font-semibold text-white hover:bg-[#1ebe57]"
+                  >
+                    <FaWhatsapp size={18} aria-hidden />
+                    {t.sales.whatsappLabel}
+                  </a>
+                </>
               )}
               {planPdfUrl ? (
                 <a
@@ -225,6 +367,8 @@ export default function ApartmentDetailPage() {
           </aside>
         </div>
       </Container>
+
+      <ApartmentFloorLocationSection project={project} apartment={apt} />
 
       {!sold && (
         <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
@@ -254,11 +398,86 @@ export default function ApartmentDetailPage() {
         onClose={() => setInquiryType(null)}
         context={{
           projectTitle: project.title,
-          listingCode: aptCode,
+          listingCode: aptNumber,
           whatsappHref,
           price: apt.price,
         }}
       />
+
+      <AnimatePresence>
+        {lightboxIndex !== null && images[lightboxIndex] && (
+          <motion.div
+            className="fixed inset-0 z-[1200] flex flex-col bg-black/98"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.aptDetail.openImage}
+          >
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 px-4 py-3">
+              <p className="truncate text-sm font-medium text-white">
+                {lightboxIndex + 1} / {images.length}
+              </p>
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(null)}
+                className="shrink-0 rounded-full p-2 text-white hover:bg-white/10"
+                aria-label="Close"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="relative flex min-h-0 flex-1 items-center justify-center px-2 md:px-12">
+              {images.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLightboxIndex((i) =>
+                        i !== null ? (i - 1 + images.length) % images.length : null,
+                      )
+                    }
+                    className="absolute left-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 md:left-4"
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLightboxIndex((i) => (i !== null ? (i + 1) % images.length : null))
+                    }
+                    className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 md:right-4"
+                    aria-label="Next"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                </>
+              ) : null}
+
+              <motion.div
+                key={lightboxIndex}
+                className="relative h-full max-h-[80vh] w-full max-w-6xl"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Image
+                  src={images[lightboxIndex]}
+                  alt=""
+                  fill
+                  unoptimized
+                  sizes="100vw"
+                  className="object-contain"
+                  priority
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

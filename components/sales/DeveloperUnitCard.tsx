@@ -6,6 +6,7 @@ import { BedDouble, Layers, Maximize2 } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { estimateMonthlyPayment } from "@/lib/mortgage-estimate";
 import { formatUnitLine } from "@/lib/unit-summary";
+import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { useI18n } from "@/lib/i18n";
 import type { Apartment } from "@/types";
 
@@ -21,6 +22,8 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
   const monthly = estimateMonthlyPayment(apartment.price);
   const href = `/projects/${projectSlug}/apartments/${apartment.id}`;
   const cover = apartment.floorPlanImage || apartment.gallery[0];
+  const aptNumber = apartmentDisplayNumber(apartment);
+  const showNumber = hasApartmentNumber(apartment);
 
   const body = (
     <>
@@ -32,13 +35,18 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
             fill
             unoptimized
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-            className="object-cover"
+            className="object-contain bg-[#FAFAF8]"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[#A8A29E] text-[10px] tracking-widest uppercase">
             {t.aptDetail.layoutTitle}
           </div>
         )}
+        {showNumber ? (
+          <span className="absolute left-2.5 top-2.5 rounded-md bg-[#0c1428]/90 px-2.5 py-1 text-xs font-semibold tracking-wide text-white shadow-sm backdrop-blur-sm">
+            № {aptNumber}
+          </span>
+        ) : null}
       </div>
       <div className="p-4">
         <p className="text-lg sm:text-xl font-bold text-[#1C1917] tabular-nums leading-tight">

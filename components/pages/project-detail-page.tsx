@@ -98,6 +98,21 @@ export default function ProjectDetailPage() {
         ))}
       </dl>
 
+      <div className="mt-6 flex flex-wrap gap-3">
+        <a
+          href="#floor-plans"
+          className="inline-flex items-center rounded-[5px] bg-[#0c1428] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#152038]"
+        >
+          {t.developerDetail.floorPlansTitle}
+        </a>
+        <a
+          href="#building-floors"
+          className="inline-flex items-center rounded-[5px] border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#0c1428] transition-colors hover:border-[#c9a96e]/60 hover:bg-[#FAFAFA]"
+        >
+          {t.developerDetail.floorMapTitle}
+        </a>
+      </div>
+
       {project.amenities.length > 0 && (
         <section className="mt-8">
           <div className="mb-5 flex items-end justify-between gap-4">
@@ -151,13 +166,13 @@ export default function ProjectDetailPage() {
         <Container className="py-8 md:py-10">{projectInfo}</Container>
       )}
 
-      <BuildingFloorMapSection project={project} />
-
       <section id="apartments" className="border-t border-[#E5E7EB]">
         <Container className="py-10 md:py-14">
           <DeveloperFloorPlanSection project={project} />
         </Container>
       </section>
+
+      <BuildingFloorMapSection project={project} />
 
       <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
         <Container className="py-10 md:py-14">

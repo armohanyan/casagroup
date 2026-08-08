@@ -13,6 +13,7 @@ import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
 import type { Apartment } from "@/types";
 import { formatPrice } from "@/lib/format-price";
+import { hasApartmentNumber, apartmentDisplayNumber } from "@/lib/apartment-number";
 
 interface Props {
   apartments: Apartment[];
@@ -78,8 +79,13 @@ export function ApartmentGrid({ apartments, projectSlug }: Props) {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-                <div className="absolute top-3 left-3">
+                <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
                   <StatusBadge status={apt.status} />
+                  {hasApartmentNumber(apt) ? (
+                    <span className="rounded-md bg-white/95 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[#0c1428] shadow-sm">
+                      № {apartmentDisplayNumber(apt)}
+                    </span>
+                  ) : null}
                 </div>
                 <p className="absolute bottom-3 right-3 font-sans font-semibold text-2xl text-[#c9a96e]">
                   {formatPrice(apt.price)}

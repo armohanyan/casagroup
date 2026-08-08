@@ -36,10 +36,12 @@ export function mapBuilding(building: BuildingWithFloors) {
 }
 
 export function mapApartment(apt: Apartment) {
+  const apartmentNumber = apt.apartmentNumber?.trim() || undefined;
   return {
     id: apt.id,
     projectId: apt.projectId,
     buildingId: apt.buildingId ?? undefined,
+    apartmentNumber,
     floor: apt.floor,
     rooms: apt.rooms,
     area: apt.area,

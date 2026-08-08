@@ -66,6 +66,7 @@ export function emptyApartment(projectId: string, buildingId?: string): Apartmen
     id: generateId(),
     projectId,
     buildingId,
+    apartmentNumber: "",
     floor: 1,
     rooms: 2,
     area: 80,

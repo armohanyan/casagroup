@@ -28,6 +28,7 @@ import {
   adminTextareaCls,
 } from "@/components/admin/admin-config";
 import { FloorHotspotEditor } from "@/components/admin/FloorHotspotEditor";
+import { AdminImageGrid, AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import { emptyApartment, emptyBuilding, emptyBuildingFloor, emptyProject, generateId } from "@/lib/store";
 import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
@@ -92,12 +93,19 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [uploadingDrone, setUploadingDrone] = useState(false);
   const [uploadingPdfId, setUploadingPdfId] = useState<string | null>(null);
   const [uploadingFloorId, setUploadingFloorId] = useState<string | null>(null);
+  const [uploadingAptPlanId, setUploadingAptPlanId] = useState<string | null>(null);
+  const [uploadingAptGalleryId, setUploadingAptGalleryId] = useState<string | null>(null);
   const [amenityDraft, setAmenityDraft] = useState("");
+  const [imageUrlDraft, setImageUrlDraft] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const droneFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
   const floorImageRef = useRef<HTMLInputElement>(null);
+  const aptPlanFileRef = useRef<HTMLInputElement>(null);
+  const aptGalleryFileRef = useRef<HTMLInputElement>(null);
   const pdfTargetAptId = useRef<string | null>(null);
+  const aptPlanTargetAptId = useRef<string | null>(null);
+  const aptGalleryTargetAptId = useRef<string | null>(null);
   const floorImageTarget = useRef<{ buildingId: string; floorId: string } | null>(null);
 
   useEffect(() => {
@@ -268,21 +276,47 @@ export function AdminProjectEditor({ projectId }: Props) {
     );
   }
 
-  async function handleUpload(file: File) {
-    if (!file.type.startsWith("image/")) {
+  async function handleUpload(files: FileList | File[]) {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (list.length === 0) {
       toast("Միայն նկարներ՝ օգտագործեք թռչող տեսանյութերի բաժինը", "error");
       return;
     }
     setUploading(true);
     try {
-      const result = await adminUploadFile(file, projectId);
-      set("images", [...form.images, result.url]);
-      toast("Նկարը վերբեռնվեց");
+      const urls: string[] = [];
+      for (const file of list) {
+        const result = await adminUploadFile(file, projectId);
+        const url = result.jpegUrl || result.url;
+        if (url) urls.push(url);
+      }
+      if (urls.length) {
+        set("images", [...form.images, ...urls]);
+        toast(urls.length === 1 ? "Նկարը վերբեռնվեց" : `${urls.length} նկար վերբեռնվեց`);
+      }
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setUploading(false);
     }
+  }
+
+  function addImageByUrl() {
+    const url = imageUrlDraft.trim();
+    if (!url) return;
+    if (form.images.includes(url)) {
+      setImageUrlDraft("");
+      return;
+    }
+    set("images", [...form.images, url]);
+    setImageUrlDraft("");
+  }
+
+  function removeImageAt(index: number) {
+    set(
+      "images",
+      form.images.filter((_, i) => i !== index),
+    );
   }
 
   async function handleDroneUpload(file: File) {
@@ -326,6 +360,61 @@ export function AdminProjectEditor({ projectId }: Props) {
     } finally {
       setUploadingPdfId(null);
     }
+  }
+
+  async function handleAptFloorPlanUpload(file: File, aptId: string) {
+    if (!file.type.startsWith("image/")) {
+      toast("Միայն նկար ֆայլ", "error");
+      return;
+    }
+    setUploadingAptPlanId(aptId);
+    try {
+      const result = await adminUploadFile(file, projectId);
+      const url = result.jpegUrl || result.url;
+      if (url) {
+        updateApt(aptId, { floorPlanImage: url });
+        toast("Հատակագիծը վերբեռնվեց");
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), "error");
+    } finally {
+      setUploadingAptPlanId(null);
+    }
+  }
+
+  async function handleAptGalleryUpload(files: FileList | File[], aptId: string) {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (list.length === 0) {
+      toast("Միայն նկար ֆայլ", "error");
+      return;
+    }
+    setUploadingAptGalleryId(aptId);
+    try {
+      const urls: string[] = [];
+      for (const file of list) {
+        const result = await adminUploadFile(file, projectId);
+        const url = result.jpegUrl || result.url;
+        if (url) urls.push(url);
+      }
+      if (urls.length) {
+        const apt = form.apartments.find((x) => x.id === aptId);
+        const prev = apt?.gallery ?? [];
+        updateApt(aptId, { gallery: [...prev, ...urls] });
+        toast(urls.length === 1 ? "Լուսանկարը վերբեռնվեց" : `${urls.length} լուսանկար վերբեռնվեց`);
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), "error");
+    } finally {
+      setUploadingAptGalleryId(null);
+    }
+  }
+
+  function removeAptGalleryImage(aptId: string, index: number) {
+    const apt = form.apartments.find((x) => x.id === aptId);
+    if (!apt) return;
+    updateApt(aptId, {
+      gallery: (apt.gallery ?? []).filter((_, i) => i !== index),
+    });
   }
 
   function updateDroneVideo(index: number, patch: Partial<{ title: string; url: string; thumbnail?: string }>) {
@@ -510,31 +599,23 @@ export function AdminProjectEditor({ projectId }: Props) {
         </Section>
 
         <Section title={a.sectionImages} icon={ImageIcon}>
-          <Field label={`${a.projectImages} (HTTPS URLs, first = cover)`}>
-            <textarea
-              className={adminTextareaCls}
-              value={form.images.join("\n")}
-              placeholder={"https://…\nhttps://…"}
-              onChange={(e) =>
-                set(
-                  "images",
-                  e.target.value
-                    .split("\n")
-                    .map((s) => s.trim())
-                    .filter(Boolean),
-                )
-              }
-            />
-          </Field>
-          <div className="flex flex-wrap items-center gap-3">
+          <AdminImageGrid
+            urls={form.images}
+            onRemove={removeImageAt}
+            coverBadge={a.coverBadge}
+            emptyLabel={a.imagesEmpty}
+            removeLabel={a.removeImage}
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <input
               ref={fileRef}
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void handleUpload(file);
+                const files = e.target.files;
+                if (files?.length) void handleUpload(files);
                 e.target.value = "";
               }}
             />
@@ -544,9 +625,33 @@ export function AdminProjectEditor({ projectId }: Props) {
               className={adminBtnSecondary}
               onClick={() => fileRef.current?.click()}
             >
-              {uploading ? "Վերբեռնում…" : "Վերբեռնել նկար"}
+              <Plus size={15} />
+              {uploading ? "Վերբեռնում…" : a.uploadImages}
             </button>
-            <p className="text-xs text-[#9CA3AF]">{a.urlHintHttps}</p>
+            <p className="text-xs text-[#9CA3AF]">
+              {form.images.length > 0
+                ? `${form.images.length} · ${a.projectImages}`
+                : a.urlHintHttps}
+            </p>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+            <Field label={a.addImageUrl}>
+              <input
+                className={adminInputCls}
+                value={imageUrlDraft}
+                placeholder={a.addImageUrlPlaceholder}
+                onChange={(e) => setImageUrlDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addImageByUrl();
+                  }
+                }}
+              />
+            </Field>
+            <button type="button" className={cn(adminBtnSecondary, "h-11")} onClick={addImageByUrl}>
+              {a.addImageUrl}
+            </button>
           </div>
         </Section>
 
@@ -598,6 +703,15 @@ export function AdminProjectEditor({ projectId }: Props) {
                         onChange={(e) => updateDroneVideo(index, { thumbnail: e.target.value || undefined })}
                       />
                     </Field>
+                    {video.thumbnail ? (
+                      <div className="mt-2 max-w-[180px]">
+                        <AdminImageThumb
+                          src={video.thumbnail}
+                          removeLabel={a.removeImage}
+                          onRemove={() => updateDroneVideo(index, { thumbnail: undefined })}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -723,7 +837,14 @@ export function AdminProjectEditor({ projectId }: Props) {
         </Section>
 
         <Section title={a.sectionBuildings} icon={Building2}>
-          <p className="text-xs text-[#9CA3AF]">{a.buildingsHint}</p>
+          <div className="rounded-[5px] border border-[#E8EAED] bg-[#F8F6F1] px-3 py-2.5 text-xs leading-relaxed text-[#57534E]">
+            <p className="font-semibold text-[#0c1428]">{a.buildingsHint}</p>
+            <ol className="mt-1.5 list-decimal space-y-0.5 pl-4">
+              <li>{a.buildingsStep1}</li>
+              <li>{a.buildingsStep2}</li>
+              <li>{a.buildingsStep3}</li>
+            </ol>
+          </div>
           <div className="space-y-4">
             {buildings.map((building, index) => {
               const buildingApts = form.apartments.filter((apt) => apt.buildingId === building.id);
@@ -788,6 +909,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                             <input
                               className={adminInputCls}
                               value={floor.imageUrl}
+                              placeholder={a.floorPlanUrlPlaceholder}
                               onChange={(e) =>
                                 updateBuildingFloor(building.id, floor.id, {
                                   imageUrl: e.target.value,
@@ -823,6 +945,20 @@ export function AdminProjectEditor({ projectId }: Props) {
                             </button>
                           </div>
                         </div>
+                        {floor.imageUrl.trim() ? (
+                          <AdminImageThumb
+                            src={floor.imageUrl}
+                            className="h-40 w-full max-w-sm aspect-auto sm:aspect-[4/3]"
+                            imgClassName="object-contain bg-[#FAFAF8]"
+                            removeLabel={a.removeImage}
+                            onRemove={() =>
+                              updateBuildingFloor(building.id, floor.id, {
+                                imageUrl: "",
+                                hotspots: [],
+                              })
+                            }
+                          />
+                        ) : null}
                         <FloorHotspotEditor
                           floor={floor}
                           apartments={buildingApts}
@@ -892,7 +1028,15 @@ export function AdminProjectEditor({ projectId }: Props) {
           <div className="space-y-3">
             {form.apartments.map((apt) => (
               <div key={apt.id} className="space-y-3 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3">
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+                  <Field label={a.apartmentNumber}>
+                    <input
+                      className={adminInputCls}
+                      value={apt.apartmentNumber ?? ""}
+                      placeholder={a.apartmentNumberPlaceholder}
+                      onChange={(e) => updateApt(apt.id, { apartmentNumber: e.target.value })}
+                    />
+                  </Field>
                   <Field label={a.buildingLabel}>
                     <select
                       className={adminSelectCls}
@@ -972,13 +1116,40 @@ export function AdminProjectEditor({ projectId }: Props) {
                       onChange={(e) => updateApt(apt.id, { viewType: e.target.value })}
                     />
                   </Field>
-                  <Field label="Հատակագիծ (URL)">
-                    <input
-                      className={adminInputCls}
-                      value={apt.floorPlanImage}
-                      onChange={(e) => updateApt(apt.id, { floorPlanImage: e.target.value })}
-                    />
-                  </Field>
+                  <div className="md:col-span-2">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                      <Field label={a.floorPlanUrl}>
+                        <input
+                          className={adminInputCls}
+                          value={apt.floorPlanImage}
+                          placeholder={a.floorPlanUrlPlaceholder}
+                          onChange={(e) => updateApt(apt.id, { floorPlanImage: e.target.value })}
+                        />
+                      </Field>
+                      <button
+                        type="button"
+                        disabled={uploadingAptPlanId === apt.id}
+                        className={cn(adminBtnSecondary, "h-11")}
+                        onClick={() => {
+                          aptPlanTargetAptId.current = apt.id;
+                          aptPlanFileRef.current?.click();
+                        }}
+                      >
+                        {uploadingAptPlanId === apt.id ? "Վերբեռնում…" : a.uploadFloorImage}
+                      </button>
+                    </div>
+                    {apt.floorPlanImage.trim() ? (
+                      <div className="mt-2 max-w-xs">
+                        <AdminImageThumb
+                          src={apt.floorPlanImage}
+                          className="aspect-[4/3]"
+                          imgClassName="object-contain bg-[#FAFAF8]"
+                          removeLabel={a.removeImage}
+                          onRemove={() => updateApt(apt.id, { floorPlanImage: "" })}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
                   <Field label="Պատշգամբ">
                     <label className="flex h-11 items-center gap-2 text-sm text-[#0c1428]">
                       <input
@@ -998,6 +1169,31 @@ export function AdminProjectEditor({ projectId }: Props) {
                     onChange={(e) => updateApt(apt.id, { description: e.target.value })}
                   />
                 </Field>
+                <div className="space-y-2 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-[#0c1428]">{a.galleryImages}</p>
+                    <button
+                      type="button"
+                      disabled={uploadingAptGalleryId === apt.id}
+                      className={cn(adminBtnSecondary, "h-9 text-xs")}
+                      onClick={() => {
+                        aptGalleryTargetAptId.current = apt.id;
+                        aptGalleryFileRef.current?.click();
+                      }}
+                    >
+                      <Plus size={14} />
+                      {uploadingAptGalleryId === apt.id ? "Վերբեռնում…" : a.uploadImages}
+                    </button>
+                  </div>
+                  <AdminImageGrid
+                    urls={apt.gallery ?? []}
+                    onRemove={(index) => removeAptGalleryImage(apt.id, index)}
+                    emptyLabel={a.aptGalleryEmpty}
+                    removeLabel={a.removeImage}
+                    className="sm:grid-cols-3 md:grid-cols-4"
+                  />
+                  <p className="text-[11px] text-[#9CA3AF]">{a.aptGalleryHint}</p>
+                </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-end">
                   <Field label={a.planPdf}>
                     <input
@@ -1048,6 +1244,33 @@ export function AdminProjectEditor({ projectId }: Props) {
                 if (file && aptId) void handlePlanPdfUpload(file, aptId);
                 e.target.value = "";
                 pdfTargetAptId.current = null;
+              }}
+            />
+            <input
+              ref={aptPlanFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                const aptId = aptPlanTargetAptId.current;
+                if (file && aptId) void handleAptFloorPlanUpload(file, aptId);
+                e.target.value = "";
+                aptPlanTargetAptId.current = null;
+              }}
+            />
+            <input
+              ref={aptGalleryFileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = e.target.files;
+                const aptId = aptGalleryTargetAptId.current;
+                if (files?.length && aptId) void handleAptGalleryUpload(files, aptId);
+                e.target.value = "";
+                aptGalleryTargetAptId.current = null;
               }}
             />
             <button

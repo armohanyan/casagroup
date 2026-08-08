@@ -6,7 +6,7 @@ import { MapPin, Bed, Maximize, Building2 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { formatPrice } from "@/lib/format-price";
-import { listingCode } from "@/lib/listing-code";
+import { apartmentDisplayNumber } from "@/lib/apartment-number";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { PropertyListing } from "@/lib/properties";
@@ -21,7 +21,7 @@ export function CompactListingCard({ listing, className, fullWidth }: CompactLis
   const { t } = useI18n();
   const { apartment, project } = listing;
   const image = apartment.gallery[0] ?? project.images[0];
-  const code = listingCode(apartment.id);
+  const code = apartmentDisplayNumber(apartment);
 
   return (
     <Link
@@ -50,7 +50,7 @@ export function CompactListingCard({ listing, className, fullWidth }: CompactLis
           <FavoriteButton apartmentId={apartment.id} />
         </div>
         <span className="absolute bottom-3 left-3 bg-white/95 text-[#1C1917] text-[11px] font-semibold px-2 py-0.5 rounded tabular-nums shadow-sm">
-          {code}
+          № {code}
         </span>
       </div>
       <div className="p-4">

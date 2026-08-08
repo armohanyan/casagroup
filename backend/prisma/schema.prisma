@@ -97,24 +97,25 @@ model ProjectView {
 }
 
 model Apartment {
-  id             String    @id @default(cuid())
-  projectId      String
-  buildingId     String?
-  floor          Int
-  rooms          Int
-  area           Float
-  price          Int
-  status         String
-  viewType       String    @default("")
-  floorPlanImage String    @default("")
-  planPdfUrl     String?
-  description    String?   @db.Text
-  gallery        Json
-  balcony        Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  building       Building? @relation(fields: [buildingId], references: [id], onDelete: SetNull)
+  id              String    @id @default(cuid())
+  projectId       String
+  buildingId      String?
+  apartmentNumber String    @default("")
+  floor           Int
+  rooms           Int
+  area            Float
+  price           Int
+  status          String
+  viewType        String    @default("")
+  floorPlanImage  String    @default("")
+  planPdfUrl      String?
+  description     String?   @db.Text
+  gallery         Json
+  balcony         Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  building        Building? @relation(fields: [buildingId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
   @@index([buildingId])

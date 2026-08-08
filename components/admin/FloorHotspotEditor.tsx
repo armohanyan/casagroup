@@ -64,7 +64,9 @@ export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Prop
   const aptLabel = (id: string) => {
     const apt = apartments.find((a) => a.id === id);
     if (!apt) return id;
-    return `${apt.rooms}ր · ${apt.area} մ² · հարկ ${apt.floor}`;
+    const num = apt.apartmentNumber?.trim();
+    const base = num ? `№ ${num}` : `${apt.rooms}ր · ${apt.area} մ²`;
+    return `${base} · հարկ ${apt.floor}`;
   };
 
   if (!floor.imageUrl) {

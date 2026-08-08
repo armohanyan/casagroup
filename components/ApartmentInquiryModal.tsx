@@ -11,7 +11,7 @@ export type ApartmentInquiryModalType = "info" | "call" | "whatsapp" | "visit" |
 
 interface ApartmentInquiryContext {
   projectTitle: string;
-  listingCode: number;
+  listingCode: string | number;
   whatsappHref: string;
   price: number;
 }
@@ -32,7 +32,7 @@ interface FormData {
 const inputCls = "field-input-line font-sans w-full";
 
 function apartmentRef(context: ApartmentInquiryContext) {
-  return `#${context.listingCode} · ${context.projectTitle}`;
+  return `№${context.listingCode} · ${context.projectTitle}`;
 }
 
 export function ApartmentInquiryModal({ type, onClose, context }: Props) {

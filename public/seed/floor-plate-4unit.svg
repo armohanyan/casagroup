@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" fill="none">
+  <rect width="1000" height="700" fill="#f4f1ec"/>
+  <rect x="40" y="40" width="920" height="620" fill="#fff" stroke="#1a2338" stroke-width="3"/>
+  <!-- Corridor -->
+  <rect x="420" y="40" width="160" height="620" fill="#e8e4dc" stroke="#1a2338" stroke-width="2"/>
+  <text x="500" y="360" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" fill="#8a8578" transform="rotate(-90 500 360)">CORRIDOR</text>
+  <!-- Elevator / stairs -->
+  <rect x="450" y="280" width="100" height="140" fill="#d9d3c7" stroke="#1a2338" stroke-width="2"/>
+  <text x="500" y="355" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#5c574c">LIFT</text>
+  <!-- Unit A top-left -->
+  <rect x="40" y="40" width="380" height="300" fill="#c9a96e22" stroke="#1a2338" stroke-width="2"/>
+  <text x="230" y="200" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#1a2338">A</text>
+  <!-- Unit B bottom-left -->
+  <rect x="40" y="360" width="380" height="300" fill="#1a233815" stroke="#1a2338" stroke-width="2"/>
+  <text x="230" y="520" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#1a2338">B</text>
+  <!-- Unit C top-right -->
+  <rect x="580" y="40" width="380" height="300" fill="#1a233815" stroke="#1a2338" stroke-width="2"/>
+  <text x="770" y="200" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#1a2338">C</text>
+  <!-- Unit D bottom-right -->
+  <rect x="580" y="360" width="380" height="300" fill="#c9a96e22" stroke="#1a2338" stroke-width="2"/>
+  <text x="770" y="520" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#1a2338">D</text>
+  <!-- Balcony hints -->
+  <rect x="40" y="20" width="120" height="20" fill="#9ec5e8" stroke="#1a2338" stroke-width="1"/>
+  <rect x="840" y="20" width="120" height="20" fill="#9ec5e8" stroke="#1a2338" stroke-width="1"/>
+  <rect x="40" y="660" width="120" height="20" fill="#9ec5e8" stroke="#1a2338" stroke-width="1"/>
+  <rect x="840" y="660" width="120" height="20" fill="#9ec5e8" stroke="#1a2338" stroke-width="1"/>
+</svg>

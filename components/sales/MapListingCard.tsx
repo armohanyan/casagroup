@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
-import { listingCode } from "@/lib/listing-code";
+import { apartmentDisplayNumber } from "@/lib/apartment-number";
 import { useI18n } from "@/lib/i18n";
 import type { PropertyListing } from "@/lib/properties";
 
@@ -18,7 +18,7 @@ export function MapListingCard({ listing, selected, onSelect }: Props) {
   const { t } = useI18n();
   const { apartment, project } = listing;
   const image = apartment.gallery[0] ?? project.images[0];
-  const code = listingCode(apartment.id);
+  const code = apartmentDisplayNumber(apartment);
   const href = `/projects/${project.slug}/apartments/${apartment.id}`;
 
   return (
@@ -39,7 +39,7 @@ export function MapListingCard({ listing, selected, onSelect }: Props) {
             <Image src={image} alt="" fill unoptimized sizes="96px" className="object-cover" />
           ) : null}
           <span className="absolute top-1 left-1 bg-white/95 text-[#1C1917] text-[10px] font-semibold px-1.5 py-0.5 rounded tabular-nums">
-            {code}
+            № {code}
           </span>
         </div>
         <div className="min-w-0 flex-1">
