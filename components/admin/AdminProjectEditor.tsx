@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Building2,
+  ChevronDown,
   DollarSign,
   Home,
   Image as ImageIcon,
@@ -54,20 +55,126 @@ function Section({
   title,
   icon: Icon,
   children,
+  actions,
 }: {
   title: string;
   icon: React.ElementType;
   children: React.ReactNode;
+  actions?: React.ReactNode;
 }) {
   return (
     <section className={cn(adminCardCls, "overflow-hidden")}>
-      <div className="flex items-center gap-2 border-b border-[#F0F1F3] px-5 py-3.5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#F0F1F3] px-5 py-3.5">
         <Icon size={16} className="text-[#c9a96e]" strokeWidth={1.75} />
         <h2 className="text-sm font-semibold text-[#0c1428]">{title}</h2>
+        {actions ? <div className="ml-auto flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
       <div className="space-y-4 p-5">{children}</div>
     </section>
   );
+}
+
+function AccordionItem({
+  open,
+  onToggle,
+  title,
+  meta,
+  children,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  title: string;
+  meta?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA]">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-[#F3F0EA]"
+      >
+        <ChevronDown
+          size={16}
+          className={cn(
+            "shrink-0 text-[#9CA3AF] transition-transform duration-200",
+            open ? "rotate-0" : "-rotate-90",
+          )}
+        />
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#0c1428]">{title}</span>
+        {meta ? <span className="shrink-0 text-xs tabular-nums text-[#9CA3AF]">{meta}</span> : null}
+      </button>
+      {open ? <div className="space-y-4 border-t border-[#E8EAED] p-3">{children}</div> : null}
+    </div>
+  );
+}
+
+function AdminModal({
+  open,
+  title,
+  onClose,
+  children,
+  footer,
+}: {
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer: React.ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-[#0c1428]/45 p-4 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={cn(adminCardCls, "w-full max-w-lg p-5 sm:p-6")}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <h3 className="text-lg font-semibold text-[#0c1428]">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-[5px] text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#0c1428]"
+            aria-label={a.cancel}
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="space-y-4">{children}</div>
+        <div className="mt-6 flex flex-wrap justify-end gap-2">{footer}</div>
+      </div>
+    </div>
+  );
+}
+
+type AptCreateDraft = {
+  apartmentNumber: string;
+  buildingId: string;
+  floor: number;
+  rooms: number;
+  area: number;
+  price: number;
+  status: ApartmentStatus;
+};
+
+function emptyAptCreateDraft(buildingId = ""): AptCreateDraft {
+  return {
+    apartmentNumber: "",
+    buildingId,
+    floor: 1,
+    rooms: 2,
+    area: 80,
+    price: 150000,
+    status: "Available",
+  };
 }
 
 interface Props {
@@ -97,6 +204,15 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [uploadingAptGalleryId, setUploadingAptGalleryId] = useState<string | null>(null);
   const [amenityDraft, setAmenityDraft] = useState("");
   const [imageUrlDraft, setImageUrlDraft] = useState("");
+  const [openBuildingIds, setOpenBuildingIds] = useState<string[]>([]);
+  const [openAptIds, setOpenAptIds] = useState<string[]>([]);
+  const [openFloorIds, setOpenFloorIds] = useState<string[]>([]);
+  const [buildingModalOpen, setBuildingModalOpen] = useState(false);
+  const [buildingNameDraft, setBuildingNameDraft] = useState("");
+  const [floorModalBuildingId, setFloorModalBuildingId] = useState<string | null>(null);
+  const [floorLabelDraft, setFloorLabelDraft] = useState("");
+  const [aptModalOpen, setAptModalOpen] = useState(false);
+  const [aptCreateDraft, setAptCreateDraft] = useState<AptCreateDraft>(() => emptyAptCreateDraft());
   const fileRef = useRef<HTMLInputElement>(null);
   const droneFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
@@ -195,6 +311,64 @@ export function AdminProjectEditor({ projectId }: Props) {
       "apartments",
       form.apartments.map((apt) => (apt.buildingId === id ? { ...apt, buildingId: undefined } : apt)),
     );
+    setOpenBuildingIds((ids) => ids.filter((x) => x !== id));
+  }
+
+  function toggleId(ids: string[], id: string) {
+    return ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id];
+  }
+
+  function openCreateBuildingModal() {
+    setBuildingNameDraft("");
+    setBuildingModalOpen(true);
+  }
+
+  function createBuildingFromModal() {
+    const building = emptyBuilding(apartmentProjectId, buildings.length);
+    building.name = buildingNameDraft.trim();
+    set("buildings", [...buildings, building]);
+    setOpenBuildingIds((ids) => [...ids, building.id]);
+    setBuildingModalOpen(false);
+    setBuildingNameDraft("");
+  }
+
+  function openCreateFloorModal(buildingId: string) {
+    const building = buildings.find((b) => b.id === buildingId);
+    const nextIndex = building?.floors?.length ?? 0;
+    setFloorLabelDraft(String(nextIndex + 1));
+    setFloorModalBuildingId(buildingId);
+  }
+
+  function createFloorFromModal() {
+    if (!floorModalBuildingId) return;
+    const building = buildings.find((b) => b.id === floorModalBuildingId);
+    const floors = building?.floors ?? [];
+    const floor = emptyBuildingFloor(floorModalBuildingId, floors.length);
+    floor.label = floorLabelDraft.trim() || floor.label;
+    updateBuilding(floorModalBuildingId, { floors: [...floors, floor] });
+    setOpenFloorIds((ids) => [...ids, floor.id]);
+    setOpenBuildingIds((ids) => (ids.includes(floorModalBuildingId) ? ids : [...ids, floorModalBuildingId]));
+    setFloorModalBuildingId(null);
+    setFloorLabelDraft("");
+  }
+
+  function openCreateAptModal() {
+    setAptCreateDraft(emptyAptCreateDraft(buildings[0]?.id ?? ""));
+    setAptModalOpen(true);
+  }
+
+  function createAptFromModal() {
+    const apt = emptyApartment(apartmentProjectId, aptCreateDraft.buildingId || undefined);
+    apt.apartmentNumber = aptCreateDraft.apartmentNumber.trim();
+    apt.floor = aptCreateDraft.floor;
+    apt.rooms = aptCreateDraft.rooms;
+    apt.area = aptCreateDraft.area;
+    apt.price = aptCreateDraft.price;
+    apt.status = aptCreateDraft.status;
+    set("apartments", [...form.apartments, apt]);
+    setOpenAptIds((ids) => [...ids, apt.id]);
+    setAptModalOpen(false);
+    setAptCreateDraft(emptyAptCreateDraft());
   }
 
   async function handleFloorImageUpload(file: File, buildingId: string, floorId: string) {
@@ -836,7 +1010,30 @@ export function AdminProjectEditor({ projectId }: Props) {
           </div>
         </Section>
 
-        <Section title={a.sectionBuildings} icon={Building2}>
+        <Section
+          title={a.sectionBuildings}
+          icon={Building2}
+          actions={
+            <>
+              {buildings.length > 0 ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-[#6B7280] hover:text-[#0c1428]"
+                  onClick={() =>
+                    setOpenBuildingIds((ids) =>
+                      ids.length === buildings.length ? [] : buildings.map((b) => b.id),
+                    )
+                  }
+                >
+                  {openBuildingIds.length === buildings.length ? a.collapseAll : a.expandAll}
+                </button>
+              ) : null}
+              <button type="button" className={cn(adminBtnSecondary, "h-8 px-3 text-xs")} onClick={openCreateBuildingModal}>
+                <Plus size={14} /> {a.addBuilding}
+              </button>
+            </>
+          }
+        >
           <div className="rounded-[5px] border border-[#E8EAED] bg-[#F8F6F1] px-3 py-2.5 text-xs leading-relaxed text-[#57534E]">
             <p className="font-semibold text-[#0c1428]">{a.buildingsHint}</p>
             <ol className="mt-1.5 list-decimal space-y-0.5 pl-4">
@@ -845,14 +1042,24 @@ export function AdminProjectEditor({ projectId }: Props) {
               <li>{a.buildingsStep3}</li>
             </ol>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {buildings.map((building, index) => {
               const buildingApts = form.apartments.filter((apt) => apt.buildingId === building.id);
               const floors = building.floors ?? [];
+              const isOpen = openBuildingIds.includes(building.id);
               return (
-                <div
+                <AccordionItem
                   key={building.id}
-                  className="space-y-4 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3"
+                  open={isOpen}
+                  onToggle={() => setOpenBuildingIds((ids) => toggleId(ids, building.id))}
+                  title={building.name.trim() || a.unnamedBuilding}
+                  meta={
+                    <>
+                      {a.floorsCount.replace("{count}", String(floors.length))}
+                      {" · "}
+                      {buildingApts.length} {a.plansAttached}
+                    </>
+                  }
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div className="min-w-0 flex-1">
@@ -867,9 +1074,6 @@ export function AdminProjectEditor({ projectId }: Props) {
                         />
                       </Field>
                     </div>
-                    <p className="pb-3 text-xs tabular-nums text-[#9CA3AF] sm:w-24">
-                      {buildingApts.length} {a.plansAttached}
-                    </p>
                     <button
                       type="button"
                       onClick={() => removeBuilding(building.id)}
@@ -879,116 +1083,121 @@ export function AdminProjectEditor({ projectId }: Props) {
                     </button>
                   </div>
 
-                  <div className="space-y-3 border-t border-[#E8EAED] pt-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
-                      {a.buildingFloorsTitle}
-                    </p>
+                  <div className="space-y-2 border-t border-[#E8EAED] pt-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
+                        {a.buildingFloorsTitle}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => openCreateFloorModal(building.id)}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+                      >
+                        <Plus size={15} /> {a.addFloorPlate}
+                      </button>
+                    </div>
                     {floors.length === 0 && (
                       <p className="text-xs text-[#9CA3AF]">{a.noFloorPlates}</p>
                     )}
-                    {floors.map((floor, fi) => (
-                      <div
-                        key={floor.id}
-                        className="space-y-3 rounded-[5px] border border-[#E5E7EB] bg-white p-3"
-                      >
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-[120px_1fr_auto] md:items-end">
-                          <Field label={a.floorLabelField}>
-                            <input
-                              className={adminInputCls}
-                              value={floor.label}
-                              placeholder={a.floorLabelPlaceholder}
-                              onChange={(e) =>
-                                updateBuildingFloor(building.id, floor.id, {
-                                  label: e.target.value,
-                                  sortOrder: fi,
-                                })
-                              }
-                            />
-                          </Field>
-                          <Field label={a.floorImageUrl}>
-                            <input
-                              className={adminInputCls}
-                              value={floor.imageUrl}
-                              placeholder={a.floorPlanUrlPlaceholder}
-                              onChange={(e) =>
-                                updateBuildingFloor(building.id, floor.id, {
-                                  imageUrl: e.target.value,
-                                })
-                              }
-                            />
-                          </Field>
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              disabled={uploadingFloorId === floor.id}
-                              className={cn(adminBtnSecondary, "h-11")}
-                              onClick={() => {
-                                floorImageTarget.current = {
-                                  buildingId: building.id,
-                                  floorId: floor.id,
-                                };
-                                floorImageRef.current?.click();
-                              }}
-                            >
-                              {uploadingFloorId === floor.id ? "…" : a.uploadFloorImage}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateBuilding(building.id, {
-                                  floors: floors.filter((f) => f.id !== floor.id),
-                                })
-                              }
-                              className="inline-flex h-11 items-center gap-1 rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
-                            >
-                              <Trash2 size={14} /> {a.removeFloorPlate}
-                            </button>
+                    {floors.map((floor, fi) => {
+                      const floorOpen = openFloorIds.includes(floor.id);
+                      return (
+                        <AccordionItem
+                          key={floor.id}
+                          open={floorOpen}
+                          onToggle={() => setOpenFloorIds((ids) => toggleId(ids, floor.id))}
+                          title={`${a.floorLabelField}: ${floor.label.trim() || "—"}`}
+                          meta={floor.imageUrl.trim() ? a.hasFloorImage : a.noFloorImage}
+                        >
+                          <div className="grid grid-cols-1 gap-3 md:grid-cols-[120px_1fr_auto] md:items-end">
+                            <Field label={a.floorLabelField}>
+                              <input
+                                className={adminInputCls}
+                                value={floor.label}
+                                placeholder={a.floorLabelPlaceholder}
+                                onChange={(e) =>
+                                  updateBuildingFloor(building.id, floor.id, {
+                                    label: e.target.value,
+                                    sortOrder: fi,
+                                  })
+                                }
+                              />
+                            </Field>
+                            <Field label={a.floorImageUrl}>
+                              <input
+                                className={adminInputCls}
+                                value={floor.imageUrl}
+                                placeholder={a.floorPlanUrlPlaceholder}
+                                onChange={(e) =>
+                                  updateBuildingFloor(building.id, floor.id, {
+                                    imageUrl: e.target.value,
+                                  })
+                                }
+                              />
+                            </Field>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                disabled={uploadingFloorId === floor.id}
+                                className={cn(adminBtnSecondary, "h-11")}
+                                onClick={() => {
+                                  floorImageTarget.current = {
+                                    buildingId: building.id,
+                                    floorId: floor.id,
+                                  };
+                                  floorImageRef.current?.click();
+                                }}
+                              >
+                                {uploadingFloorId === floor.id ? "…" : a.uploadFloorImage}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  updateBuilding(building.id, {
+                                    floors: floors.filter((f) => f.id !== floor.id),
+                                  });
+                                  setOpenFloorIds((ids) => ids.filter((x) => x !== floor.id));
+                                }}
+                                className="inline-flex h-11 items-center gap-1 rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
+                              >
+                                <Trash2 size={14} /> {a.removeFloorPlate}
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                        {floor.imageUrl.trim() ? (
-                          <AdminImageThumb
-                            src={floor.imageUrl}
-                            className="h-40 w-full max-w-sm aspect-auto sm:aspect-[4/3]"
-                            imgClassName="object-contain bg-[#FAFAF8]"
-                            removeLabel={a.removeImage}
-                            onRemove={() =>
-                              updateBuildingFloor(building.id, floor.id, {
-                                imageUrl: "",
-                                hotspots: [],
-                              })
-                            }
+                          {floor.imageUrl.trim() ? (
+                            <AdminImageThumb
+                              src={floor.imageUrl}
+                              className="h-40 w-full max-w-sm aspect-auto sm:aspect-[4/3]"
+                              imgClassName="object-contain bg-[#FAFAF8]"
+                              removeLabel={a.removeImage}
+                              onRemove={() =>
+                                updateBuildingFloor(building.id, floor.id, {
+                                  imageUrl: "",
+                                  hotspots: [],
+                                })
+                              }
+                            />
+                          ) : null}
+                          <FloorHotspotEditor
+                            floor={floor}
+                            apartments={buildingApts}
+                            onChange={(patch) => updateBuildingFloor(building.id, floor.id, patch)}
+                            labels={{
+                              selectApartment: a.hotspotSelectApartment,
+                              drawHint: a.hotspotDrawHint,
+                              finishPolygon: a.hotspotFinish,
+                              undoPoint: a.hotspotUndo,
+                              clearDraft: a.hotspotClear,
+                              removeHotspot: a.hotspotRemove,
+                              noApartments: a.hotspotNoApartments,
+                              hotspotCount: a.hotspotCount,
+                            }}
                           />
-                        ) : null}
-                        <FloorHotspotEditor
-                          floor={floor}
-                          apartments={buildingApts}
-                          onChange={(patch) => updateBuildingFloor(building.id, floor.id, patch)}
-                          labels={{
-                            selectApartment: a.hotspotSelectApartment,
-                            drawHint: a.hotspotDrawHint,
-                            finishPolygon: a.hotspotFinish,
-                            undoPoint: a.hotspotUndo,
-                            clearDraft: a.hotspotClear,
-                            removeHotspot: a.hotspotRemove,
-                            noApartments: a.hotspotNoApartments,
-                            hotspotCount: a.hotspotCount,
-                          }}
-                        />
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateBuilding(building.id, {
-                          floors: [...floors, emptyBuildingFloor(building.id, floors.length)],
-                        })
-                      }
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
-                    >
-                      <Plus size={15} /> {a.addFloorPlate}
-                    </button>
+                        </AccordionItem>
+                      );
+                    })}
                   </div>
-                </div>
+                </AccordionItem>
               );
             })}
             {buildings.length === 0 && (
@@ -1010,229 +1219,268 @@ export function AdminProjectEditor({ projectId }: Props) {
               floorImageTarget.current = null;
             }}
           />
-          <button
-            type="button"
-            onClick={() =>
-              set("buildings", [
-                ...buildings,
-                emptyBuilding(apartmentProjectId, buildings.length),
-              ])
-            }
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
-          >
-            <Plus size={15} /> {a.addBuilding}
-          </button>
         </Section>
 
-        <Section title={a.sectionApartments} icon={Home}>
-          <div className="space-y-3">
-            {form.apartments.map((apt) => (
-              <div key={apt.id} className="space-y-3 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3">
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
-                  <Field label={a.apartmentNumber}>
-                    <input
-                      className={adminInputCls}
-                      value={apt.apartmentNumber ?? ""}
-                      placeholder={a.apartmentNumberPlaceholder}
-                      onChange={(e) => updateApt(apt.id, { apartmentNumber: e.target.value })}
-                    />
-                  </Field>
-                  <Field label={a.buildingLabel}>
-                    <select
-                      className={adminSelectCls}
-                      value={apt.buildingId ?? ""}
-                      onChange={(e) =>
-                        updateApt(apt.id, { buildingId: e.target.value || undefined })
-                      }
+        <Section
+          title={a.sectionApartments}
+          icon={Home}
+          actions={
+            <>
+              {form.apartments.length > 0 ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-[#6B7280] hover:text-[#0c1428]"
+                  onClick={() =>
+                    setOpenAptIds((ids) =>
+                      ids.length === form.apartments.length ? [] : form.apartments.map((x) => x.id),
+                    )
+                  }
+                >
+                  {openAptIds.length === form.apartments.length ? a.collapseAll : a.expandAll}
+                </button>
+              ) : null}
+              <button type="button" className={cn(adminBtnSecondary, "h-8 px-3 text-xs")} onClick={openCreateAptModal}>
+                <Plus size={14} /> {a.addUnit}
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-2">
+            {form.apartments.map((apt) => {
+              const buildingName =
+                buildings.find((b) => b.id === apt.buildingId)?.name.trim() || a.noBuildingAssigned;
+              const isOpen = openAptIds.includes(apt.id);
+              return (
+                <AccordionItem
+                  key={apt.id}
+                  open={isOpen}
+                  onToggle={() => setOpenAptIds((ids) => toggleId(ids, apt.id))}
+                  title={
+                    apt.apartmentNumber?.trim()
+                      ? `${a.apartmentNumber} ${apt.apartmentNumber}`
+                      : a.unnamedUnit
+                  }
+                  meta={
+                    <>
+                      {buildingName}
+                      {" · "}
+                      {a.floorLabel} {apt.floor}
+                      {" · "}
+                      {apt.rooms} {a.roomsShort}
+                      {" · "}
+                      {apt.area} մ²
+                    </>
+                  }
+                >
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+                    <Field label={a.apartmentNumber}>
+                      <input
+                        className={adminInputCls}
+                        value={apt.apartmentNumber ?? ""}
+                        placeholder={a.apartmentNumberPlaceholder}
+                        onChange={(e) => updateApt(apt.id, { apartmentNumber: e.target.value })}
+                      />
+                    </Field>
+                    <Field label={a.buildingLabel}>
+                      <select
+                        className={adminSelectCls}
+                        value={apt.buildingId ?? ""}
+                        onChange={(e) =>
+                          updateApt(apt.id, { buildingId: e.target.value || undefined })
+                        }
+                      >
+                        <option value="">{a.noBuildingAssigned}</option>
+                        {buildings
+                          .filter((b) => b.name.trim())
+                          .map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.name}
+                            </option>
+                          ))}
+                      </select>
+                    </Field>
+                    <Field label={a.floorLabel}>
+                      <input
+                        type="number"
+                        className={adminInputCls}
+                        value={apt.floor}
+                        onChange={(e) => updateApt(apt.id, { floor: +e.target.value })}
+                      />
+                    </Field>
+                    <Field label={a.roomsShort}>
+                      <input
+                        type="number"
+                        className={adminInputCls}
+                        value={apt.rooms}
+                        onChange={(e) => updateApt(apt.id, { rooms: +e.target.value })}
+                      />
+                    </Field>
+                    <Field label={a.areaSqm}>
+                      <input
+                        type="number"
+                        className={adminInputCls}
+                        value={apt.area}
+                        onChange={(e) => updateApt(apt.id, { area: +e.target.value })}
+                      />
+                    </Field>
+                    <Field label={a.priceAmd}>
+                      <input
+                        type="number"
+                        className={adminInputCls}
+                        value={apt.price}
+                        onChange={(e) => updateApt(apt.id, { price: +e.target.value })}
+                      />
+                    </Field>
+                    <Field label={hyTranslations.filter.status}>
+                      <select
+                        className={adminSelectCls}
+                        value={apt.status}
+                        onChange={(e) => updateApt(apt.id, { status: e.target.value as ApartmentStatus })}
+                      >
+                        <option value="Available">{getStatusLabel(hyTranslations, "Available")}</option>
+                        <option value="Reserved">{getStatusLabel(hyTranslations, "Reserved")}</option>
+                        <option value="Sold">{getStatusLabel(hyTranslations, "Sold")}</option>
+                      </select>
+                    </Field>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        set("apartments", form.apartments.filter((x) => x.id !== apt.id));
+                        setOpenAptIds((ids) => ids.filter((x) => x !== apt.id));
+                      }}
+                      className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600"
                     >
-                      <option value="">{a.noBuildingAssigned}</option>
-                      {buildings
-                        .filter((b) => b.name.trim())
-                        .map((b) => (
-                          <option key={b.id} value={b.id}>
-                            {b.name}
-                          </option>
-                        ))}
-                    </select>
-                  </Field>
-                  <Field label={a.floorLabel}>
-                    <input
-                      type="number"
-                      className={adminInputCls}
-                      value={apt.floor}
-                      onChange={(e) => updateApt(apt.id, { floor: +e.target.value })}
-                    />
-                  </Field>
-                  <Field label={a.roomsShort}>
-                    <input
-                      type="number"
-                      className={adminInputCls}
-                      value={apt.rooms}
-                      onChange={(e) => updateApt(apt.id, { rooms: +e.target.value })}
-                    />
-                  </Field>
-                  <Field label={a.areaSqm}>
-                    <input
-                      type="number"
-                      className={adminInputCls}
-                      value={apt.area}
-                      onChange={(e) => updateApt(apt.id, { area: +e.target.value })}
-                    />
-                  </Field>
-                  <Field label={a.priceAmd}>
-                    <input
-                      type="number"
-                      className={adminInputCls}
-                      value={apt.price}
-                      onChange={(e) => updateApt(apt.id, { price: +e.target.value })}
-                    />
-                  </Field>
-                  <Field label={hyTranslations.filter.status}>
-                    <select
-                      className={adminSelectCls}
-                      value={apt.status}
-                      onChange={(e) => updateApt(apt.id, { status: e.target.value as ApartmentStatus })}
-                    >
-                      <option value="Available">{getStatusLabel(hyTranslations, "Available")}</option>
-                      <option value="Reserved">{getStatusLabel(hyTranslations, "Reserved")}</option>
-                      <option value="Sold">{getStatusLabel(hyTranslations, "Sold")}</option>
-                    </select>
-                  </Field>
-                </div>
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => set("apartments", form.apartments.filter((x) => x.id !== apt.id))}
-                    className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-600"
-                  >
-                    <Trash2 size={14} /> {a.remove}
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <Field label="Տեսարան">
-                    <input
-                      className={adminInputCls}
-                      value={apt.viewType}
-                      onChange={(e) => updateApt(apt.id, { viewType: e.target.value })}
-                    />
-                  </Field>
-                  <div className="md:col-span-2">
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                      <Field label={a.floorPlanUrl}>
+                      <Trash2 size={14} /> {a.remove}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <Field label="Տեսարան">
+                      <input
+                        className={adminInputCls}
+                        value={apt.viewType}
+                        onChange={(e) => updateApt(apt.id, { viewType: e.target.value })}
+                      />
+                    </Field>
+                    <div className="md:col-span-2">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                        <Field label={a.floorPlanUrl}>
+                          <input
+                            className={adminInputCls}
+                            value={apt.floorPlanImage}
+                            placeholder={a.floorPlanUrlPlaceholder}
+                            onChange={(e) => updateApt(apt.id, { floorPlanImage: e.target.value })}
+                          />
+                        </Field>
+                        <button
+                          type="button"
+                          disabled={uploadingAptPlanId === apt.id}
+                          className={cn(adminBtnSecondary, "h-11")}
+                          onClick={() => {
+                            aptPlanTargetAptId.current = apt.id;
+                            aptPlanFileRef.current?.click();
+                          }}
+                        >
+                          {uploadingAptPlanId === apt.id ? "Վերբեռնում…" : a.uploadFloorImage}
+                        </button>
+                      </div>
+                      {apt.floorPlanImage.trim() ? (
+                        <div className="mt-2 max-w-xs">
+                          <AdminImageThumb
+                            src={apt.floorPlanImage}
+                            className="aspect-[4/3]"
+                            imgClassName="object-contain bg-[#FAFAF8]"
+                            removeLabel={a.removeImage}
+                            onRemove={() => updateApt(apt.id, { floorPlanImage: "" })}
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                    <Field label="Պատշգամբ">
+                      <label className="flex h-11 items-center gap-2 text-sm text-[#0c1428]">
                         <input
-                          className={adminInputCls}
-                          value={apt.floorPlanImage}
-                          placeholder={a.floorPlanUrlPlaceholder}
-                          onChange={(e) => updateApt(apt.id, { floorPlanImage: e.target.value })}
+                          type="checkbox"
+                          checked={Boolean(apt.balcony)}
+                          onChange={(e) => updateApt(apt.id, { balcony: e.target.checked })}
                         />
-                      </Field>
+                        Այո
+                      </label>
+                    </Field>
+                  </div>
+                  <Field label={a.unitDescription}>
+                    <textarea
+                      className={adminTextareaCls}
+                      value={apt.description ?? ""}
+                      placeholder={a.unitDescriptionPlaceholder}
+                      onChange={(e) => updateApt(apt.id, { description: e.target.value })}
+                    />
+                  </Field>
+                  <div className="space-y-2 rounded-[5px] border border-[#E8EAED] bg-white p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-[#0c1428]">{a.galleryImages}</p>
                       <button
                         type="button"
-                        disabled={uploadingAptPlanId === apt.id}
-                        className={cn(adminBtnSecondary, "h-11")}
+                        disabled={uploadingAptGalleryId === apt.id}
+                        className={cn(adminBtnSecondary, "h-9 text-xs")}
                         onClick={() => {
-                          aptPlanTargetAptId.current = apt.id;
-                          aptPlanFileRef.current?.click();
+                          aptGalleryTargetAptId.current = apt.id;
+                          aptGalleryFileRef.current?.click();
                         }}
                       >
-                        {uploadingAptPlanId === apt.id ? "Վերբեռնում…" : a.uploadFloorImage}
+                        <Plus size={14} />
+                        {uploadingAptGalleryId === apt.id ? "Վերբեռնում…" : a.uploadImages}
                       </button>
                     </div>
-                    {apt.floorPlanImage.trim() ? (
-                      <div className="mt-2 max-w-xs">
-                        <AdminImageThumb
-                          src={apt.floorPlanImage}
-                          className="aspect-[4/3]"
-                          imgClassName="object-contain bg-[#FAFAF8]"
-                          removeLabel={a.removeImage}
-                          onRemove={() => updateApt(apt.id, { floorPlanImage: "" })}
-                        />
-                      </div>
-                    ) : null}
+                    <AdminImageGrid
+                      urls={apt.gallery ?? []}
+                      onRemove={(index) => removeAptGalleryImage(apt.id, index)}
+                      emptyLabel={a.aptGalleryEmpty}
+                      removeLabel={a.removeImage}
+                      className="sm:grid-cols-3 md:grid-cols-4"
+                    />
+                    <p className="text-[11px] text-[#9CA3AF]">{a.aptGalleryHint}</p>
                   </div>
-                  <Field label="Պատշգամբ">
-                    <label className="flex h-11 items-center gap-2 text-sm text-[#0c1428]">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                    <Field label={a.planPdf}>
                       <input
-                        type="checkbox"
-                        checked={Boolean(apt.balcony)}
-                        onChange={(e) => updateApt(apt.id, { balcony: e.target.checked })}
+                        className={adminInputCls}
+                        value={apt.planPdfUrl ?? ""}
+                        placeholder="https://… կամ վերբեռնեք PDF"
+                        onChange={(e) => updateApt(apt.id, { planPdfUrl: e.target.value })}
                       />
-                      Այո
-                    </label>
-                  </Field>
-                </div>
-                <Field label={a.unitDescription}>
-                  <textarea
-                    className={adminTextareaCls}
-                    value={apt.description ?? ""}
-                    placeholder={a.unitDescriptionPlaceholder}
-                    onChange={(e) => updateApt(apt.id, { description: e.target.value })}
-                  />
-                </Field>
-                <div className="space-y-2 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-[#0c1428]">{a.galleryImages}</p>
+                    </Field>
                     <button
                       type="button"
-                      disabled={uploadingAptGalleryId === apt.id}
-                      className={cn(adminBtnSecondary, "h-9 text-xs")}
+                      disabled={uploadingPdfId === apt.id}
+                      className={cn(adminBtnSecondary, "h-11")}
                       onClick={() => {
-                        aptGalleryTargetAptId.current = apt.id;
-                        aptGalleryFileRef.current?.click();
+                        pdfTargetAptId.current = apt.id;
+                        pdfFileRef.current?.click();
                       }}
                     >
-                      <Plus size={14} />
-                      {uploadingAptGalleryId === apt.id ? "Վերբեռնում…" : a.uploadImages}
+                      {uploadingPdfId === apt.id ? "Վերբեռնում…" : a.uploadPdf}
                     </button>
                   </div>
-                  <AdminImageGrid
-                    urls={apt.gallery ?? []}
-                    onRemove={(index) => removeAptGalleryImage(apt.id, index)}
-                    emptyLabel={a.aptGalleryEmpty}
-                    removeLabel={a.removeImage}
-                    className="sm:grid-cols-3 md:grid-cols-4"
-                  />
-                  <p className="text-[11px] text-[#9CA3AF]">{a.aptGalleryHint}</p>
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-end">
-                  <Field label={a.planPdf}>
-                    <input
-                      className={adminInputCls}
-                      value={apt.planPdfUrl ?? ""}
-                      placeholder="https://… կամ վերբեռնեք PDF"
-                      onChange={(e) => updateApt(apt.id, { planPdfUrl: e.target.value })}
-                    />
-                  </Field>
-                  <button
-                    type="button"
-                    disabled={uploadingPdfId === apt.id}
-                    className={cn(adminBtnSecondary, "h-11")}
-                    onClick={() => {
-                      pdfTargetAptId.current = apt.id;
-                      pdfFileRef.current?.click();
-                    }}
-                  >
-                    {uploadingPdfId === apt.id ? "Վերբեռնում…" : a.uploadPdf}
-                  </button>
-                </div>
-                {apt.planPdfUrl ? (
-                  <p className="text-xs text-[#6B7280]">
-                    PDF կցված է —{" "}
-                    <a href={apt.planPdfUrl} target="_blank" rel="noopener noreferrer" className="text-[#c9a96e] hover:underline">
-                      բացել
-                    </a>
-                    {" · "}
-                    <button
-                      type="button"
-                      className="text-red-500 hover:underline"
-                      onClick={() => updateApt(apt.id, { planPdfUrl: "" })}
-                    >
-                      հեռացնել
-                    </button>
-                  </p>
-                ) : null}
-              </div>
-            ))}
+                  {apt.planPdfUrl ? (
+                    <p className="text-xs text-[#6B7280]">
+                      PDF կցված է —{" "}
+                      <a href={apt.planPdfUrl} target="_blank" rel="noopener noreferrer" className="text-[#c9a96e] hover:underline">
+                        բացել
+                      </a>
+                      {" · "}
+                      <button
+                        type="button"
+                        className="text-red-500 hover:underline"
+                        onClick={() => updateApt(apt.id, { planPdfUrl: "" })}
+                      >
+                        հեռացնել
+                      </button>
+                    </p>
+                  ) : null}
+                </AccordionItem>
+              );
+            })}
             <input
               ref={pdfFileRef}
               type="file"
@@ -1273,21 +1521,165 @@ export function AdminProjectEditor({ projectId }: Props) {
                 aptGalleryTargetAptId.current = null;
               }}
             />
-            <button
-              type="button"
-              onClick={() =>
-                set("apartments", [
-                  ...form.apartments,
-                  emptyApartment(apartmentProjectId, buildings[0]?.id),
-                ])
-              }
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
-            >
-              <Plus size={15} /> {a.addUnit}
-            </button>
+            {form.apartments.length === 0 ? (
+              <p className="text-sm text-[#9CA3AF]">{a.noApartments}</p>
+            ) : null}
           </div>
         </Section>
       </div>
+
+      <AdminModal
+        open={buildingModalOpen}
+        title={a.newBuildingTitle}
+        onClose={() => setBuildingModalOpen(false)}
+        footer={
+          <>
+            <button type="button" className={adminBtnSecondary} onClick={() => setBuildingModalOpen(false)}>
+              {a.cancel}
+            </button>
+            <button type="button" className={adminBtnPrimary} onClick={createBuildingFromModal}>
+              {a.createBuilding}
+            </button>
+          </>
+        }
+      >
+        <Field label={a.buildingName}>
+          <input
+            className={adminInputCls}
+            value={buildingNameDraft}
+            placeholder={a.buildingNamePlaceholder}
+            autoFocus
+            onChange={(e) => setBuildingNameDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                createBuildingFromModal();
+              }
+            }}
+          />
+        </Field>
+      </AdminModal>
+
+      <AdminModal
+        open={floorModalBuildingId !== null}
+        title={a.newFloorPlateTitle}
+        onClose={() => setFloorModalBuildingId(null)}
+        footer={
+          <>
+            <button type="button" className={adminBtnSecondary} onClick={() => setFloorModalBuildingId(null)}>
+              {a.cancel}
+            </button>
+            <button type="button" className={adminBtnPrimary} onClick={createFloorFromModal}>
+              {a.createFloorPlate}
+            </button>
+          </>
+        }
+      >
+        <Field label={a.floorLabelField}>
+          <input
+            className={adminInputCls}
+            value={floorLabelDraft}
+            placeholder={a.floorLabelPlaceholder}
+            autoFocus
+            onChange={(e) => setFloorLabelDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                createFloorFromModal();
+              }
+            }}
+          />
+        </Field>
+      </AdminModal>
+
+      <AdminModal
+        open={aptModalOpen}
+        title={a.newUnitTitle}
+        onClose={() => setAptModalOpen(false)}
+        footer={
+          <>
+            <button type="button" className={adminBtnSecondary} onClick={() => setAptModalOpen(false)}>
+              {a.cancel}
+            </button>
+            <button type="button" className={adminBtnPrimary} onClick={createAptFromModal}>
+              {a.createUnit}
+            </button>
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={a.apartmentNumber}>
+            <input
+              className={adminInputCls}
+              value={aptCreateDraft.apartmentNumber}
+              placeholder={a.apartmentNumberPlaceholder}
+              autoFocus
+              onChange={(e) => setAptCreateDraft((d) => ({ ...d, apartmentNumber: e.target.value }))}
+            />
+          </Field>
+          <Field label={a.buildingLabel}>
+            <select
+              className={adminSelectCls}
+              value={aptCreateDraft.buildingId}
+              onChange={(e) => setAptCreateDraft((d) => ({ ...d, buildingId: e.target.value }))}
+            >
+              <option value="">{a.noBuildingAssigned}</option>
+              {buildings
+                .filter((b) => b.name.trim())
+                .map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+          <Field label={a.floorLabel}>
+            <input
+              type="number"
+              className={adminInputCls}
+              value={aptCreateDraft.floor}
+              onChange={(e) => setAptCreateDraft((d) => ({ ...d, floor: +e.target.value }))}
+            />
+          </Field>
+          <Field label={a.roomsShort}>
+            <input
+              type="number"
+              className={adminInputCls}
+              value={aptCreateDraft.rooms}
+              onChange={(e) => setAptCreateDraft((d) => ({ ...d, rooms: +e.target.value }))}
+            />
+          </Field>
+          <Field label={a.areaSqm}>
+            <input
+              type="number"
+              className={adminInputCls}
+              value={aptCreateDraft.area}
+              onChange={(e) => setAptCreateDraft((d) => ({ ...d, area: +e.target.value }))}
+            />
+          </Field>
+          <Field label={a.priceAmd}>
+            <input
+              type="number"
+              className={adminInputCls}
+              value={aptCreateDraft.price}
+              onChange={(e) => setAptCreateDraft((d) => ({ ...d, price: +e.target.value }))}
+            />
+          </Field>
+          <Field label={hyTranslations.filter.status}>
+            <select
+              className={adminSelectCls}
+              value={aptCreateDraft.status}
+              onChange={(e) =>
+                setAptCreateDraft((d) => ({ ...d, status: e.target.value as ApartmentStatus }))
+              }
+            >
+              <option value="Available">{getStatusLabel(hyTranslations, "Available")}</option>
+              <option value="Reserved">{getStatusLabel(hyTranslations, "Reserved")}</option>
+              <option value="Sold">{getStatusLabel(hyTranslations, "Sold")}</option>
+            </select>
+          </Field>
+        </div>
+      </AdminModal>
     </div>
   );
 }
