@@ -278,15 +278,15 @@ export function BuildingFloorMapSection({ project }: Props) {
           </div>
         )}
 
-        <div className="mb-6 flex flex-col gap-5 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-          <h2 className="max-w-xl text-2xl font-semibold leading-snug tracking-tight text-white sm:text-3xl">
-            {t.developerDetail.floorMapTitle}
-          </h2>
+        <h2 className="mb-6 text-2xl font-semibold leading-snug tracking-tight text-white sm:mb-8 sm:text-3xl">
+          {t.developerDetail.floorMapTitle}
+        </h2>
 
-          <div className="min-w-0 sm:shrink-0">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 xl:gap-10">
+          <div className="w-full shrink-0 lg:w-[140px] xl:w-[160px]">
             <p className="mb-2.5 text-sm font-medium text-white/80">{t.developerDetail.chooseFloor}</p>
             <div
-              className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="flex flex-wrap gap-2.5 lg:flex-col"
               role="listbox"
               aria-label={t.developerDetail.chooseFloor}
             >
@@ -300,10 +300,10 @@ export function BuildingFloorMapSection({ project }: Props) {
                     aria-selected={active}
                     onClick={() => setSelectedFloorId(floor.id)}
                     className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all sm:h-10 sm:w-10 sm:text-sm",
+                      "box-border flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
                       active
-                        ? "bg-transparent text-white ring-2 ring-[#c9a96e] ring-offset-2 ring-offset-[#0c1428]"
-                        : "bg-[#152038] text-white/85 hover:bg-[#1a2744]",
+                        ? "border-[#c9a96e] bg-transparent text-white"
+                        : "border-transparent bg-[#152038] text-white/85 hover:bg-[#1a2744]",
                     )}
                   >
                     {floor.label}
@@ -312,43 +312,43 @@ export function BuildingFloorMapSection({ project }: Props) {
               })}
             </div>
           </div>
-        </div>
 
-        <div className="relative min-w-0">
-          {selectedFloor ? (
-            <div className="relative mx-auto w-full max-w-4xl">
-              <FloorPlanCanvas
-                floor={selectedFloor}
-                aptById={aptById}
-                title={t.developerDetail.floorMapTitle}
-                hoveredAptId={hoveredAptId}
-                tooltip={tooltip}
-                onHover={(aptId, x, y) => {
-                  setHoveredAptId(aptId);
-                  setTooltip({ aptId, x, y });
-                }}
-                onLeave={() => {
-                  setHoveredAptId(null);
-                  setTooltip(null);
-                }}
-                onAptClick={goToApt}
-                onBackgroundClick={() => setExpanded(true)}
-                showExpandHint
-              />
-              {!selectedFloor.hotspots.length && (
-                <p className="mt-3 text-center text-xs text-white/40">
-                  {t.developerDetail.floorMapNoHotspots}
+          <div className="relative min-w-0 flex-1">
+            {selectedFloor ? (
+              <div className="relative w-full">
+                <FloorPlanCanvas
+                  floor={selectedFloor}
+                  aptById={aptById}
+                  title={t.developerDetail.floorMapTitle}
+                  hoveredAptId={hoveredAptId}
+                  tooltip={tooltip}
+                  onHover={(aptId, x, y) => {
+                    setHoveredAptId(aptId);
+                    setTooltip({ aptId, x, y });
+                  }}
+                  onLeave={() => {
+                    setHoveredAptId(null);
+                    setTooltip(null);
+                  }}
+                  onAptClick={goToApt}
+                  onBackgroundClick={() => setExpanded(true)}
+                  showExpandHint
+                />
+                {!selectedFloor.hotspots.length && (
+                  <p className="mt-3 text-center text-xs text-white/40 lg:text-left">
+                    {t.developerDetail.floorMapNoHotspots}
+                  </p>
+                )}
+                <p className="mt-2 text-center text-[11px] text-white/35 sm:hidden">
+                  {t.developerDetail.floorMapExpandHint}
                 </p>
-              )}
-              <p className="mt-2 text-center text-[11px] text-white/35 sm:hidden">
-                {t.developerDetail.floorMapExpandHint}
-              </p>
-            </div>
-          ) : (
-            <div className="flex h-48 items-center justify-center text-sm text-white/40 sm:h-64">
-              {t.developerDetail.floorMapEmpty}
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="flex h-48 items-center justify-center text-sm text-white/40 sm:h-64">
+                {t.developerDetail.floorMapEmpty}
+              </div>
+            )}
+          </div>
         </div>
       </Container>
 

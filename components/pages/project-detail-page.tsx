@@ -14,7 +14,7 @@ import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getProjectGallery } from "@/lib/project-gallery";
-import { getProjectDescription } from "@/lib/project-i18n";
+import { getProjectDescription, getProjectLongDescription } from "@/lib/project-i18n";
 import { recordProjectView } from "@/lib/project-views";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
@@ -78,12 +78,28 @@ export default function ProjectDetailPage() {
   const path = `/projects/${project.slug}`;
   const heroImage = galleryItems[0]?.url ?? project.images[0];
   const description = getProjectDescription(project, lang);
+  const longDescription = getProjectLongDescription(project, lang).trim();
+  const overviewText = (longDescription || description).trim();
   const localizeAmenityLabel = (label: string) =>
     lang === "hy" ? (AMENITY_LABELS_HY[label] ?? label) : (AMENITY_LABELS_EN[label] ?? label);
   const hasDroneVideos = (project.droneVideos?.length ?? 0) > 0;
 
   const projectInfo = (
     <>
+      {overviewText ? (
+        <section className="mb-8 max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#c9a96e]">
+            {t.projectDetail.overviewEyebrow}
+          </p>
+          <h2 className="mt-2 text-xl font-semibold text-[#0c1428] sm:text-2xl">
+            {t.projectDetail.overviewTitle}
+          </h2>
+          <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[#4B5563] sm:text-base">
+            {overviewText}
+          </p>
+        </section>
+      ) : null}
+
       <dl className="flex flex-wrap items-start gap-x-8 gap-y-5 sm:gap-x-12">
         {[
           { label: t.home.startingFrom, value: formatPrice(project.startingPrice) },
@@ -97,21 +113,6 @@ export default function ProjectDetailPage() {
           </div>
         ))}
       </dl>
-
-      <div className="mt-6 flex flex-wrap gap-3">
-        <a
-          href="#floor-plans"
-          className="inline-flex items-center rounded-[5px] bg-[#0c1428] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#152038]"
-        >
-          {t.developerDetail.floorPlansTitle}
-        </a>
-        <a
-          href="#building-floors"
-          className="inline-flex items-center rounded-[5px] border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#0c1428] transition-colors hover:border-[#c9a96e]/60 hover:bg-[#FAFAFA]"
-        >
-          {t.developerDetail.floorMapTitle}
-        </a>
-      </div>
 
       {project.amenities.length > 0 && (
         <section className="mt-8">

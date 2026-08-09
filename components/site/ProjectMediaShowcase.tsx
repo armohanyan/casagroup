@@ -109,32 +109,38 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   }
 
   return (
-    <section className="bg-[#0F172A]" aria-label={project.title}>
-      <div ref={heroRef} className="relative h-[78vh] min-h-[500px] max-h-[920px] group touch-pan-y">
+    <section className="bg-[#0B1220]" aria-label={project.title}>
+      <div
+        ref={heroRef}
+        className="relative h-[68vh] min-h-[440px] max-h-[720px] group touch-pan-y sm:h-[72vh] sm:min-h-[500px] sm:max-h-[820px] xl:h-[78vh] xl:max-h-[960px] 2xl:max-h-[1040px]"
+      >
         <AnimatePresence mode="wait" initial={false}>
           {active && (
             <motion.div
               key={active.url + safeIndex}
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0, scale: 1.03 }}
+              className="absolute inset-0 pointer-events-none flex justify-center"
+              initial={{ opacity: 0, scale: 1.02 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
             >
-              <Image
-                src={active.url}
-                alt={`${project.title} — ${categoryLabel(active.category)}`}
-                fill
-                priority
-                unoptimized
-                sizes="100vw"
-                className="object-cover"
-              />
+              {/* Cap width on ultrawide so object-cover does not crop the building too aggressively */}
+              <div className="relative h-full w-full max-w-[1600px] 2xl:max-w-[1760px]">
+                <Image
+                  src={active.url}
+                  alt={`${project.title} — ${categoryLabel(active.category)}`}
+                  fill
+                  priority
+                  unoptimized
+                  sizes="(max-width: 1600px) 100vw, 1760px"
+                  className="object-cover object-center"
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/30 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/35 pointer-events-none" />
 
         {items.length > 1 && (
           <>
@@ -175,7 +181,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
         </button>
 
         <div className="absolute inset-x-0 bottom-0 z-20 px-4 sm:px-6 lg:px-8 pb-5 md:pb-6 pt-20 pointer-events-none">
-          <div className="max-w-7xl mx-auto">
+          <div className="mx-auto w-full max-w-[1600px] 2xl:max-w-[1760px]">
             <p className="text-sm font-medium text-[#c9a96e]">{getStatusLabel(t, project.status)}</p>
             <h1 className="mt-1 font-display text-3xl md:text-5xl text-white tracking-tight">{project.title}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-white/85">
@@ -195,6 +201,30 @@ export function ProjectMediaShowcase({ project, items }: Props) {
           </div>
         </div>
       </div>
+
+      {items.length > 1 && (
+        <div className="border-t border-white/10 bg-[#0B1220] px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-[1600px] gap-2 overflow-x-auto 2xl:max-w-[1760px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {items.map((item, i) => (
+              <button
+                key={`thumb-${item.url}-${i}`}
+                type="button"
+                onClick={() => setIndex(i)}
+                className={cn(
+                  "relative h-16 w-24 shrink-0 overflow-hidden rounded-md border-2 transition-all sm:h-[4.5rem] sm:w-28",
+                  i === safeIndex
+                    ? "border-[#c9a96e] opacity-100"
+                    : "border-transparent opacity-55 hover:opacity-85",
+                )}
+                aria-label={`${categoryLabel(item.category)} ${i + 1}`}
+                aria-current={i === safeIndex ? "true" : undefined}
+              >
+                <Image src={item.url} alt="" fill unoptimized sizes="112px" className="object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {lightbox && active && (

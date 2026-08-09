@@ -128,6 +128,10 @@ export function DeveloperFloorPlanSection({ project }: Props) {
     if (payments.length === 0) list = [];
 
     list.sort((a, b) => {
+      const availability =
+        Number(b.status === "Available") - Number(a.status === "Available");
+      if (availability !== 0) return availability;
+
       switch (sort) {
         case "price-desc":
           return b.price - a.price;
