@@ -23,6 +23,7 @@ export function emptyProject(): Omit<Project, "id" | "slug"> {
     droneVideos: [],
     startingPrice: 0,
     completionDate: "",
+    constructionStart: "",
     status: "Under Construction",
     availableApartmentsCount: 0,
     totalApartments: 0,
@@ -78,5 +79,20 @@ export function emptyApartment(projectId: string, buildingId?: string): Apartmen
     description: "",
     gallery: [],
     balcony: false,
+  };
+}
+
+/** Copy a unit plan for another apartment. Room number stays empty unless overridden. */
+export function cloneApartmentPlan(
+  source: Apartment,
+  overrides: Partial<Apartment> = {},
+): Apartment {
+  return {
+    ...source,
+    ...overrides,
+    id: generateId(),
+    apartmentNumber: overrides.apartmentNumber ?? "",
+    status: overrides.status ?? "Available",
+    gallery: overrides.gallery ?? [...(source.gallery ?? [])],
   };
 }

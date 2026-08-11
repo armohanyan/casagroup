@@ -90,12 +90,13 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
 
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 md:px-14 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 md:gap-6 md:px-14 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {projects.map((project) => (
               <div
                 key={project.id}
-                className="snap-start shrink-0 w-[min(calc(100vw-3rem),400px)] sm:w-[380px] lg:w-[calc((100%-3rem)/3)]"
+                data-card
+                className="snap-start shrink-0 w-[calc((100%-1rem)/1.3)] sm:w-[380px] lg:w-[calc((100%-3rem)/3)]"
               >
                 <FeaturedPropertyCard project={project} />
               </div>

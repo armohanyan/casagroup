@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Building2,
   ChevronDown,
+  Copy,
   DollarSign,
   Home,
   Image as ImageIcon,
@@ -30,7 +31,14 @@ import {
 } from "@/components/admin/admin-config";
 import { FloorHotspotEditor } from "@/components/admin/FloorHotspotEditor";
 import { AdminImageGrid, AdminImageThumb } from "@/components/admin/AdminImageThumb";
-import { emptyApartment, emptyBuilding, emptyBuildingFloor, emptyProject, generateId } from "@/lib/store";
+import {
+  cloneApartmentPlan,
+  emptyApartment,
+  emptyBuilding,
+  emptyBuildingFloor,
+  emptyProject,
+  generateId,
+} from "@/lib/store";
 import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
@@ -116,12 +124,14 @@ function AdminModal({
   onClose,
   children,
   footer,
+  wide,
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   footer: React.ReactNode;
+  wide?: boolean;
 }) {
   if (!open) return null;
   return (
@@ -134,10 +144,14 @@ function AdminModal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={cn(adminCardCls, "w-full max-w-lg p-5 sm:p-6")}
+        className={cn(
+          adminCardCls,
+          "flex max-h-[90vh] w-full flex-col p-5 sm:p-6",
+          wide ? "max-w-xl" : "max-w-lg",
+        )}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="mb-4 flex shrink-0 items-start justify-between gap-3">
           <h3 className="text-lg font-semibold text-[#0c1428]">{title}</h3>
           <button
             type="button"
@@ -148,8 +162,59 @@ function AdminModal({
             <X size={16} />
           </button>
         </div>
-        <div className="space-y-4">{children}</div>
-        <div className="mt-6 flex flex-wrap justify-end gap-2">{footer}</div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">{children}</div>
+        <div className="mt-6 flex shrink-0 flex-wrap justify-end gap-2">{footer}</div>
+      </div>
+    </div>
+  );
+}
+
+function PlanPicker({
+  apartments,
+  selectedIds,
+  onChange,
+  itemLabel,
+}: {
+  apartments: Apartment[];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+  itemLabel: (apt: Apartment) => string;
+}) {
+  if (apartments.length === 0) {
+    return <p className="text-xs text-[#9CA3AF]">{a.noPlansToClone}</p>;
+  }
+  const allSelected = apartments.every((apt) => selectedIds.includes(apt.id));
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-end">
+        <button
+          type="button"
+          className="text-xs font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+          onClick={() => onChange(allSelected ? [] : apartments.map((apt) => apt.id))}
+        >
+          {allSelected ? a.deselectAllPlans : a.selectAllPlans}
+        </button>
+      </div>
+      <div className="max-h-56 space-y-0.5 overflow-y-auto rounded-[5px] border border-[#E8EAED] bg-white p-1.5">
+        {apartments.map((apt) => {
+          const checked = selectedIds.includes(apt.id);
+          return (
+            <label
+              key={apt.id}
+              className="flex cursor-pointer items-start gap-2 rounded-[5px] px-2 py-1.5 text-sm text-[#0c1428] hover:bg-[#F8F6F1]"
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5 accent-[#c9a96e]"
+                checked={checked}
+                onChange={() =>
+                  onChange(checked ? selectedIds.filter((id) => id !== apt.id) : [...selectedIds, apt.id])
+                }
+              />
+              <span>{itemLabel(apt)}</span>
+            </label>
+          );
+        })}
       </div>
     </div>
   );
@@ -210,9 +275,14 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [buildingModalOpen, setBuildingModalOpen] = useState(false);
   const [buildingNameDraft, setBuildingNameDraft] = useState("");
   const [floorModalBuildingId, setFloorModalBuildingId] = useState<string | null>(null);
+  const [floorModalMode, setFloorModalMode] = useState<"create" | "duplicate">("create");
   const [floorLabelDraft, setFloorLabelDraft] = useState("");
+  const [floorCloneSourceId, setFloorCloneSourceId] = useState("");
+  const [floorCloneAptIds, setFloorCloneAptIds] = useState<string[]>([]);
   const [aptModalOpen, setAptModalOpen] = useState(false);
   const [aptCreateDraft, setAptCreateDraft] = useState<AptCreateDraft>(() => emptyAptCreateDraft());
+  const [aptCloneModalOpen, setAptCloneModalOpen] = useState(false);
+  const [aptCloneSelectedIds, setAptCloneSelectedIds] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const droneFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
@@ -332,24 +402,142 @@ export function AdminProjectEditor({ projectId }: Props) {
     setBuildingNameDraft("");
   }
 
+  function aptPlanLabel(apt: Apartment) {
+    const num = apt.apartmentNumber?.trim();
+    const title = num ? `${a.apartmentNumber} ${num}` : a.unnamedUnit;
+    return `${title} · ${apt.rooms} ${a.roomsShort} · ${apt.area} մ² · ${a.floorLabel} ${apt.floor}`;
+  }
+
+  function apartmentsForFloorPlate(buildingId: string, floor: BuildingFloor) {
+    const hotspotIds = new Set((floor.hotspots ?? []).map((h) => h.apartmentId));
+    const trimmed = floor.label.trim();
+    const labelNum = Number(trimmed);
+    const numeric = trimmed !== "" && Number.isFinite(labelNum);
+    return form.apartments.filter((apt) => {
+      if (apt.buildingId !== buildingId) return false;
+      return hotspotIds.has(apt.id) || (numeric && apt.floor === labelNum);
+    });
+  }
+
+  function closeFloorModal() {
+    setFloorModalBuildingId(null);
+    setFloorModalMode("create");
+    setFloorLabelDraft("");
+    setFloorCloneSourceId("");
+    setFloorCloneAptIds([]);
+  }
+
   function openCreateFloorModal(buildingId: string) {
     const building = buildings.find((b) => b.id === buildingId);
     const nextIndex = building?.floors?.length ?? 0;
+    setFloorModalMode("create");
     setFloorLabelDraft(String(nextIndex + 1));
+    setFloorCloneSourceId("");
+    setFloorCloneAptIds([]);
     setFloorModalBuildingId(buildingId);
+  }
+
+  function openDuplicateFloorModal(buildingId: string, floorId: string) {
+    const building = buildings.find((b) => b.id === buildingId);
+    const source = (building?.floors ?? []).find((f) => f.id === floorId);
+    if (!source) return;
+    const nextIndex = building?.floors?.length ?? 0;
+    setFloorModalMode("duplicate");
+    setFloorLabelDraft(String(nextIndex + 1));
+    setFloorCloneSourceId(floorId);
+    setFloorCloneAptIds(apartmentsForFloorPlate(buildingId, source).map((apt) => apt.id));
+    setFloorModalBuildingId(buildingId);
+    setOpenBuildingIds((ids) => (ids.includes(buildingId) ? ids : [...ids, buildingId]));
+  }
+
+  function selectFloorCloneSource(sourceId: string) {
+    setFloorCloneSourceId(sourceId);
+    if (!floorModalBuildingId || !sourceId) {
+      setFloorCloneAptIds([]);
+      return;
+    }
+    const building = buildings.find((b) => b.id === floorModalBuildingId);
+    const source = (building?.floors ?? []).find((f) => f.id === sourceId);
+    setFloorCloneAptIds(source ? apartmentsForFloorPlate(floorModalBuildingId, source).map((apt) => apt.id) : []);
   }
 
   function createFloorFromModal() {
     if (!floorModalBuildingId) return;
     const building = buildings.find((b) => b.id === floorModalBuildingId);
-    const floors = building?.floors ?? [];
+    if (!building) return;
+    const floors = building.floors ?? [];
+    const source = floors.find((f) => f.id === floorCloneSourceId);
     const floor = emptyBuildingFloor(floorModalBuildingId, floors.length);
     floor.label = floorLabelDraft.trim() || floor.label;
-    updateBuilding(floorModalBuildingId, { floors: [...floors, floor] });
+
+    const idMap = new Map<string, string>();
+    const clonedApts: Apartment[] = [];
+    if (source) {
+      floor.imageUrl = source.imageUrl;
+      const trimmed = floor.label.trim();
+      const floorNum = Number(trimmed);
+      const numeric = trimmed !== "" && Number.isFinite(floorNum);
+      for (const aptId of floorCloneAptIds) {
+        const src = form.apartments.find((x) => x.id === aptId);
+        if (!src) continue;
+        const clone = cloneApartmentPlan(src, {
+          buildingId: floorModalBuildingId,
+          floor: numeric ? floorNum : src.floor,
+        });
+        idMap.set(src.id, clone.id);
+        clonedApts.push(clone);
+      }
+      floor.hotspots = (source.hotspots ?? [])
+        .filter((h) => idMap.has(h.apartmentId))
+        .map((h) => ({
+          apartmentId: idMap.get(h.apartmentId)!,
+          points: h.points.map(([x, y]) => [x, y] as [number, number]),
+        }));
+    }
+
+    setForm((f) => ({
+      ...f,
+      buildings: (f.buildings ?? []).map((b) =>
+        b.id === floorModalBuildingId ? { ...b, floors: [...(b.floors ?? []), floor] } : b,
+      ),
+      apartments: clonedApts.length ? [...(f.apartments ?? []), ...clonedApts] : f.apartments,
+    }));
     setOpenFloorIds((ids) => [...ids, floor.id]);
+    if (clonedApts.length) {
+      setOpenAptIds((ids) => [...ids, ...clonedApts.map((x) => x.id)]);
+    }
     setOpenBuildingIds((ids) => (ids.includes(floorModalBuildingId) ? ids : [...ids, floorModalBuildingId]));
-    setFloorModalBuildingId(null);
-    setFloorLabelDraft("");
+    if (clonedApts.length) {
+      toast(a.toastPlansCloned.replace("{count}", String(clonedApts.length)));
+    } else if (source) {
+      toast(a.toastFloorDuplicated);
+    }
+    closeFloorModal();
+  }
+
+  function duplicateApartment(aptId: string) {
+    const source = form.apartments.find((x) => x.id === aptId);
+    if (!source) return;
+    const clone = cloneApartmentPlan(source);
+    set("apartments", [...form.apartments, clone]);
+    setOpenAptIds((ids) => [...ids, clone.id]);
+    toast(a.toastPlansCloned.replace("{count}", "1"));
+  }
+
+  function openClonePlansModal() {
+    setAptCloneSelectedIds([]);
+    setAptCloneModalOpen(true);
+  }
+
+  function cloneSelectedApartmentPlans() {
+    const sources = form.apartments.filter((apt) => aptCloneSelectedIds.includes(apt.id));
+    if (sources.length === 0) return;
+    const clones = sources.map((src) => cloneApartmentPlan(src));
+    set("apartments", [...form.apartments, ...clones]);
+    setOpenAptIds((ids) => [...ids, ...clones.map((x) => x.id)]);
+    setAptCloneModalOpen(false);
+    setAptCloneSelectedIds([]);
+    toast(a.toastPlansCloned.replace("{count}", String(clones.length)));
   }
 
   function openCreateAptModal() {
@@ -599,6 +787,14 @@ export function AdminProjectEditor({ projectId }: Props) {
     set("droneVideos", videos);
   }
 
+  const floorModalBuilding = buildings.find((b) => b.id === floorModalBuildingId);
+  const floorModalSourceFloors = floorModalBuilding?.floors ?? [];
+  const floorCloneSource = floorModalSourceFloors.find((f) => f.id === floorCloneSourceId);
+  const floorCloneCandidates =
+    floorCloneSource && floorModalBuildingId
+      ? apartmentsForFloorPlate(floorModalBuildingId, floorCloneSource)
+      : [];
+
   return (
     <div>
       <AdminPageHeader
@@ -708,6 +904,14 @@ export function AdminProjectEditor({ projectId }: Props) {
                 <option value="Sold Out">{getStatusLabel(hyTranslations, "Sold Out")}</option>
               </select>
             </Field>
+            <Field label={a.constructionStart}>
+              <input
+                className={adminInputCls}
+                value={form.constructionStart ?? ""}
+                placeholder={a.constructionStartPlaceholder}
+                onChange={(e) => set("constructionStart", e.target.value)}
+              />
+            </Field>
             <Field label={a.completionDate}>
               <input
                 className={adminInputCls}
@@ -722,6 +926,14 @@ export function AdminProjectEditor({ projectId }: Props) {
                 className={adminInputCls}
                 value={form.floors || ""}
                 onChange={(e) => set("floors", +e.target.value)}
+              />
+            </Field>
+            <Field label={a.totalApartments}>
+              <input
+                type="number"
+                className={adminInputCls}
+                value={form.totalApartments || ""}
+                onChange={(e) => set("totalApartments", +e.target.value)}
               />
             </Field>
             <Field label={a.availableUnits}>
@@ -1040,6 +1252,7 @@ export function AdminProjectEditor({ projectId }: Props) {
               <li>{a.buildingsStep1}</li>
               <li>{a.buildingsStep2}</li>
               <li>{a.buildingsStep3}</li>
+              <li>{a.buildingsStep4}</li>
             </ol>
           </div>
           <div className="space-y-2">
@@ -1152,6 +1365,13 @@ export function AdminProjectEditor({ projectId }: Props) {
                               </button>
                               <button
                                 type="button"
+                                className={cn(adminBtnSecondary, "h-11")}
+                                onClick={() => openDuplicateFloorModal(building.id, floor.id)}
+                              >
+                                <Copy size={14} /> {a.duplicateFloor}
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => {
                                   updateBuilding(building.id, {
                                     floors: floors.filter((f) => f.id !== floor.id),
@@ -1237,6 +1457,15 @@ export function AdminProjectEditor({ projectId }: Props) {
                   }
                 >
                   {openAptIds.length === form.apartments.length ? a.collapseAll : a.expandAll}
+                </button>
+              ) : null}
+              {form.apartments.length > 0 ? (
+                <button
+                  type="button"
+                  className={cn(adminBtnSecondary, "h-8 px-3 text-xs")}
+                  onClick={openClonePlansModal}
+                >
+                  <Copy size={14} /> {a.clonePlans}
                 </button>
               ) : null}
               <button type="button" className={cn(adminBtnSecondary, "h-8 px-3 text-xs")} onClick={openCreateAptModal}>
@@ -1343,7 +1572,14 @@ export function AdminProjectEditor({ projectId }: Props) {
                       </select>
                     </Field>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => duplicateApartment(apt.id)}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+                    >
+                      <Copy size={14} /> {a.duplicateUnit}
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -1562,15 +1798,16 @@ export function AdminProjectEditor({ projectId }: Props) {
 
       <AdminModal
         open={floorModalBuildingId !== null}
-        title={a.newFloorPlateTitle}
-        onClose={() => setFloorModalBuildingId(null)}
+        title={floorModalMode === "duplicate" ? a.duplicateFloorTitle : a.newFloorPlateTitle}
+        onClose={closeFloorModal}
+        wide
         footer={
           <>
-            <button type="button" className={adminBtnSecondary} onClick={() => setFloorModalBuildingId(null)}>
+            <button type="button" className={adminBtnSecondary} onClick={closeFloorModal}>
               {a.cancel}
             </button>
             <button type="button" className={adminBtnPrimary} onClick={createFloorFromModal}>
-              {a.createFloorPlate}
+              {floorModalMode === "duplicate" ? a.duplicateFloor : a.createFloorPlate}
             </button>
           </>
         }
@@ -1590,6 +1827,38 @@ export function AdminProjectEditor({ projectId }: Props) {
             }}
           />
         </Field>
+        {floorModalSourceFloors.length > 0 ? (
+          <>
+            <Field label={a.copyFromFloor}>
+              <select
+                className={adminSelectCls}
+                value={floorCloneSourceId}
+                onChange={(e) => selectFloorCloneSource(e.target.value)}
+              >
+                <option value="">{a.copyFromFloorNone}</option>
+                {floorModalSourceFloors.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {a.floorLabelField}: {f.label.trim() || "—"}
+                    {f.imageUrl.trim() ? ` · ${a.hasFloorImage}` : ` · ${a.noFloorImage}`}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            {floorCloneSource ? (
+              <>
+                <p className="text-xs leading-relaxed text-[#6B7280]">{a.duplicateFloorHint}</p>
+                <Field label={a.selectPlansToClone}>
+                  <PlanPicker
+                    apartments={floorCloneCandidates}
+                    selectedIds={floorCloneAptIds}
+                    onChange={setFloorCloneAptIds}
+                    itemLabel={aptPlanLabel}
+                  />
+                </Field>
+              </>
+            ) : null}
+          </>
+        ) : null}
       </AdminModal>
 
       <AdminModal
@@ -1679,6 +1948,38 @@ export function AdminProjectEditor({ projectId }: Props) {
             </select>
           </Field>
         </div>
+      </AdminModal>
+
+      <AdminModal
+        open={aptCloneModalOpen}
+        title={a.clonePlansTitle}
+        onClose={() => setAptCloneModalOpen(false)}
+        wide
+        footer={
+          <>
+            <button type="button" className={adminBtnSecondary} onClick={() => setAptCloneModalOpen(false)}>
+              {a.cancel}
+            </button>
+            <button
+              type="button"
+              className={adminBtnPrimary}
+              disabled={aptCloneSelectedIds.length === 0}
+              onClick={cloneSelectedApartmentPlans}
+            >
+              {a.cloneSelected}
+            </button>
+          </>
+        }
+      >
+        <p className="text-xs leading-relaxed text-[#6B7280]">{a.clonePlansHint}</p>
+        <Field label={a.selectPlansToClone}>
+          <PlanPicker
+            apartments={form.apartments}
+            selectedIds={aptCloneSelectedIds}
+            onChange={setAptCloneSelectedIds}
+            itemLabel={aptPlanLabel}
+          />
+        </Field>
       </AdminModal>
     </div>
   );

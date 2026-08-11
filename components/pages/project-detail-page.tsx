@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Phone, MessageCircle, BadgeCheck } from "lucide-react";
@@ -19,8 +19,8 @@ import { recordProjectView } from "@/lib/project-views";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
-import { formatPrice } from "@/lib/format-price";
 import { cn } from "@/lib/utils";
+import { ProjectKeyFacts } from "@/components/site/ProjectKeyFacts";
 
 const WHATSAPP = "https://wa.me/37496799733";
 const AMENITY_LABELS_HY: Record<string, string> = {
@@ -41,6 +41,70 @@ const AMENITY_LABELS_HY: Record<string, string> = {
 const AMENITY_LABELS_EN: Record<string, string> = Object.fromEntries(
   Object.entries(AMENITY_LABELS_HY).map(([enLabel, hyLabel]) => [hyLabel, enLabel]),
 );
+
+const OVERVIEW_PREVIEW_LINES = 10;
+
+function ExpandableDescription({
+  text,
+  expandLabel,
+  collapseLabel,
+}: {
+  text: string;
+  expandLabel: string;
+  collapseLabel: string;
+}) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [text]);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const measure = () => {
+      if (expanded) {
+        const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+        if (!Number.isFinite(lineHeight) || lineHeight <= 0) return;
+        setOverflows(el.scrollHeight > lineHeight * OVERVIEW_PREVIEW_LINES + 2);
+        return;
+      }
+      setOverflows(el.scrollHeight > el.clientHeight + 2);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [text, expanded]);
+
+  return (
+    <div className="mt-3">
+      <p
+        ref={ref}
+        className={cn(
+          "whitespace-pre-line text-sm leading-relaxed text-[#4B5563] sm:text-base",
+          !expanded && "line-clamp-[10]",
+        )}
+      >
+        {text}
+      </p>
+      {overflows ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((open) => !open)}
+          className="mt-2 text-sm font-semibold text-[#c9a96e] transition-colors hover:text-[#b8954f]"
+          aria-expanded={expanded}
+        >
+          {expanded ? collapseLabel : `${expandLabel}…`}
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -84,36 +148,25 @@ export default function ProjectDetailPage() {
     lang === "hy" ? (AMENITY_LABELS_HY[label] ?? label) : (AMENITY_LABELS_EN[label] ?? label);
   const hasDroneVideos = (project.droneVideos?.length ?? 0) > 0;
 
-  const projectInfo = (
+  const overviewSection = overviewText ? (
+    <section className={cn(hasDroneVideos ? "max-w-3xl" : "mb-8 max-w-3xl")}>
+      <h2 className="text-xl font-semibold text-[#0c1428] sm:text-2xl">
+        {t.projectDetail.overviewTitle}
+      </h2>
+      <ExpandableDescription
+        text={overviewText}
+        expandLabel={t.projectDetail.overviewSeeMore}
+        collapseLabel={t.projectDetail.overviewSeeLess}
+      />
+    </section>
+  ) : null;
+
+  const factsAndAmenities = (
     <>
-      {overviewText ? (
-        <section className="mb-8 max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#c9a96e]">
-            {t.projectDetail.overviewEyebrow}
-          </p>
-          <h2 className="mt-2 text-xl font-semibold text-[#0c1428] sm:text-2xl">
-            {t.projectDetail.overviewTitle}
-          </h2>
-          <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[#4B5563] sm:text-base">
-            {overviewText}
-          </p>
-        </section>
-      ) : null}
-
-      <dl className="flex flex-wrap items-start gap-x-8 gap-y-5 sm:gap-x-12">
-        {[
-          { label: t.home.startingFrom, value: formatPrice(project.startingPrice) },
-          { label: t.projectDetail.available, value: String(project.availableApartmentsCount) },
-          { label: t.developerDetail.constructionEnd, value: project.completionDate },
-          { label: t.projectDetail.floors, value: String(project.floors) },
-        ].map((row) => (
-          <div key={row.label} className="min-w-0">
-            <dt className="text-xs text-[#9CA3AF]">{row.label}</dt>
-            <dd className="mt-1 text-base font-semibold text-[#0c1428] tabular-nums sm:text-lg">{row.value}</dd>
-          </div>
-        ))}
-      </dl>
-
+      <ProjectKeyFacts
+        project={project}
+        className={hasDroneVideos ? "bg-transparent p-0" : undefined}
+      />
       {project.amenities.length > 0 && (
         <section className="mt-8">
           <div className="mb-5 flex items-end justify-between gap-4">
@@ -159,12 +212,16 @@ export default function ProjectDetailPage() {
               videos={project.droneVideos ?? []}
               projectTitle={project.title}
               embedded
-              sideContent={projectInfo}
+              sideContent={overviewSection}
             />
+            <div className="mt-8 md:mt-10">{factsAndAmenities}</div>
           </Container>
         </section>
       ) : (
-        <Container className="py-8 md:py-10">{projectInfo}</Container>
+        <Container className="py-8 md:py-10">
+          {overviewSection}
+          {factsAndAmenities}
+        </Container>
       )}
 
       <section id="apartments" className="border-t border-[#E5E7EB]">
