@@ -134,7 +134,7 @@ export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Prop
 
       <p className="text-xs text-[#6B7280]">{labels.drawHint}</p>
 
-      <div className="relative overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-[#F3F4F6]">
+      <div className="relative overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={floor.imageUrl} alt="" className="block h-auto w-full select-none" draggable={false} />
         <svg

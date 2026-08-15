@@ -233,6 +233,45 @@ export async function adminDeleteLeadStatus(id: string) {
   });
 }
 
+export type HeroSlide = {
+  id: string;
+  imageUrl: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function fetchHeroSlides() {
+  return apiFetch<HeroSlide[]>("/api/hero-slides");
+}
+
+export async function adminListHeroSlides() {
+  return apiFetch<HeroSlide[]>("/api/admin/hero-slides", authHeaders());
+}
+
+export async function adminCreateHeroSlide(imageUrl: string) {
+  return apiFetch<HeroSlide>("/api/admin/hero-slides", {
+    method: "POST",
+    body: JSON.stringify({ imageUrl }),
+    ...authHeaders(),
+  });
+}
+
+export async function adminDeleteHeroSlide(id: string) {
+  return apiFetch<{ ok: boolean }>(`/api/admin/hero-slides/${id}`, {
+    method: "DELETE",
+    ...authHeaders(),
+  });
+}
+
+export async function adminReorderHeroSlides(ids: string[]) {
+  return apiFetch<HeroSlide[]>("/api/admin/hero-slides/reorder", {
+    method: "PATCH",
+    body: JSON.stringify({ ids }),
+    ...authHeaders(),
+  });
+}
+
 export async function adminUploadFile(file: File, projectId?: string) {
   const token = getAdminToken();
   if (!token) throw new Error("Not authenticated");
@@ -248,10 +287,18 @@ export async function adminUploadFile(file: File, projectId?: string) {
     error?: string;
     url?: string;
     jpegUrl?: string;
+    hasAlpha?: boolean;
     posterUrl?: string | null;
     kind?: string;
     id?: string;
   };
   if (!res.ok) throw new Error(data.error || "Upload failed");
-  return data as { id: string; kind: string; url: string; jpegUrl?: string; posterUrl?: string | null };
+  return data as {
+    id: string;
+    kind: string;
+    url: string;
+    jpegUrl?: string;
+    hasAlpha?: boolean;
+    posterUrl?: string | null;
+  };
 }

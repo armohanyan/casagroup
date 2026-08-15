@@ -3,6 +3,7 @@ import {
   Building2,
   Home,
   MessageSquare,
+  Image as ImageIcon,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
@@ -21,6 +22,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: `${ADMIN_BASE}/projects`, label: "Նախագծեր", icon: Building2 },
   { href: `${ADMIN_BASE}/apartments`, label: "Բնակարաններ", icon: Home },
   { href: `${ADMIN_BASE}/inquiries`, label: "Հարցումներ", icon: MessageSquare },
+  { href: `${ADMIN_BASE}/hero`, label: "Գլխավոր սլայդեր", icon: ImageIcon },
 ];
 
 export const ADMIN_LOGOUT: AdminNavItem = {

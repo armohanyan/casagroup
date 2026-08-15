@@ -10,7 +10,9 @@ import { projectsRouter } from "./routes/projects.js";
 import { inquiriesRouter } from "./routes/inquiries.js";
 import { adminRouter } from "./routes/admin.js";
 import { viewsRouter } from "./routes/views.js";
+import { heroRouter } from "./routes/hero.js";
 import { ensureDefaultLeadStatuses } from "./services/leadStatusService.js";
+import { ensureDefaultHeroSlides } from "./services/heroSlideService.js";
 
 fs.mkdirSync(config.uploadsDir, { recursive: true });
 
@@ -36,11 +38,15 @@ export function createApp() {
   void ensureDefaultLeadStatuses().catch((err) => {
     console.error("[lead-statuses] ensure defaults failed", err);
   });
+  void ensureDefaultHeroSlides().catch((err) => {
+    console.error("[hero-slides] ensure defaults failed", err);
+  });
 
   app.use("/api/auth", authRouter);
   app.use("/api/projects", projectsRouter);
   app.use("/api/inquiries", inquiriesRouter);
   app.use("/api/views", viewsRouter);
+  app.use("/api/hero-slides", heroRouter);
   app.use("/api/admin", adminRouter);
 
   app.use(notFound);

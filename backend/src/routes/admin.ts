@@ -9,6 +9,7 @@ import * as inquiryService from "../services/inquiryService.js";
 import * as leadStatusService from "../services/leadStatusService.js";
 import * as statsService from "../services/statsService.js";
 import { processUpload } from "../services/mediaService.js";
+import * as heroSlideService from "../services/heroSlideService.js";
 
 export const adminRouter = Router();
 
@@ -163,6 +164,52 @@ adminRouter.patch("/lead-statuses/:id", async (req, res, next) => {
 adminRouter.delete("/lead-statuses/:id", async (req, res, next) => {
   try {
     const result = await leadStatusService.deleteLeadStatus(req.params.id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.get("/hero-slides", async (_req, res, next) => {
+  try {
+    const slides = await heroSlideService.listHeroSlides();
+    res.json(slides);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.post("/hero-slides", async (req, res, next) => {
+  try {
+    const slide = await heroSlideService.createHeroSlide(req.body);
+    res.status(201).json(slide);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/hero-slides/reorder", async (req, res, next) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids : [];
+    const slides = await heroSlideService.reorderHeroSlides(ids);
+    res.json(slides);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.patch("/hero-slides/:id", async (req, res, next) => {
+  try {
+    const slide = await heroSlideService.updateHeroSlide(req.params.id, req.body);
+    res.json(slide);
+  } catch (err) {
+    next(err);
+  }
+});
+
+adminRouter.delete("/hero-slides/:id", async (req, res, next) => {
+  try {
+    const result = await heroSlideService.deleteHeroSlide(req.params.id);
     res.json(result);
   } catch (err) {
     next(err);

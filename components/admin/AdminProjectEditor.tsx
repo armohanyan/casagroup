@@ -563,7 +563,7 @@ export function AdminProjectEditor({ projectId }: Props) {
     setUploadingFloorId(floorId);
     try {
       const res = await adminUploadFile(file, form.id);
-      const url = res.jpegUrl || res.url;
+      const url = res.hasAlpha ? res.url : res.jpegUrl || res.url;
       if (url) updateBuildingFloor(buildingId, floorId, { imageUrl: url });
     } catch (err) {
       toast(err instanceof Error ? err.message : "Upload failed", "error");
@@ -732,7 +732,7 @@ export function AdminProjectEditor({ projectId }: Props) {
     setUploadingAptPlanId(aptId);
     try {
       const result = await adminUploadFile(file, projectId);
-      const url = result.jpegUrl || result.url;
+      const url = result.hasAlpha ? result.url : result.jpegUrl || result.url;
       if (url) {
         updateApt(aptId, { floorPlanImage: url });
         toast("Հատակագիծը վերբեռնվեց");

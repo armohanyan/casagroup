@@ -1,7 +1,7 @@
 /** Curated real-estate imagery — premium, non-generic stock. */
 export const siteImages = {
   hero: {
-    home: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920&q=85&auto=format&fit=crop",
+    home: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=90&auto=format&fit=crop",
     properties: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=85&auto=format&fit=crop",
     projects: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1920&q=85&auto=format&fit=crop",
     investment: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&q=85&auto=format&fit=crop",
@@ -23,6 +23,13 @@ export const siteImages = {
     noImages: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&q=80&auto=format&fit=crop",
   },
 } as const;
+
+/** Fallback homepage slider images when the API has not loaded yet. */
+export const DEFAULT_HERO_SLIDES = [
+  siteImages.hero.home,
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=90&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1920&q=90&auto=format&fit=crop",
+] as const;
 
 export function getHeroImage(pathname: string): string {
   if (pathname === "/") return siteImages.hero.home;

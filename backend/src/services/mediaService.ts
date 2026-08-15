@@ -37,6 +37,7 @@ export async function processUpload(file: Express.Multer.File, projectId?: strin
       kind: "image" as const,
       url: publicUrl,
       jpegUrl,
+      hasAlpha: optimized.hasAlpha,
       width: optimized.width,
       height: optimized.height,
     };

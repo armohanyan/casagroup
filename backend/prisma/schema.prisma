@@ -153,6 +153,17 @@ model LeadStatus {
   @@index([active])
 }
 
+/** Homepage hero carousel slides (admin-managed). */
+model HeroSlide {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
 model MediaAsset {
   id           String   @id @default(cuid())
   projectId    String?

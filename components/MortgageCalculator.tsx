@@ -26,6 +26,7 @@ export function MortgageCalculator({ initialPrice, compact }: MortgageCalculator
   const defaultPrice = initialPrice && initialPrice > 0 ? initialPrice : 50_000_000;
   const priceMin = Math.max(5_000_000, Math.floor((defaultPrice * 0.4) / 1_000_000) * 1_000_000);
   const priceMax = Math.max(
+    250_000_000,
     defaultPrice + 50_000_000,
     Math.ceil((defaultPrice * 2.5) / 1_000_000) * 1_000_000,
   );
