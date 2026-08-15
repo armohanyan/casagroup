@@ -21,8 +21,8 @@ function isActive(href: string, pathname: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-const LANG_SHORT: Record<Lang, string> = { hy: "ՀՅ", en: "EN" };
-const LANG_FULL: Record<Lang, string> = { hy: "Հայերեն", en: "English" };
+const LANG_SHORT: Record<Lang, string> = { hy: "ՀՅ", ru: "РУ", en: "EN" };
+const LANG_FULL: Record<Lang, string> = { hy: "Հայերեն", ru: "Русский", en: "English" };
 
 function LangDropdown({ onDark = false }: { onDark?: boolean }) {
   const { lang, setLang } = useI18n();
@@ -60,7 +60,7 @@ function LangDropdown({ onDark = false }: { onDark?: boolean }) {
           role="listbox"
           className="absolute right-0 z-50 mt-1.5 w-32 overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white py-1 shadow-[0_8px_24px_rgba(12,20,40,0.12)]"
         >
-          {(["hy", "en"] as const).map((l: Lang) => (
+          {(["hy", "ru", "en"] as const).map((l: Lang) => (
             <button
               key={l}
               type="button"
@@ -92,7 +92,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { t, lang } = useI18n();
-  const address = lang === "hy" ? "Սայաթ-Նովա 40" : "Sayat-Nova 40";
+  const address = lang === "hy" ? "Սայաթ-Նովա 40" : lang === "ru" ? "Саят-Нова 40" : "Sayat-Nova 40";
 
   const isHome = pathname === "/";
   const transparent = isHome && !scrolled;

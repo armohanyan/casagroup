@@ -66,7 +66,7 @@ export function PartnerNavbar() {
         </nav>
 
         <div className="hidden lg:flex items-center gap-2 shrink-0">
-          {(["en", "hy"] as const).map((l) => (
+          {(["hy", "ru", "en"] as const).map((l) => (
             <button
               key={l}
               type="button"
@@ -78,7 +78,7 @@ export function PartnerNavbar() {
                   : "border border-[#E7E0D5] bg-white text-[#57534E] hover:text-brand hover:border-brand/30"
               )}
             >
-              {l === "en" ? "EN" : "ՀՅ"}
+              {l === "en" ? "EN" : l === "ru" ? "РУ" : "ՀՅ"}
             </button>
           ))}
           <Link href="/partners#contact" className="btn-outline h-9 px-4 text-sm rounded-md">
@@ -136,7 +136,7 @@ export function PartnerNavbar() {
               {t.partner.backToMain}
             </Link>
             <div className="flex gap-2 px-3 pt-3">
-              {(["en", "hy"] as const).map((l) => (
+              {(["hy", "ru", "en"] as const).map((l) => (
                 <button
                   key={l}
                   type="button"
@@ -146,7 +146,7 @@ export function PartnerNavbar() {
                     lang === l ? "border-brand bg-brand text-white" : "border border-[#E7E0D5] bg-white text-[#57534E]"
                   )}
                 >
-                  {l === "en" ? "EN" : "ՀՅ"}
+                  {l === "en" ? "EN" : l === "ru" ? "РУ" : "ՀՅ"}
                 </button>
               ))}
             </div>

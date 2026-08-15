@@ -3,7 +3,8 @@ import type { Translations } from "@/lib/translations-en";
 import { translations } from "@/lib/translations-index";
 import type { ProjectStatus, ApartmentStatus } from "@/types";
 
-export type Lang = "en" | "hy";
+export const SUPPORTED_LANGS = ["hy", "ru", "en"] as const;
+export type Lang = (typeof SUPPORTED_LANGS)[number];
 
 export type { Translations };
 
@@ -12,6 +13,10 @@ export type StatusLabelKey = ProjectStatus | ApartmentStatus;
 /** Localized label for project/apartment status badges and detail rows. */
 export function getStatusLabel(t: Translations, status: StatusLabelKey): string {
   return t.status[status] ?? status;
+}
+
+export function isLang(value: string | null | undefined): value is Lang {
+  return value === "hy" || value === "ru" || value === "en";
 }
 
 // ─── Context ────────────────────────────────────────────────────────────────
@@ -33,7 +38,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return "hy";
     try {
       const stored = localStorage.getItem("lang");
-      if (stored === "en" || stored === "hy") return stored;
+      if (isLang(stored)) return stored;
     } catch {
       void 0;
     }

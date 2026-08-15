@@ -20,22 +20,30 @@ function buildWhatsAppUrl(pathname: string, lang: string): string {
     message =
       lang === "hy"
         ? `Բարև, հետաքրքրված եմ այս բնակարանով՝ ${window.location.href}`
-        : `Hello, I'm interested in this apartment: ${window.location.href}`;
+        : lang === "ru"
+          ? `Здравствуйте, меня интересует эта квартира: ${window.location.href}`
+          : `Hello, I'm interested in this apartment: ${window.location.href}`;
   } else if (isProject) {
     message =
       lang === "hy"
         ? `Բարև, ցանկանում եմ տեղեկանալ այս նախագծի մասին՝ ${window.location.href}`
-        : `Hello, I'd like to learn more about this project: ${window.location.href}`;
+        : lang === "ru"
+          ? `Здравствуйте, хочу узнать больше об этом проекте: ${window.location.href}`
+          : `Hello, I'd like to learn more about this project: ${window.location.href}`;
   } else if (isProperty) {
     message =
       lang === "hy"
         ? "Բարև, ցանկանում եմ գտնել բնակարան CasaGroup-ից"
-        : "Hello, I'm looking for an apartment through CasaGroup";
+        : lang === "ru"
+          ? "Здравствуйте, ищу квартиру через CasaGroup"
+          : "Hello, I'm looking for an apartment through CasaGroup";
   } else {
     message =
       lang === "hy"
         ? "Բարև, ցանկանում եմ խորհրդատվություն ստանալ CasaGroup-ից"
-        : "Hello, I'd like to get a consultation from CasaGroup";
+        : lang === "ru"
+          ? "Здравствуйте, хочу получить консультацию в CasaGroup"
+          : "Hello, I'd like to get a consultation from CasaGroup";
   }
 
   return `${WHATSAPP_BASE}?text=${encodeURIComponent(message)}`;
@@ -109,31 +117,37 @@ export function ContactFab() {
   return (
     <div
       ref={rootRef}
-      className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 z-40 flex flex-col items-end gap-3"
+      className="fixed bottom-20 right-4 z-40 lg:bottom-6 lg:right-6"
     >
-      <a
-        href={PHONE_HREF}
-        aria-label={t.sales.callLabel}
-        aria-hidden={!open}
-        tabIndex={open ? 0 : -1}
-        onClick={() => setOpen(false)}
-        className={`${actionBase} bg-[#0c1428] hover:bg-[#1a2540] ${open ? shownState : hiddenState}`}
-        style={{ transitionDelay: open ? "60ms" : "0ms" }}
+      <div
+        className={`absolute bottom-[calc(100%+0.75rem)] right-0 flex flex-col items-end gap-3 ${
+          open ? "pointer-events-auto" : "pointer-events-none"
+        }`}
       >
-        <Phone size={20} aria-hidden />
-      </a>
-      <a
-        href={whatsAppHref}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={t.sales.whatsappLabel}
-        aria-hidden={!open}
-        tabIndex={open ? 0 : -1}
-        onClick={() => setOpen(false)}
-        className={`${actionBase} bg-[#25D366] hover:bg-[#20bd5a] ${open ? shownState : hiddenState}`}
-      >
-        <FaWhatsapp size={24} aria-hidden />
-      </a>
+        <a
+          href={PHONE_HREF}
+          aria-label={t.sales.callLabel}
+          aria-hidden={!open}
+          tabIndex={open ? 0 : -1}
+          onClick={() => setOpen(false)}
+          className={`${actionBase} bg-[#0c1428] hover:bg-[#1a2540] ${open ? shownState : hiddenState}`}
+          style={{ transitionDelay: open ? "60ms" : "0ms" }}
+        >
+          <Phone size={20} aria-hidden />
+        </a>
+        <a
+          href={whatsAppHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t.sales.whatsappLabel}
+          aria-hidden={!open}
+          tabIndex={open ? 0 : -1}
+          onClick={() => setOpen(false)}
+          className={`${actionBase} bg-[#25D366] hover:bg-[#20bd5a] ${open ? shownState : hiddenState}`}
+        >
+          <FaWhatsapp size={24} aria-hidden />
+        </a>
+      </div>
 
       <div className="relative">
         <button

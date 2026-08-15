@@ -5,7 +5,7 @@ import { SiteChrome } from "@/components/SiteChrome";
 import "./globals.css";
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   variable: "--font-inter",
   display: "swap",
 });
@@ -43,6 +43,10 @@ export const metadata: Metadata = {
     "բնակարան կառուցապատողից",
     "բնակարան գնել Երևանում",
     "apartments in Yerevan",
+    "new apartments Yerevan",
+    "квартиры в Ереване",
+    "новостройки Ереван",
+    "купить квартиру Ереван",
     "new developments Armenia",
     "buy apartment Armenia",
     "new construction apartments",

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 interface DroneVideo {
   title: string;
   titleHy?: string;
+  titleRu?: string;
   url: string;
   thumbnail?: string;
 }

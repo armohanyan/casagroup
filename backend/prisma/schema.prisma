@@ -11,15 +11,20 @@ model Project {
   id                       String      @id @default(cuid())
   title                    String
   titleHy                  String?
+  titleRu                  String?
   slug                     String      @unique
   location                 String
   locationHy               String?
+  locationRu               String?
   city                     String
   cityHy                   String?
+  cityRu                   String?
   description              String      @db.Text
   descriptionHy            String?     @db.Text
+  descriptionRu            String?     @db.Text
   longDescription          String      @db.Text
   longDescriptionHy        String?     @db.Text
+  longDescriptionRu        String?     @db.Text
   images                   Json
   gallery                  Json?
   videoUrl                 String?
@@ -111,10 +116,12 @@ model Apartment {
   status          String
   viewType        String    @default("")
   viewTypeHy      String?
+  viewTypeRu      String?
   floorPlanImage  String    @default("")
   planPdfUrl      String?
   description     String?   @db.Text
   descriptionHy   String?   @db.Text
+  descriptionRu   String?   @db.Text
   gallery         Json
   balcony         Boolean   @default(false)
   createdAt       DateTime  @default(now())

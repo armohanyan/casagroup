@@ -51,25 +51,27 @@ export function HomeHero() {
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <section className="relative flex h-[100dvh] min-h-[640px] flex-col overflow-hidden bg-[#0c1428]">
-      {slides.map((src, i) => (
-        <Image
-          key={src}
-          src={src}
-          alt=""
-          fill
-          priority={i === 0}
-          unoptimized
-          sizes="100vw"
-          className={`object-cover pointer-events-none transition-opacity duration-1000 ease-out ${
-            i === index ? "opacity-100" : "opacity-0"
-          }`}
-        />
-      ))}
-      <div className="absolute inset-0 bg-black/45" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+    <section className="relative flex h-[100dvh] min-h-[640px] flex-col bg-[#0c1428]">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {slides.map((src, i) => (
+          <Image
+            key={src}
+            src={src}
+            alt=""
+            fill
+            priority={i === 0}
+            unoptimized
+            sizes="100vw"
+            className={`object-cover transition-opacity duration-1000 ease-out ${
+              i === index ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+      </div>
 
-      <Container className="relative z-10 flex h-full w-full flex-col pt-28 pb-5 md:pb-7">
+      <Container className="relative z-10 flex h-full w-full flex-col pt-28 pb-24 md:pb-7">
         <div className="flex flex-1 flex-col justify-center">
           <div className="max-w-xl md:max-w-2xl">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-semibold text-white leading-[1.15] tracking-tight">

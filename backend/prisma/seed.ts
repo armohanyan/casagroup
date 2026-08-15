@@ -76,18 +76,23 @@ type SeedProject = {
   id: string;
   title: string;
   titleHy: string;
+  titleRu: string;
   slug: string;
   location: string;
   locationHy: string;
+  locationRu: string;
   city: string;
   cityHy: string;
+  cityRu: string;
   description: string;
   descriptionHy: string;
+  descriptionRu: string;
   longDescription: string;
   longDescriptionHy: string;
+  longDescriptionRu?: string;
   images: string[];
   gallery: { url: string; category: string }[] | null;
-  droneVideos: { title: string; titleHy?: string; url: string; thumbnail: string }[] | null;
+  droneVideos: { title: string; titleHy?: string; titleRu?: string; url: string; thumbnail: string }[] | null;
   videoUrl?: string | null;
   startingPrice: number;
   completionDate: string;
@@ -117,13 +122,17 @@ const MOCK_PROJECTS: SeedProject[] = [
     id: "2",
     title: "Cascade Residences",
     titleHy: "Կասկադ Ռեզիդենս",
+    titleRu: "Каскад Резиденс",
     slug: "cascade-residences",
     location: "Tamanyan St 8, Yerevan",
     locationHy: "Թամանյան 8, Երևան",
+    locationRu: "ул. Таманяна 8, Ереван",
     city: "Yerevan",
     cityHy: "Երևան",
+    cityRu: "Ереван",
     description: "Contemporary luxury residences nestled beside the iconic Cascade complex.",
     descriptionHy: "Ժամանակակից շքեղ բնակարաններ՝ Կասկադ համալիրի կողքին։",
+    descriptionRu: "Современные люксовые квартиры рядом с комплексом Каскад.",
     longDescription:
       "Positioned steps from one of Yerevan's most celebrated cultural landmarks, Cascade Residences offers a rare combination of architectural heritage and contemporary comfort. The building's facade draws inspiration from the stepped terraces of the Cascade itself, while interiors reflect a modern minimalist sensibility.",
     longDescriptionHy:
@@ -383,13 +392,17 @@ const MOCK_PROJECTS: SeedProject[] = [
     id: "3",
     title: "Arabkir Heights",
     titleHy: "Արաբկիր Հայթս",
+    titleRu: "Арабкир Хайтс",
     slug: "arabkir-heights",
     location: "Komitas Ave 42, Yerevan",
     locationHy: "Կոմիտասի պող. 42, Երևան",
+    locationRu: "пр. Комитаса 42, Ереван",
     city: "Yerevan",
     cityHy: "Երևան",
+    cityRu: "Ереван",
     description: "Elevated living in one of Yerevan's most sought-after residential districts.",
     descriptionHy: "Բարձրակարգ կյանք Երևանի ամենապահանջված բնակելի թաղամասերից մեկում։",
+    descriptionRu: "Премиальное жильё в одном из самых востребованных районов Еревана.",
     longDescription:
       "Arabkir Heights offers panoramic city views from a prime hillside location. Contemporary architecture meets family-friendly design with generous layouts and premium finishes throughout.",
     longDescriptionHy:
@@ -625,13 +638,17 @@ const MOCK_PROJECTS: SeedProject[] = [
     id: "4",
     title: "Northern Residences",
     titleHy: "Հյուսիսային Ռեզիդենս",
+    titleRu: "Северная Резиденс",
     slug: "northern-residences",
     location: "Azatutyan Ave 12, Yerevan",
     locationHy: "Ազատության պող. 12, Երևան",
+    locationRu: "пр. Азатутян 12, Ереван",
     city: "Yerevan",
     cityHy: "Երևան",
+    cityRu: "Ереван",
     description: "Move-in ready luxury apartments in the prestigious Northern Avenue district.",
     descriptionHy: "Պատրաստ շքեղ բնակարաններ Հյուսիսային պողոտայի հեղինակավոր թաղամասում։",
+    descriptionRu: "Готовые люксовые квартиры в престижном районе Северного проспекта.",
     longDescription:
       "Northern Residences delivers turnkey luxury in the heart of Yerevan's most vibrant neighborhood. Walk to cafes, galleries, and the city's finest dining.",
     longDescriptionHy:
@@ -793,13 +810,17 @@ const MOCK_PROJECTS: SeedProject[] = [
     id: "5",
     title: "Victory Park Estates",
     titleHy: "Հաղթանակի այգու էսթեյթս",
+    titleRu: "Виктори Парк Эстейтс",
     slug: "victory-park-estates",
     location: "Baghramyan Ave 24, Yerevan",
     locationHy: "Բաղրամյան պող. 24, Երևան",
+    locationRu: "пр. Баграмяна 24, Ереван",
     city: "Yerevan",
     cityHy: "Երևան",
+    cityRu: "Ереван",
     description: "An exclusive hillside development overlooking Victory Park and Mount Ararat.",
     descriptionHy: "Բացառիկ բլրային նախագիծ՝ Հաղթանակի այգու և Արարատ լեռան տեսարանով։",
+    descriptionRu: "Эксклюзивный проект на склоне с видом на Парк Победы и гору Арарат.",
     longDescription:
       "Victory Park Estates represents the pinnacle of Casa Group's portfolio — limited collection residences with unmatched views and bespoke interiors.",
     longDescriptionHy:
@@ -969,15 +990,20 @@ async function main() {
         id: project.id,
         title: project.title,
         titleHy: project.titleHy,
+        titleRu: project.titleRu,
         slug: project.slug,
         location: project.location,
         locationHy: project.locationHy,
+        locationRu: project.locationRu,
         city: project.city,
         cityHy: project.cityHy,
+        cityRu: project.cityRu,
         description: project.description,
         descriptionHy: project.descriptionHy,
+        descriptionRu: project.descriptionRu,
         longDescription: project.longDescription,
         longDescriptionHy: project.longDescriptionHy,
+        longDescriptionRu: project.longDescriptionRu ?? null,
         images: project.images,
         gallery: project.gallery ?? undefined,
         droneVideos: project.droneVideos ?? undefined,

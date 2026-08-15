@@ -12,6 +12,8 @@ export interface Amenity {
   label: string;
   /** Armenian amenity label; falls back to `label` when missing. */
   labelHy?: string;
+  /** Russian amenity label; falls back to English then Armenian. */
+  labelRu?: string;
 }
 
 export interface PaymentOption {
@@ -57,10 +59,12 @@ export interface Apartment {
   status: ApartmentStatus;
   viewType: string;
   viewTypeHy?: string;
+  viewTypeRu?: string;
   floorPlanImage: string;
   planPdfUrl?: string;
   description?: string;
   descriptionHy?: string;
+  descriptionRu?: string;
   gallery: string[];
   balcony?: boolean;
 }
@@ -87,20 +91,25 @@ export interface Project {
   title: string;
   /** Armenian project title; falls back to `title` when missing. */
   titleHy?: string;
+  titleRu?: string;
   slug: string;
   location: string;
   locationHy?: string;
+  locationRu?: string;
   city: string;
   cityHy?: string;
+  cityRu?: string;
   description: string;
   /** Armenian short description; falls back to `description` when missing. */
   descriptionHy?: string;
+  descriptionRu?: string;
   longDescription: string;
   longDescriptionHy?: string;
+  longDescriptionRu?: string;
   images: string[];
   gallery?: ProjectGalleryItem[];
   videoUrl?: string;
-  droneVideos?: { title: string; titleHy?: string; url: string; thumbnail?: string }[];
+  droneVideos?: { title: string; titleHy?: string; titleRu?: string; url: string; thumbnail?: string }[];
   startingPrice: number;
   completionDate: string;
   status: ProjectStatus;

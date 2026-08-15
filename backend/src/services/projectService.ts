@@ -94,10 +94,12 @@ function aptCreateData(a: Record<string, unknown>) {
     status: String(a.status || "Available"),
     viewType: String(a.viewType || ""),
     viewTypeHy: (a.viewTypeHy as string) || null,
+    viewTypeRu: (a.viewTypeRu as string) || null,
     floorPlanImage: String(a.floorPlanImage || ""),
     planPdfUrl: (a.planPdfUrl as string) || null,
     description: (a.description as string) || null,
     descriptionHy: (a.descriptionHy as string) || null,
+    descriptionRu: (a.descriptionRu as string) || null,
     gallery: parseJsonField(a.gallery, []),
     balcony: Boolean(a.balcony),
     buildingId: typeof a.buildingId === "string" && a.buildingId ? a.buildingId : null,
@@ -250,15 +252,20 @@ export async function createProject(input: Record<string, unknown>) {
     data: {
       title,
       titleHy: (input.titleHy as string) || null,
+      titleRu: (input.titleRu as string) || null,
       slug,
       location: String(input.location || ""),
       locationHy: (input.locationHy as string) || null,
+      locationRu: (input.locationRu as string) || null,
       city: String(input.city || ""),
       cityHy: (input.cityHy as string) || null,
+      cityRu: (input.cityRu as string) || null,
       description: String(input.description || ""),
       descriptionHy: (input.descriptionHy as string) || null,
+      descriptionRu: (input.descriptionRu as string) || null,
       longDescription: String(input.longDescription || ""),
       longDescriptionHy: (input.longDescriptionHy as string) || null,
+      longDescriptionRu: (input.longDescriptionRu as string) || null,
       images: parseJsonField(input.images, []),
       gallery: jsonOrNull(input.gallery ?? null) ?? Prisma.JsonNull,
       videoUrl: (input.videoUrl as string) || null,
@@ -336,15 +343,20 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
 
   assign("title", input.title !== undefined ? String(input.title) : undefined);
   assign("titleHy", input.titleHy !== undefined ? input.titleHy || null : undefined);
+  assign("titleRu", input.titleRu !== undefined ? input.titleRu || null : undefined);
   assign("slug", input.slug !== undefined || input.title !== undefined ? slug : undefined);
   assign("location", input.location !== undefined ? String(input.location) : undefined);
   assign("locationHy", input.locationHy !== undefined ? input.locationHy || null : undefined);
+  assign("locationRu", input.locationRu !== undefined ? input.locationRu || null : undefined);
   assign("city", input.city !== undefined ? String(input.city) : undefined);
   assign("cityHy", input.cityHy !== undefined ? input.cityHy || null : undefined);
+  assign("cityRu", input.cityRu !== undefined ? input.cityRu || null : undefined);
   assign("description", input.description !== undefined ? String(input.description) : undefined);
   assign("descriptionHy", input.descriptionHy !== undefined ? input.descriptionHy || null : undefined);
+  assign("descriptionRu", input.descriptionRu !== undefined ? input.descriptionRu || null : undefined);
   assign("longDescription", input.longDescription !== undefined ? String(input.longDescription) : undefined);
   assign("longDescriptionHy", input.longDescriptionHy !== undefined ? input.longDescriptionHy || null : undefined);
+  assign("longDescriptionRu", input.longDescriptionRu !== undefined ? input.longDescriptionRu || null : undefined);
   assign("images", input.images !== undefined ? parseJsonField(input.images, []) : undefined);
   assign("gallery", input.gallery !== undefined ? jsonOrNull(input.gallery) : undefined);
   assign("videoUrl", input.videoUrl !== undefined ? input.videoUrl || null : undefined);
@@ -483,10 +495,12 @@ export async function updateApartment(projectId: string, aptId: string, input: R
   if (input.status !== undefined) data.status = String(input.status);
   if (input.viewType !== undefined) data.viewType = String(input.viewType);
   if (input.viewTypeHy !== undefined) data.viewTypeHy = input.viewTypeHy ? String(input.viewTypeHy) : null;
+  if (input.viewTypeRu !== undefined) data.viewTypeRu = input.viewTypeRu ? String(input.viewTypeRu) : null;
   if (input.floorPlanImage !== undefined) data.floorPlanImage = String(input.floorPlanImage);
   if (input.planPdfUrl !== undefined) data.planPdfUrl = input.planPdfUrl ? String(input.planPdfUrl) : null;
   if (input.description !== undefined) data.description = input.description ? String(input.description) : null;
   if (input.descriptionHy !== undefined) data.descriptionHy = input.descriptionHy ? String(input.descriptionHy) : null;
+  if (input.descriptionRu !== undefined) data.descriptionRu = input.descriptionRu ? String(input.descriptionRu) : null;
   if (input.gallery !== undefined) data.gallery = parseJsonField(input.gallery, []);
   if (input.balcony !== undefined) data.balcony = Boolean(input.balcony);
   if (input.buildingId !== undefined) {

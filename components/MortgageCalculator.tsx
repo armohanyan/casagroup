@@ -44,7 +44,7 @@ export function MortgageCalculator({ initialPrice, compact }: MortgageCalculator
     return { down, loan, monthly, total, interest };
   }, [price, downPct, term, rate]);
 
-  const yearsLabel = lang === "hy" ? "տարի" : "years";
+  const yearsLabel = lang === "hy" ? "տարի" : lang === "ru" ? "лет" : "years";
 
   return (
     <div className={`grid grid-cols-1 ${compact ? "gap-6" : "lg:grid-cols-2 gap-10"}`}>

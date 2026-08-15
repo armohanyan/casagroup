@@ -13,7 +13,7 @@ export interface SeoProps {
   description: string;
   path: string;
   image?: string;
-  lang?: "en" | "hy";
+  lang?: "en" | "hy" | "ru";
   noindex?: boolean;
   ogType?: "website" | "article";
 }
@@ -69,7 +69,7 @@ export function Seo({
     upsertMeta("property", "og:description", description);
     upsertMeta("property", "og:url", canonical);
     upsertMeta("property", "og:type", ogType);
-    upsertMeta("property", "og:locale", lang === "hy" ? "hy_AM" : "en_US");
+    upsertMeta("property", "og:locale", lang === "hy" ? "hy_AM" : lang === "ru" ? "ru_RU" : "en_US");
 
     // Never remove head nodes here: the server metadata (buildPageMetadata)
     // renders these tags, so they are React-managed. Deleting them crashes

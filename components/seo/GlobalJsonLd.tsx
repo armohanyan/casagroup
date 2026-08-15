@@ -39,7 +39,7 @@ export function GlobalJsonLd() {
     name: SITE_NAME,
     url,
     publisher: { "@id": `${url}/#organization` },
-    inLanguage: ["en-US", "hy-AM"],
+    inLanguage: ["hy-AM", "ru-RU", "en-US"],
   };
 
   return <JsonLd data={[organization, website]} />;

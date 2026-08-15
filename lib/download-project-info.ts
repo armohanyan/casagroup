@@ -42,6 +42,7 @@ function esc(value: string): string {
 /** Opens a print-ready document so the user can save project info as PDF. */
 export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
   const { project, apartment, statusLabel, description, labels, lang = "hy" } = input;
+  const htmlLang = lang === "en" ? "en" : lang === "ru" ? "ru" : "hy";
   const title = getProjectTitle(project, lang);
   const rows: { label: string; value: string }[] = [
     { label: labels.project, value: title },
@@ -68,7 +69,7 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
   }
 
   const html = `<!DOCTYPE html>
-<html lang="hy">
+<html lang="${htmlLang}">
 <head>
   <meta charset="utf-8" />
   <title>${esc(labels.title)} — ${esc(title)}</title>

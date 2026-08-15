@@ -33,6 +33,7 @@ export function AdminApartmentsList() {
           return (
             p.title.toLowerCase().includes(query) ||
             (p.titleHy ?? "").toLowerCase().includes(query) ||
+            (p.titleRu ?? "").toLowerCase().includes(query) ||
             apt.id.toLowerCase().includes(query) ||
             (apt.apartmentNumber ?? "").toLowerCase().includes(query) ||
             String(apt.rooms).includes(query)

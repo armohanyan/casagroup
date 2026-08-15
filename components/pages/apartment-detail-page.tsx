@@ -154,7 +154,9 @@ export default function ApartmentDetailPage() {
   const whatsappMessage =
     lang === "hy"
       ? `Բարև, հետաքրքրված եմ ${title} նախագծի №${aptNumber} բնակարանով։\nՀասցե՝ ${address}\nՄակերես՝ ${apt.area} մ²\nԳին՝ ${priceLabel}`
-      : `Hello, I'm interested in apartment №${aptNumber} at ${title}.\nAddress: ${address}\nArea: ${apt.area} m²\nPrice: ${priceLabel}`;
+      : lang === "ru"
+        ? `Здравствуйте, меня интересует квартира №${aptNumber} в проекте ${title}.\nАдрес: ${address}\nПлощадь: ${apt.area} м²\nЦена: ${priceLabel}`
+        : `Hello, I'm interested in apartment №${aptNumber} at ${title}.\nAddress: ${address}\nArea: ${apt.area} m²\nPrice: ${priceLabel}`;
   const whatsappHref = `https://wa.me/37496799733?text=${encodeURIComponent(whatsappMessage)}`;
   const galleryImages = (apt.gallery ?? []).map((u) => u.trim()).filter(Boolean);
   const floorPlanIndex = apt.floorPlanImage?.trim()

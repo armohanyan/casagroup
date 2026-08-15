@@ -69,39 +69,58 @@ export function BilingualField({
   label,
   hy,
   en,
+  ru,
   onHy,
   onEn,
+  onRu,
   placeholderHy,
   placeholderEn,
+  placeholderRu,
   multiline,
   copyHyLabel,
   copyEnLabel,
+  copyRuLabel,
   className,
 }: {
   label: string;
   hy: string;
   en: string;
+  ru: string;
   onHy: (v: string) => void;
   onEn: (v: string) => void;
+  onRu: (v: string) => void;
   placeholderHy?: string;
   placeholderEn?: string;
+  placeholderRu?: string;
   multiline?: boolean;
   copyHyLabel: string;
   copyEnLabel: string;
+  copyRuLabel: string;
   className?: string;
 }) {
+  const copySource = [hy, ru, en].find((v) => v.trim()) ?? "";
+
   return (
     <div className={cn(multiline && "md:col-span-2", className)}>
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">{label}</p>
-      <div className={cn("grid grid-cols-1 gap-3", !multiline && "md:grid-cols-2")}>
+      <div className={cn("grid grid-cols-1 gap-3", !multiline && "md:grid-cols-3")}>
         <LangColumn
           code="ՀՅ"
           value={hy}
           onChange={onHy}
           placeholder={placeholderHy}
           multiline={multiline}
-          otherValue={en}
+          otherValue={copySource}
           copyLabel={copyHyLabel}
+        />
+        <LangColumn
+          code="РУ"
+          value={ru}
+          onChange={onRu}
+          placeholder={placeholderRu}
+          multiline={multiline}
+          otherValue={copySource}
+          copyLabel={copyRuLabel}
         />
         <LangColumn
           code="EN"
@@ -109,7 +128,7 @@ export function BilingualField({
           onChange={onEn}
           placeholder={placeholderEn}
           multiline={multiline}
-          otherValue={hy}
+          otherValue={copySource}
           copyLabel={copyEnLabel}
         />
       </div>
