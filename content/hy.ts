@@ -95,7 +95,7 @@ export const hyTranslations: Translations = {
     links: {
       home: "Գլխավոր",
       properties: "Գույքեր",
-      developments: "Նոր կառուցապատում",
+      developments: "Կառուցապատողից",
       projects: "Նախագծեր",
       investment: "Ներդրումներ",
       calculator: "Հիփոթեքի հաշվիչ",
@@ -564,8 +564,8 @@ export const hyTranslations: Translations = {
     ],
   },
   projects: {
-    eyebrow: "Նոր կառուցապատում",
-    title: "Նոր կառուցապատում",
+    eyebrow: "Կառուցապատողից",
+    title: "Կառուցապատողից",
     subtitle: "Բոլոր բնակելի նախագծերը, որոնք ներկայացնում ենք Երևանում։",
     categoriesEyebrow: "Կատեգորիաներ",
     categories: [
