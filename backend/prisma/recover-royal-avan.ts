@@ -106,8 +106,11 @@ const startingPrice = Math.min(...available.map((p) => p.price));
 const PROJECT = {
   slug: "royal-avan-residence",
   title: "ROYAL AVAN RESIDENCE",
+  titleHy: "ROYAL AVAN RESIDENCE",
   location: "Avan, Yerevan",
+  locationHy: "Ավան, Երևան",
   city: "Yerevan",
+  cityHy: "Երևան",
   description:
     "Apartments in a completed building in Avan, starting from only 610,000 AMD.",
   descriptionHy:
@@ -152,8 +155,11 @@ async function main() {
       where: { id: projectId },
       data: {
         title: PROJECT.title,
+        titleHy: PROJECT.titleHy,
         location: PROJECT.location,
+        locationHy: PROJECT.locationHy,
         city: PROJECT.city,
+        cityHy: PROJECT.cityHy,
         description: PROJECT.description,
         descriptionHy: PROJECT.descriptionHy,
         longDescription: PROJECT.longDescription,
@@ -181,9 +187,12 @@ async function main() {
     const created = await prisma.project.create({
       data: {
         title: PROJECT.title,
+        titleHy: PROJECT.titleHy,
         slug: PROJECT.slug,
         location: PROJECT.location,
+        locationHy: PROJECT.locationHy,
         city: PROJECT.city,
+        cityHy: PROJECT.cityHy,
         description: PROJECT.description,
         descriptionHy: PROJECT.descriptionHy,
         longDescription: PROJECT.longDescription,

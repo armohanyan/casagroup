@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useI18n } from "@/lib/i18n";
+import { getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 
 interface Props {
@@ -19,6 +21,7 @@ function markerHtml(title: string, highlighted: boolean): string {
 }
 
 export function ProjectsMapCanvas({ projects, highlightId, centerId, onMarkerClick, onMarkerHover }: Props) {
+  const { lang } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
@@ -74,7 +77,7 @@ export function ProjectsMapCanvas({ projects, highlightId, centerId, onMarkerCli
 
       const icon = L.divIcon({
         className: "",
-        html: markerHtml(project.title, highlighted),
+        html: markerHtml(getProjectTitle(project, lang), highlighted),
         iconSize: [0, 0],
         iconAnchor: [0, 0],
       });
@@ -90,7 +93,7 @@ export function ProjectsMapCanvas({ projects, highlightId, centerId, onMarkerCli
     if (!centerId) {
       map.fitBounds(bounds, { padding: [48, 48], maxZoom: 14 });
     }
-  }, [projects, highlightId, centerId]);
+  }, [projects, highlightId, centerId, lang]);
 
   useEffect(() => {
     const map = mapRef.current;

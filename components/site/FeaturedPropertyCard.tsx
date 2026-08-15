@@ -5,9 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getProjectGallery } from "@/lib/project-gallery";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
-import { getProjectDescription } from "@/lib/project-i18n";
+import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -180,6 +181,8 @@ function statusBadges(project: Project, t: ReturnType<typeof useI18n>["t"]) {
 /** Liam-style featured property card with inner image slider. */
 export function FeaturedPropertyCard({ project }: { project: Project }) {
   const { t, lang } = useI18n();
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
 
   const images = useMemo(() => {
     const gallery = getProjectGallery(project);
@@ -198,11 +201,15 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
       <Link
         href={`/projects/${project.slug}`}
         className="absolute inset-0 z-10"
-        aria-label={project.title}
+        aria-label={title}
       />
 
       <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
-        <CardImageSlider images={images} title={project.title} />
+        <CardImageSlider images={images} title={title} />
+
+        <div className="absolute top-3 left-3 z-20 pointer-events-none">
+          <ProjectViewCount projectId={project.id} count={project.viewCount} />
+        </div>
 
         <div className="absolute top-3 right-3 z-20 flex flex-wrap justify-end gap-1.5 max-w-[70%] pointer-events-none">
           {badges.map((badge) => (
@@ -218,11 +225,11 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
 
       <div className="flex flex-col flex-1 p-5">
         <h3 className="font-display text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/card:text-[#c9a96e] transition-colors">
-          {project.title}
+          {title}
         </h3>
         <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
           <MapPin size={14} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
-          <span className="truncate">{project.location}</span>
+          <span className="truncate">{location}</span>
         </p>
         {shortInfo ? (
           <p className="mt-auto pt-4 text-sm text-[#6B7280] leading-relaxed line-clamp-2">

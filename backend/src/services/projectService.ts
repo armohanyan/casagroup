@@ -22,6 +22,28 @@ const projectInclude = {
   },
 };
 
+async function attachViewCounts<T extends { id: string }>(projects: T[]) {
+  const counts = new Map<string, number>();
+  if (projects.length > 0) {
+    try {
+      const grouped = await prisma.projectView.groupBy({
+        by: ["projectId"],
+        where: { projectId: { in: projects.map((p) => p.id) } },
+        _count: { _all: true },
+      });
+      for (const row of grouped) {
+        counts.set(row.projectId, row._count._all);
+      }
+    } catch (err) {
+      console.error("[views] count failed", err);
+    }
+  }
+  return projects.map((project) => ({
+    ...project,
+    _count: { views: counts.get(project.id) ?? 0 },
+  }));
+}
+
 function parseJsonField<T>(value: unknown, fallback: T): T {
   if (value === undefined || value === null) return fallback;
   return value as T;
@@ -71,9 +93,11 @@ function aptCreateData(a: Record<string, unknown>) {
     price: Number(a.price || 0),
     status: String(a.status || "Available"),
     viewType: String(a.viewType || ""),
+    viewTypeHy: (a.viewTypeHy as string) || null,
     floorPlanImage: String(a.floorPlanImage || ""),
     planPdfUrl: (a.planPdfUrl as string) || null,
     description: (a.description as string) || null,
+    descriptionHy: (a.descriptionHy as string) || null,
     gallery: parseJsonField(a.gallery, []),
     balcony: Boolean(a.balcony),
     buildingId: typeof a.buildingId === "string" && a.buildingId ? a.buildingId : null,
@@ -179,7 +203,7 @@ export async function listProjects(filters: ProjectFilters = {}) {
     projects = projects.filter((p) => p.apartments.some((a) => a.rooms === filters.rooms));
   }
 
-  return projects.map(mapProject);
+  return (await attachViewCounts(projects)).map(mapProject);
 }
 
 export async function getProjectBySlug(slug: string) {
@@ -188,7 +212,8 @@ export async function getProjectBySlug(slug: string) {
     include: projectInclude,
   });
   if (!project) throw httpError(404, "Project not found");
-  return mapProject(project);
+  const [withViews] = await attachViewCounts([project]);
+  return mapProject(withViews);
 }
 
 export async function getApartmentByProjectSlug(slug: string, apartmentId: string) {
@@ -199,7 +224,8 @@ export async function getApartmentByProjectSlug(slug: string, apartmentId: strin
   if (!project) throw httpError(404, "Project not found");
   const apt = project.apartments.find((a) => a.id === apartmentId);
   if (!apt) throw httpError(404, "Apartment not found");
-  return { project: mapProject(project), apartment: mapApartment(apt) };
+  const [withViews] = await attachViewCounts([project]);
+  return { project: mapProject(withViews), apartment: mapApartment(apt) };
 }
 
 async function uniqueSlug(base: string, excludeId?: string) {
@@ -223,9 +249,12 @@ export async function createProject(input: Record<string, unknown>) {
   const project = await prisma.project.create({
     data: {
       title,
+      titleHy: (input.titleHy as string) || null,
       slug,
       location: String(input.location || ""),
+      locationHy: (input.locationHy as string) || null,
       city: String(input.city || ""),
+      cityHy: (input.cityHy as string) || null,
       description: String(input.description || ""),
       descriptionHy: (input.descriptionHy as string) || null,
       longDescription: String(input.longDescription || ""),
@@ -286,7 +315,8 @@ export async function createProject(input: Record<string, unknown>) {
     include: projectInclude,
   });
 
-  return mapProject(project);
+  const [createdWithViews] = await attachViewCounts([project]);
+  return mapProject(createdWithViews);
 }
 
 export async function updateProject(id: string, input: Record<string, unknown>) {
@@ -305,9 +335,12 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
   };
 
   assign("title", input.title !== undefined ? String(input.title) : undefined);
+  assign("titleHy", input.titleHy !== undefined ? input.titleHy || null : undefined);
   assign("slug", input.slug !== undefined || input.title !== undefined ? slug : undefined);
   assign("location", input.location !== undefined ? String(input.location) : undefined);
+  assign("locationHy", input.locationHy !== undefined ? input.locationHy || null : undefined);
   assign("city", input.city !== undefined ? String(input.city) : undefined);
+  assign("cityHy", input.cityHy !== undefined ? input.cityHy || null : undefined);
   assign("description", input.description !== undefined ? String(input.description) : undefined);
   assign("descriptionHy", input.descriptionHy !== undefined ? input.descriptionHy || null : undefined);
   assign("longDescription", input.longDescription !== undefined ? String(input.longDescription) : undefined);
@@ -410,7 +443,8 @@ export async function getProjectById(id: string) {
     include: projectInclude,
   });
   if (!project) throw httpError(404, "Project not found");
-  return mapProject(project);
+  const [withViews] = await attachViewCounts([project]);
+  return mapProject(withViews);
 }
 
 export async function createApartment(projectId: string, input: Record<string, unknown>) {
@@ -448,9 +482,11 @@ export async function updateApartment(projectId: string, aptId: string, input: R
   if (input.price !== undefined) data.price = Number(input.price);
   if (input.status !== undefined) data.status = String(input.status);
   if (input.viewType !== undefined) data.viewType = String(input.viewType);
+  if (input.viewTypeHy !== undefined) data.viewTypeHy = input.viewTypeHy ? String(input.viewTypeHy) : null;
   if (input.floorPlanImage !== undefined) data.floorPlanImage = String(input.floorPlanImage);
   if (input.planPdfUrl !== undefined) data.planPdfUrl = input.planPdfUrl ? String(input.planPdfUrl) : null;
   if (input.description !== undefined) data.description = input.description ? String(input.description) : null;
+  if (input.descriptionHy !== undefined) data.descriptionHy = input.descriptionHy ? String(input.descriptionHy) : null;
   if (input.gallery !== undefined) data.gallery = parseJsonField(input.gallery, []);
   if (input.balcony !== undefined) data.balcony = Boolean(input.balcony);
   if (input.buildingId !== undefined) {

@@ -8,6 +8,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber } from "@/lib/apartment-number";
 import { useI18n } from "@/lib/i18n";
+import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 import type { PropertyListing } from "@/lib/properties";
 
@@ -18,8 +19,10 @@ interface CompactListingCardProps {
 }
 
 export function CompactListingCard({ listing, className, fullWidth }: CompactListingCardProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { apartment, project } = listing;
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
   const image = apartment.gallery[0] ?? project.images[0];
   const code = apartmentDisplayNumber(apartment);
 
@@ -36,7 +39,7 @@ export function CompactListingCard({ listing, className, fullWidth }: CompactLis
         {image ? (
           <Image
             src={image}
-            alt={`${project.title} — ${apartment.rooms} ${t.table.rooms}`}
+            alt={`${title} — ${apartment.rooms} ${t.table.rooms}`}
             fill
             sizes="(max-width: 640px) 100vw, 300px"
             className="object-cover zoom-target"
@@ -60,12 +63,12 @@ export function CompactListingCard({ listing, className, fullWidth }: CompactLis
 
         <div className="flex items-center gap-1.5 text-[#57534E] text-sm mt-1.5">
           <MapPin size={13} className="text-[#c9a96e] shrink-0" />
-          <span className="line-clamp-1">{project.location}</span>
+          <span className="line-clamp-1">{location}</span>
         </div>
 
         <p className="text-xs text-[#A8A29E] mt-2 flex items-center gap-1">
           <Building2 size={12} className="shrink-0" />
-          <span className="truncate">{project.title}</span>
+          <span className="truncate">{title}</span>
         </p>
 
         <div className="flex items-center gap-4 text-sm text-[#57534E] pt-3 mt-3 border-t border-[#E7E0D5]">

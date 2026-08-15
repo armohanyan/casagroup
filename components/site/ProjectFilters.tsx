@@ -1,6 +1,8 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
+import { getCityDisplayName } from "@/lib/project-i18n";
+import { useProjects } from "@/lib/projects-context";
 import type { FilterState } from "@/components/FilterBar";
 
 interface Props {
@@ -10,7 +12,8 @@ interface Props {
 }
 
 export function ProjectFilters({ filters, onChange, cities }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { projects } = useProjects();
 
   const statuses = [
     { label: t.filter.status, value: "" },
@@ -33,7 +36,7 @@ export function ProjectFilters({ filters, onChange, cities }: Props) {
         <select className={selectCls} value={filters.city} onChange={(e) => set("city", e.target.value)}>
           <option value="">{t.filter.allLocations}</option>
           {cities.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>{getCityDisplayName(c, projects, lang)}</option>
           ))}
         </select>
       </div>

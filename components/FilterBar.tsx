@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n } from "@/lib/i18n";
+import { getCityDisplayName } from "@/lib/project-i18n";
+import { useProjects } from "@/lib/projects-context";
 
 export interface FilterState {
   city: string;
@@ -21,7 +23,8 @@ interface Props {
 const inputCls = "field-select min-w-0 rounded-lg py-2.5 h-auto font-sans";
 
 export function FilterBar({ filters, onChange, cities, apartmentMode = false }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { projects } = useProjects();
 
   const statuses: { label: string; value: string }[] = apartmentMode
     ? [
@@ -54,7 +57,7 @@ export function FilterBar({ filters, onChange, cities, apartmentMode = false }: 
           <label className="field-label">{t.filter.location}</label>
           <select className={inputCls} value={filters.city} onChange={(e) => set("city", e.target.value)}>
             <option value="">{t.filter.allLocations}</option>
-            {cities.map((c) => <option key={c} value={c}>{c}</option>)}
+            {cities.map((c) => <option key={c} value={c}>{getCityDisplayName(c, projects, lang)}</option>)}
           </select>
         </div>
 

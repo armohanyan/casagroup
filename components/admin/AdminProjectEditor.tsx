@@ -9,6 +9,7 @@ import {
   DollarSign,
   Home,
   Image as ImageIcon,
+  Languages,
   Layers,
   MapPin,
   Plus,
@@ -19,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { BilingualField } from "@/components/admin/BilingualField";
 import { useAdminToast } from "@/components/admin/AdminToast";
 import {
   ADMIN_BASE,
@@ -27,7 +29,6 @@ import {
   adminCardCls,
   adminInputCls,
   adminSelectCls,
-  adminTextareaCls,
 } from "@/components/admin/admin-config";
 import { FloorHotspotEditor } from "@/components/admin/FloorHotspotEditor";
 import { AdminImageGrid, AdminImageThumb } from "@/components/admin/AdminImageThumb";
@@ -42,8 +43,9 @@ import {
 import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
+import { en } from "@/lib/translations-en";
 import { hyTranslations } from "@/content/hy";
-import type { Apartment, ApartmentStatus, Building, BuildingFloor, Project, ProjectStatus } from "@/types";
+import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, Project, ProjectStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
@@ -267,7 +269,8 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [uploadingFloorId, setUploadingFloorId] = useState<string | null>(null);
   const [uploadingAptPlanId, setUploadingAptPlanId] = useState<string | null>(null);
   const [uploadingAptGalleryId, setUploadingAptGalleryId] = useState<string | null>(null);
-  const [amenityDraft, setAmenityDraft] = useState("");
+  const [amenityDraftHy, setAmenityDraftHy] = useState("");
+  const [amenityDraftEn, setAmenityDraftEn] = useState("");
   const [imageUrlDraft, setImageUrlDraft] = useState("");
   const [openBuildingIds, setOpenBuildingIds] = useState<string[]>([]);
   const [openAptIds, setOpenAptIds] = useState<string[]>([]);
@@ -310,45 +313,115 @@ export function AdminProjectEditor({ projectId }: Props) {
   const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
   const apartmentProjectId = useMemo(() => form.id ?? generateId(), [form.id]);
   const buildings = form.buildings ?? [];
-  const amenityPresets = [
-    a.amenityPool,
-    a.amenityGym,
-    a.amenityParking,
-    a.amenitySecurity,
-    a.amenityGarden,
-    a.amenityRestaurant,
-    a.amenityWifi,
-    a.amenitySmartHome,
+  const amenityPresets: Amenity[] = [
+    { icon: "check", label: en.admin.amenityPool, labelHy: a.amenityPool },
+    { icon: "check", label: en.admin.amenityGym, labelHy: a.amenityGym },
+    { icon: "check", label: en.admin.amenityParking, labelHy: a.amenityParking },
+    { icon: "check", label: en.admin.amenitySecurity, labelHy: a.amenitySecurity },
+    { icon: "check", label: en.admin.amenityGarden, labelHy: a.amenityGarden },
+    { icon: "check", label: en.admin.amenityRestaurant, labelHy: a.amenityRestaurant },
+    { icon: "check", label: en.admin.amenityWifi, labelHy: a.amenityWifi },
+    { icon: "check", label: en.admin.amenitySmartHome, labelHy: a.amenitySmartHome },
   ];
-  const customAmenities = form.amenities.filter((x) => !amenityPresets.includes(x.label));
 
-  function toggleAmenity(label: string) {
-    if (form.amenities.some((x) => x.label === label)) {
+  function amenityMatches(item: Amenity, preset: Amenity) {
+    const keys = [item.label, item.labelHy].filter(Boolean).map((x) => x!.toLowerCase());
+    return [preset.label, preset.labelHy].some((x) => x && keys.includes(x.toLowerCase()));
+  }
+
+  const customAmenities = form.amenities.filter((item) => !amenityPresets.some((preset) => amenityMatches(item, preset)));
+
+  function toggleAmenity(preset: Amenity) {
+    if (form.amenities.some((x) => amenityMatches(x, preset))) {
       set(
         "amenities",
-        form.amenities.filter((x) => x.label !== label),
+        form.amenities.filter((x) => !amenityMatches(x, preset)),
       );
     } else {
-      set("amenities", [...form.amenities, { icon: "check", label }]);
+      set("amenities", [...form.amenities, { icon: "check", label: preset.label, labelHy: preset.labelHy }]);
     }
   }
 
   function addCustomAmenity() {
-    const label = amenityDraft.trim();
-    if (!label) return;
-    if (form.amenities.some((x) => x.label.toLowerCase() === label.toLowerCase())) {
-      setAmenityDraft("");
+    const labelHy = amenityDraftHy.trim();
+    const label = amenityDraftEn.trim();
+    if (!labelHy && !label) return;
+    const exists = form.amenities.some((x) => {
+      const keys = [x.label, x.labelHy].filter(Boolean).map((v) => v!.toLowerCase());
+      return (label && keys.includes(label.toLowerCase())) || (labelHy && keys.includes(labelHy.toLowerCase()));
+    });
+    if (exists) {
+      setAmenityDraftHy("");
+      setAmenityDraftEn("");
       return;
     }
-    set("amenities", [...form.amenities, { icon: "check", label }]);
-    setAmenityDraft("");
+    set("amenities", [...form.amenities, { icon: "check", label: label || labelHy, labelHy: labelHy || label }]);
+    setAmenityDraftHy("");
+    setAmenityDraftEn("");
   }
 
-  function removeAmenity(label: string) {
+  function updateCustomAmenity(item: Amenity, patch: Partial<Amenity>) {
     set(
       "amenities",
-      form.amenities.filter((x) => x.label !== label),
+      form.amenities.map((x) => (x === item ? { ...x, ...patch } : x)),
     );
+  }
+
+  function removeAmenity(item: Amenity) {
+    set(
+      "amenities",
+      form.amenities.filter((x) => x !== item),
+    );
+  }
+
+  function fillEmptyFrom(source: "en" | "hy") {
+    const fromEn = source === "en";
+    setForm((f) => ({
+      ...f,
+      titleHy: f.titleHy?.trim() ? f.titleHy : fromEn ? f.title : f.titleHy,
+      title: f.title.trim() ? f.title : fromEn ? f.title : (f.titleHy ?? ""),
+      locationHy: f.locationHy?.trim() ? f.locationHy : fromEn ? f.location : f.locationHy,
+      location: f.location.trim() ? f.location : fromEn ? f.location : (f.locationHy ?? ""),
+      cityHy: f.cityHy?.trim() ? f.cityHy : fromEn ? f.city : f.cityHy,
+      city: f.city.trim() ? f.city : fromEn ? f.city : (f.cityHy ?? ""),
+      descriptionHy: f.descriptionHy?.trim() ? f.descriptionHy : fromEn ? f.description : f.descriptionHy,
+      description: f.description.trim() ? f.description : fromEn ? f.description : (f.descriptionHy ?? ""),
+      longDescriptionHy: f.longDescriptionHy?.trim()
+        ? f.longDescriptionHy
+        : fromEn
+          ? f.longDescription
+          : f.longDescriptionHy,
+      longDescription: f.longDescription.trim()
+        ? f.longDescription
+        : fromEn
+          ? f.longDescription
+          : (f.longDescriptionHy ?? ""),
+      amenities: f.amenities.map((item) => ({
+        ...item,
+        labelHy: item.labelHy?.trim() ? item.labelHy : fromEn ? item.label : item.labelHy,
+        label: item.label.trim() ? item.label : fromEn ? item.label : (item.labelHy ?? ""),
+      })),
+      droneVideos: (f.droneVideos ?? []).map((video) => ({
+        ...video,
+        titleHy: video.titleHy?.trim() ? video.titleHy : fromEn ? video.title : video.titleHy,
+        title: video.title.trim() ? video.title : fromEn ? video.title : (video.titleHy ?? ""),
+      })),
+      apartments: f.apartments.map((apt) => ({
+        ...apt,
+        descriptionHy: apt.descriptionHy?.trim()
+          ? apt.descriptionHy
+          : fromEn
+            ? apt.description
+            : apt.descriptionHy,
+        description: apt.description?.trim()
+          ? apt.description
+          : fromEn
+            ? apt.description
+            : apt.descriptionHy,
+        viewTypeHy: apt.viewTypeHy?.trim() ? apt.viewTypeHy : fromEn ? apt.viewType : apt.viewTypeHy,
+        viewType: apt.viewType.trim() ? apt.viewType : fromEn ? apt.viewType : (apt.viewTypeHy ?? ""),
+      })),
+    }));
   }
 
   function updateBuilding(id: string, patch: Partial<Building>) {
@@ -588,6 +661,10 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   async function handleSave(asDraft = false) {
+    if (!form.title.trim() && !form.titleHy?.trim()) {
+      toast(a.titleRequired, "error");
+      return;
+    }
     setSaving(true);
     try {
       const cleanedBuildings = (form.buildings ?? [])
@@ -694,6 +771,7 @@ export function AdminProjectEditor({ projectId }: Props) {
         ...videos,
         {
           title: file.name.replace(/\.[^.]+$/, "") || a.aerialOverview,
+          titleHy: "",
           url: result.url,
           thumbnail: result.posterUrl ?? undefined,
         },
@@ -779,7 +857,7 @@ export function AdminProjectEditor({ projectId }: Props) {
     });
   }
 
-  function updateDroneVideo(index: number, patch: Partial<{ title: string; url: string; thumbnail?: string }>) {
+  function updateDroneVideo(index: number, patch: Partial<{ title: string; titleHy?: string; url: string; thumbnail?: string }>) {
     const videos = [...(form.droneVideos ?? [])];
     const current = videos[index];
     if (!current) return;
@@ -798,7 +876,7 @@ export function AdminProjectEditor({ projectId }: Props) {
   return (
     <div>
       <AdminPageHeader
-        title={isNew ? a.seoNew : `${a.saveChanges}: ${form.title || "…"}`}
+        title={isNew ? a.seoNew : `${a.saveChanges}: ${form.titleHy?.trim() || form.title || "…"}`}
         breadcrumbs={[
           { label: "Վահանակ", href: ADMIN_BASE },
           { label: "Նախագծեր", href: `${ADMIN_BASE}/projects` },
@@ -820,17 +898,38 @@ export function AdminProjectEditor({ projectId }: Props) {
       />
 
       <div className="space-y-4">
+        <section className={cn(adminCardCls, "overflow-hidden")}>
+          <div className="flex flex-wrap items-center gap-2 border-b border-[#F0F1F3] px-5 py-3.5">
+            <Languages size={16} className="text-[#c9a96e]" strokeWidth={1.75} />
+            <h2 className="text-sm font-semibold text-[#0c1428]">{a.langHy} / {a.langEn}</h2>
+          </div>
+          <div className="space-y-3 p-5">
+            <p className="text-sm leading-relaxed text-[#6B7280]">{a.bilingualHint}</p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className={cn(adminBtnSecondary, "h-9 text-xs")} onClick={() => fillEmptyFrom("en")}>
+                {a.fillEmptyFromEn}
+              </button>
+              <button type="button" className={cn(adminBtnSecondary, "h-9 text-xs")} onClick={() => fillEmptyFrom("hy")}>
+                {a.fillEmptyFromHy}
+              </button>
+            </div>
+          </div>
+        </section>
+
         <Section title={a.sectionCore} icon={Building2}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Field label={a.projectTitle}>
-              <input
-                required
-                className={adminInputCls}
-                value={form.title}
-                placeholder={a.projectTitlePlaceholder}
-                onChange={(e) => set("title", e.target.value)}
-              />
-            </Field>
+            <BilingualField
+              label={a.projectTitle}
+              hy={form.titleHy ?? ""}
+              en={form.title}
+              onHy={(v) => set("titleHy", v)}
+              onEn={(v) => set("title", v)}
+              placeholderHy={a.projectTitlePlaceholder}
+              placeholderEn={en.admin.projectTitlePlaceholder}
+              copyHyLabel={a.copyFromOther}
+              copyEnLabel={a.copyFromOther}
+              className="md:col-span-2"
+            />
             <Field label="Slug">
               <input
                 className={adminInputCls}
@@ -842,35 +941,55 @@ export function AdminProjectEditor({ projectId }: Props) {
             <Field label={a.developer}>
               <input className={adminInputCls} value={form.developer} onChange={(e) => set("developer", e.target.value)} />
             </Field>
-            <Field label={a.city}>
-              <input className={adminInputCls} value={form.city} onChange={(e) => set("city", e.target.value)} />
-            </Field>
-            <div className="md:col-span-2">
-              <Field label={a.fullAddress}>
-                <input
-                  className={adminInputCls}
-                  value={form.location}
-                  placeholder={a.addressPlaceholder}
-                  onChange={(e) => set("location", e.target.value)}
-                />
-              </Field>
-            </div>
-            <Field label={a.shortDescription}>
-              <textarea
-                className={adminTextareaCls}
-                value={form.description}
-                placeholder={a.shortDescPlaceholder}
-                onChange={(e) => set("description", e.target.value)}
-              />
-            </Field>
-            <Field label={a.longDescription}>
-              <textarea
-                className={adminTextareaCls}
-                value={form.longDescription}
-                placeholder={a.longDescPlaceholder}
-                onChange={(e) => set("longDescription", e.target.value)}
-              />
-            </Field>
+            <BilingualField
+              label={a.city}
+              hy={form.cityHy ?? ""}
+              en={form.city}
+              onHy={(v) => set("cityHy", v)}
+              onEn={(v) => set("city", v)}
+              placeholderHy="Երևան"
+              placeholderEn="Yerevan"
+              copyHyLabel={a.copyFromOther}
+              copyEnLabel={a.copyFromOther}
+              className="md:col-span-2"
+            />
+            <p className="md:col-span-2 -mt-2 text-xs text-[#9CA3AF]">{a.cityFilterHint}</p>
+            <BilingualField
+              label={a.fullAddress}
+              hy={form.locationHy ?? ""}
+              en={form.location}
+              onHy={(v) => set("locationHy", v)}
+              onEn={(v) => set("location", v)}
+              placeholderHy={a.addressPlaceholder}
+              placeholderEn={en.admin.addressPlaceholder}
+              copyHyLabel={a.copyFromOther}
+              copyEnLabel={a.copyFromOther}
+              className="md:col-span-2"
+            />
+            <BilingualField
+              label={a.shortDescription}
+              hy={form.descriptionHy ?? ""}
+              en={form.description}
+              onHy={(v) => set("descriptionHy", v)}
+              onEn={(v) => set("description", v)}
+              placeholderHy={a.shortDescPlaceholder}
+              placeholderEn={en.admin.shortDescPlaceholder}
+              copyHyLabel={a.copyFromOther}
+              copyEnLabel={a.copyFromOther}
+              multiline
+            />
+            <BilingualField
+              label={a.longDescription}
+              hy={form.longDescriptionHy ?? ""}
+              en={form.longDescription}
+              onHy={(v) => set("longDescriptionHy", v)}
+              onEn={(v) => set("longDescription", v)}
+              placeholderHy={a.longDescPlaceholder}
+              placeholderEn={en.admin.longDescPlaceholder}
+              copyHyLabel={a.copyFromOther}
+              copyEnLabel={a.copyFromOther}
+              multiline
+            />
           </div>
         </Section>
 
@@ -1064,14 +1183,18 @@ export function AdminProjectEditor({ projectId }: Props) {
                   </button>
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <Field label={a.videoTitle}>
-                    <input
-                      className={adminInputCls}
-                      value={video.title}
-                      placeholder={a.aerialOverview}
-                      onChange={(e) => updateDroneVideo(index, { title: e.target.value })}
-                    />
-                  </Field>
+                  <BilingualField
+                    label={a.videoTitle}
+                    hy={video.titleHy ?? ""}
+                    en={video.title}
+                    onHy={(v) => updateDroneVideo(index, { titleHy: v })}
+                    onEn={(v) => updateDroneVideo(index, { title: v })}
+                    placeholderHy={a.aerialOverview}
+                    placeholderEn={en.admin.aerialOverview}
+                    copyHyLabel={a.copyFromOther}
+                    copyEnLabel={a.copyFromOther}
+                    className="md:col-span-2"
+                  />
                   <Field label={a.youtubeEmbed}>
                     <input
                       className={adminInputCls}
@@ -1124,7 +1247,7 @@ export function AdminProjectEditor({ projectId }: Props) {
               onClick={() =>
                 set("droneVideos", [
                   ...(form.droneVideos ?? []),
-                  { title: a.aerialOverview, url: "", thumbnail: undefined },
+                  { title: en.admin.aerialOverview, titleHy: a.aerialOverview, url: "", thumbnail: undefined },
                 ])
               }
             >
@@ -1143,13 +1266,13 @@ export function AdminProjectEditor({ projectId }: Props) {
 
         <Section title={a.sectionAmenities} icon={Layers}>
           <div className="flex flex-wrap gap-2">
-            {amenityPresets.map((label) => {
-              const active = form.amenities.some((x) => x.label === label);
+            {amenityPresets.map((preset) => {
+              const active = form.amenities.some((x) => amenityMatches(x, preset));
               return (
                 <button
-                  key={label}
+                  key={preset.label}
                   type="button"
-                  onClick={() => toggleAmenity(label)}
+                  onClick={() => toggleAmenity(preset)}
                   className={cn(
                     "rounded-[5px] border px-3 py-1.5 text-xs font-semibold transition-all",
                     active
@@ -1157,29 +1280,43 @@ export function AdminProjectEditor({ projectId }: Props) {
                       : "border-[#E5E7EB] text-[#6B7280] hover:border-[#0c1428]",
                   )}
                 >
-                  {label}
+                  {preset.labelHy}
+                  <span className="ml-1.5 font-normal text-[#9CA3AF]">{preset.label}</span>
                 </button>
               );
             })}
           </div>
 
           {customAmenities.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2">
               {customAmenities.map((item) => (
-                <span
-                  key={item.label}
-                  className="inline-flex items-center gap-1.5 rounded-[5px] border border-[#c9a96e] bg-[#c9a96e]/15 px-3 py-1.5 text-xs font-semibold text-[#0c1428]"
+                <div
+                  key={`${item.label}-${item.labelHy ?? ""}`}
+                  className="grid grid-cols-1 gap-2 rounded-[5px] border border-[#E8EAED] bg-[#FAFAFA] p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
                 >
-                  {item.label}
+                  <Field label={a.customAmenityHy}>
+                    <input
+                      className={adminInputCls}
+                      value={item.labelHy ?? ""}
+                      onChange={(e) => updateCustomAmenity(item, { labelHy: e.target.value })}
+                    />
+                  </Field>
+                  <Field label={a.customAmenityEn}>
+                    <input
+                      className={adminInputCls}
+                      value={item.label}
+                      onChange={(e) => updateCustomAmenity(item, { label: e.target.value })}
+                    />
+                  </Field>
                   <button
                     type="button"
                     aria-label={a.remove}
-                    onClick={() => removeAmenity(item.label)}
-                    className="rounded text-[#6B7280] transition-colors hover:text-[#0c1428]"
+                    onClick={() => removeAmenity(item)}
+                    className="inline-flex h-11 items-center justify-center gap-1 rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
                   >
-                    <X size={13} strokeWidth={2.25} />
+                    <X size={13} strokeWidth={2.25} /> {a.remove}
                   </button>
-                </span>
+                </div>
               ))}
             </div>
           )}
@@ -1188,23 +1325,35 @@ export function AdminProjectEditor({ projectId }: Props) {
             <p className="text-sm text-[#9CA3AF]">{a.noAmenities}</p>
           )}
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <div className="min-w-0 flex-1">
-              <Field label={a.amenities}>
-                <input
-                  className={adminInputCls}
-                  value={amenityDraft}
-                  placeholder={a.amenityPlaceholder}
-                  onChange={(e) => setAmenityDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addCustomAmenity();
-                    }
-                  }}
-                />
-              </Field>
-            </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <Field label={a.customAmenityHy}>
+              <input
+                className={adminInputCls}
+                value={amenityDraftHy}
+                placeholder={a.amenityPlaceholder}
+                onChange={(e) => setAmenityDraftHy(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomAmenity();
+                  }
+                }}
+              />
+            </Field>
+            <Field label={a.customAmenityEn}>
+              <input
+                className={adminInputCls}
+                value={amenityDraftEn}
+                placeholder={en.admin.amenityPlaceholder}
+                onChange={(e) => setAmenityDraftEn(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addCustomAmenity();
+                  }
+                }}
+              />
+            </Field>
             <button type="button" className={adminBtnSecondary} onClick={addCustomAmenity}>
               <Plus size={15} /> {a.addAmenity}
             </button>
@@ -1214,10 +1363,10 @@ export function AdminProjectEditor({ projectId }: Props) {
         <Section title="SEO" icon={MapPin}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="SEO Title">
-              <input className={adminInputCls} value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={form.title} />
+              <input className={adminInputCls} value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder={form.titleHy || form.title} />
             </Field>
             <Field label="SEO Description">
-              <input className={adminInputCls} value={seoDesc} onChange={(e) => setSeoDesc(e.target.value)} placeholder={form.description} />
+              <input className={adminInputCls} value={seoDesc} onChange={(e) => setSeoDesc(e.target.value)} placeholder={form.descriptionHy || form.description} />
             </Field>
           </div>
         </Section>
@@ -1592,13 +1741,18 @@ export function AdminProjectEditor({ projectId }: Props) {
                     </button>
                   </div>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                    <Field label="Տեսարան">
-                      <input
-                        className={adminInputCls}
-                        value={apt.viewType}
-                        onChange={(e) => updateApt(apt.id, { viewType: e.target.value })}
-                      />
-                    </Field>
+                    <BilingualField
+                      label={a.viewType}
+                      hy={apt.viewTypeHy ?? ""}
+                      en={apt.viewType}
+                      onHy={(v) => updateApt(apt.id, { viewTypeHy: v })}
+                      onEn={(v) => updateApt(apt.id, { viewType: v })}
+                      placeholderHy={a.viewTypePlaceholder}
+                      placeholderEn={en.admin.viewTypePlaceholder}
+                      copyHyLabel={a.copyFromOther}
+                      copyEnLabel={a.copyFromOther}
+                      className="md:col-span-3"
+                    />
                     <div className="md:col-span-2">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                         <Field label={a.floorPlanUrl}>
@@ -1644,14 +1798,18 @@ export function AdminProjectEditor({ projectId }: Props) {
                       </label>
                     </Field>
                   </div>
-                  <Field label={a.unitDescription}>
-                    <textarea
-                      className={adminTextareaCls}
-                      value={apt.description ?? ""}
-                      placeholder={a.unitDescriptionPlaceholder}
-                      onChange={(e) => updateApt(apt.id, { description: e.target.value })}
-                    />
-                  </Field>
+                  <BilingualField
+                    label={a.unitDescription}
+                    hy={apt.descriptionHy ?? ""}
+                    en={apt.description ?? ""}
+                    onHy={(v) => updateApt(apt.id, { descriptionHy: v })}
+                    onEn={(v) => updateApt(apt.id, { description: v })}
+                    placeholderHy={a.unitDescriptionPlaceholder}
+                    placeholderEn={en.admin.unitDescriptionPlaceholder}
+                    copyHyLabel={a.copyFromOther}
+                    copyEnLabel={a.copyFromOther}
+                    multiline
+                  />
                   <div className="space-y-2 rounded-[5px] border border-[#E8EAED] bg-white p-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-sm font-semibold text-[#0c1428]">{a.galleryImages}</p>

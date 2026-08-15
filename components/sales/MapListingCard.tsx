@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber } from "@/lib/apartment-number";
 import { useI18n } from "@/lib/i18n";
+import { getProjectLocation } from "@/lib/project-i18n";
 import type { PropertyListing } from "@/lib/properties";
 
 interface Props {
@@ -15,7 +16,7 @@ interface Props {
 }
 
 export function MapListingCard({ listing, selected, onSelect }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { apartment, project } = listing;
   const image = apartment.gallery[0] ?? project.images[0];
   const code = apartmentDisplayNumber(apartment);
@@ -46,7 +47,7 @@ export function MapListingCard({ listing, selected, onSelect }: Props) {
           <p className="text-sm font-bold text-[#1C1917] tabular-nums">{formatPrice(apartment.price)}</p>
           <div className="flex items-start gap-1 mt-1 text-xs text-[#57534E]">
             <MapPin size={12} className="text-[#c9a96e] shrink-0 mt-0.5" />
-            <span className="line-clamp-2 leading-snug">{project.location}</span>
+            <span className="line-clamp-2 leading-snug">{getProjectLocation(project, lang)}</span>
           </div>
           <div className="flex items-center gap-2 mt-1.5 text-[11px] text-[#A8A29E]">
             <span>

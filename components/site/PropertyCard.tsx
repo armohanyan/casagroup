@@ -3,13 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
-import { getProjectDescription } from "@/lib/project-i18n";
+import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 
 /** Compact conversion-focused property card — no long descriptions. */
 export function PropertyCard({ project }: { project: Project }) {
   const { t, lang } = useI18n();
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
   const shortInfo = getProjectDescription(project, lang);
 
   return (
@@ -21,7 +24,7 @@ export function PropertyCard({ project }: { project: Project }) {
         {project.images[0] && (
           <Image
             src={project.images[0]}
-            alt={project.title}
+            alt={title}
             fill
             unoptimized
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -31,14 +34,19 @@ export function PropertyCard({ project }: { project: Project }) {
         <span className="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-semibold bg-white/95 rounded-[5px] text-[#0c1428]">
           {getStatusLabel(t, project.status)}
         </span>
+        <ProjectViewCount
+          projectId={project.id}
+          count={project.viewCount}
+          className="absolute top-2 right-2"
+        />
       </div>
       <div className="flex flex-col flex-1 p-4">
         <h3 className="font-display text-base text-[#0c1428] line-clamp-1 group-hover:text-[#c9a96e] transition-colors">
-          {project.title}
+          {title}
         </h3>
         <p className="mt-1.5 flex items-center gap-1 text-xs text-[#6B7280]">
           <MapPin size={12} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
-          <span className="truncate">{project.location}</span>
+          <span className="truncate">{location}</span>
         </p>
         {shortInfo ? (
           <p className="mt-2 text-xs text-[#6B7280] leading-relaxed line-clamp-2">{shortInfo}</p>

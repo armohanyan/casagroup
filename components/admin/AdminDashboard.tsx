@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -18,9 +18,27 @@ import { AdminStatCard } from "@/components/admin/AdminStatCard";
 import { ADMIN_BASE, adminBtnPrimary, adminCardCls } from "@/components/admin/admin-config";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel } from "@/lib/i18n";
+import { getProjectTitle } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { adminGetStats, type AdminDashboardStats } from "@/lib/api-client";
 import { hyTranslations } from "@/content/hy";
+import type { Apartment } from "@/types";
+
+function formatStat(value: number): string {
+  return value.toLocaleString("hy-AM");
+}
+
+function apartmentStatus(status: string): "Available" | "Reserved" | "Sold" | null {
+  const value = status.trim().toLowerCase();
+  if (value === "available" || value === "հասանելի") return "Available";
+  if (value === "sold" || value === "վաճառված") return "Sold";
+  if (value === "reserved" || value === "ամրագրված") return "Reserved";
+  return null;
+}
+
+function countApartments(apartments: Apartment[], status: "Available" | "Sold") {
+  return apartments.filter((apt) => apartmentStatus(apt.status) === status).length;
+}
 
 function formatRelativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -57,7 +75,26 @@ export function AdminDashboard() {
     };
   }, []);
 
-  const loading = projectsLoading || statsLoading;
+  const localStats = useMemo(() => {
+    const apartments = projects.flatMap((p) => p.apartments ?? []);
+    const availableFromUnits = countApartments(apartments, "Available");
+    const availableFromProjects = projects.reduce((sum, p) => sum + (p.availableApartmentsCount || 0), 0);
+    return {
+      projects: projects.length,
+      available: apartments.length > 0 ? availableFromUnits : availableFromProjects,
+      sold: countApartments(apartments, "Sold"),
+      views: projects.reduce((sum, p) => sum + (p.viewCount || 0), 0),
+    };
+  }, [projects]);
+
+  const kpi = {
+    projects: stats?.projects ?? localStats.projects,
+    available: stats?.available ?? localStats.available,
+    sold: stats?.sold ?? localStats.sold,
+    inquiries: stats?.inquiries,
+    views: stats?.views ?? localStats.views,
+  };
+
   const recentProjects = projects.slice(0, 5);
   const recentInquiries = stats?.recentInquiries ?? [];
 
@@ -75,11 +112,37 @@ export function AdminDashboard() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <AdminStatCard label="Նախագծեր" value={loading ? "—" : stats?.projects ?? 0} icon={Building2} accent delay={0} />
-        <AdminStatCard label="Հասանելի" value={loading ? "—" : stats?.available ?? 0} icon={Home} delay={0.05} />
-        <AdminStatCard label="Վաճառված" value={loading ? "—" : stats?.sold ?? 0} icon={ShoppingBag} delay={0.1} />
-        <AdminStatCard label="Հարցումներ" value={loading ? "—" : stats?.inquiries ?? 0} icon={MessageSquare} delay={0.15} />
-        <AdminStatCard label="Դիտումներ" value={loading ? "—" : stats?.views ?? 0} icon={Eye} delay={0.2} />
+        <AdminStatCard
+          label="Նախագծեր"
+          value={projectsLoading ? "—" : formatStat(kpi.projects)}
+          icon={Building2}
+          accent
+          delay={0}
+        />
+        <AdminStatCard
+          label="Հասանելի"
+          value={projectsLoading ? "—" : formatStat(kpi.available)}
+          icon={Home}
+          delay={0.05}
+        />
+        <AdminStatCard
+          label="Վաճառված"
+          value={projectsLoading ? "—" : formatStat(kpi.sold)}
+          icon={ShoppingBag}
+          delay={0.1}
+        />
+        <AdminStatCard
+          label="Հարցումներ"
+          value={statsLoading ? "—" : formatStat(kpi.inquiries ?? 0)}
+          icon={MessageSquare}
+          delay={0.15}
+        />
+        <AdminStatCard
+          label="Դիտումներ"
+          value={projectsLoading && statsLoading ? "—" : formatStat(kpi.views)}
+          icon={Eye}
+          delay={0.2}
+        />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -120,14 +183,16 @@ export function AdminDashboard() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-[#0c1428]">{p.title}</p>
+                  <p className="truncate text-sm font-semibold text-[#0c1428]">{getProjectTitle(p, "hy")}</p>
                   <p className="truncate text-xs text-[#6B7280]">
                     {p.location} · {getStatusLabel(hyTranslations, p.status)}
                   </p>
                 </div>
                 <div className="hidden text-right sm:block">
                   <p className="text-sm font-semibold tabular-nums text-[#0c1428]">{formatPrice(p.startingPrice)}</p>
-                  <p className="text-[11px] text-[#9CA3AF]">{p.availableApartmentsCount} հասանելի</p>
+                  <p className="text-[11px] text-[#9CA3AF]">
+                    {p.availableApartmentsCount} հասանելի · {(p.viewCount ?? 0).toLocaleString("hy-AM")} դիտում
+                  </p>
                 </div>
               </Link>
             ))}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getProjectBySlug } from "@/lib/projects-data";
 import { hyTranslations } from "@/content/hy";
 import { buildPageMetadata } from "@/lib/seo-meta";
+import { getProjectCity, getProjectDescription, getProjectTitle } from "@/lib/project-i18n";
 
 export async function generateMetadata({
   params,
@@ -17,8 +18,8 @@ export async function generateMetadata({
     };
   }
   return buildPageMetadata({
-    title: `${project.title} — ${project.city}`,
-    description: project.descriptionHy ?? project.description,
+    title: `${getProjectTitle(project, "hy")} — ${getProjectCity(project, "hy")}`,
+    description: getProjectDescription(project, "hy"),
     path: `/projects/${project.slug}`,
     image: project.images[0],
   });

@@ -15,10 +15,15 @@ export function generateSlug(title: string): string {
 export function emptyProject(): Omit<Project, "id" | "slug"> {
   return {
     title: "",
+    titleHy: "",
     location: "",
+    locationHy: "",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "",
+    descriptionHy: "",
     longDescription: "",
+    longDescriptionHy: "",
     images: [],
     droneVideos: [],
     startingPrice: 0,
@@ -74,9 +79,11 @@ export function emptyApartment(projectId: string, buildingId?: string): Apartmen
     price: 150000,
     status: "Available",
     viewType: "City",
+    viewTypeHy: "Քաղաք",
     floorPlanImage: "",
     planPdfUrl: "",
     description: "",
+    descriptionHy: "",
     gallery: [],
     balcony: false,
   };

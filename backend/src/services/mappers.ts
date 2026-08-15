@@ -5,6 +5,7 @@ type BuildingWithFloors = Building & { floors?: BuildingFloor[] };
 type ProjectWithRelations = Project & {
   apartments?: Apartment[];
   buildings?: BuildingWithFloors[];
+  _count?: { views?: number };
 };
 
 function asArray<T>(value: unknown): T[] {
@@ -48,9 +49,11 @@ export function mapApartment(apt: Apartment) {
     price: apt.price,
     status: apt.status,
     viewType: apt.viewType,
+    viewTypeHy: apt.viewTypeHy ?? undefined,
     floorPlanImage: apt.floorPlanImage,
     planPdfUrl: apt.planPdfUrl ?? undefined,
     description: apt.description ?? undefined,
+    descriptionHy: apt.descriptionHy ?? undefined,
     gallery: asArray<string>(apt.gallery),
     balcony: apt.balcony,
   };
@@ -61,9 +64,12 @@ export function mapProject(project: ProjectWithRelations) {
   return {
     id: project.id,
     title: project.title,
+    titleHy: project.titleHy ?? undefined,
     slug: project.slug,
     location: project.location,
+    locationHy: project.locationHy ?? undefined,
     city: project.city,
+    cityHy: project.cityHy ?? undefined,
     description: project.description,
     descriptionHy: project.descriptionHy ?? undefined,
     longDescription: project.longDescription,
@@ -92,5 +98,6 @@ export function mapProject(project: ProjectWithRelations) {
     coordinates: { lat: project.lat, lng: project.lng },
     tags: asArray<string>(project.tags),
     featured: project.featured,
+    viewCount: project._count?.views ?? 0,
   };
 }

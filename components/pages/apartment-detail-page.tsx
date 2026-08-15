@@ -28,7 +28,8 @@ import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { useI18n } from "@/lib/i18n";
-import { getProjectDescription } from "@/lib/project-i18n";
+import { getApartmentDescription, getApartmentViewType, getProjectCity, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import { recordProjectView } from "@/lib/project-views";
 import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
@@ -94,6 +95,10 @@ export default function ApartmentDetailPage() {
   );
 
   useEffect(() => {
+    if (result?.project.id) void recordProjectView(result.project.id);
+  }, [result?.project.id]);
+
+  useEffect(() => {
     if (lightboxIndex === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setLightboxIndex(null);
@@ -138,15 +143,18 @@ export default function ApartmentDetailPage() {
   const sold = apt.status === "Sold";
   const aptNumber = apartmentDisplayNumber(apt);
   const showUnitPlaque = hasApartmentNumber(apt);
-  const description = (apt.description?.trim() || getProjectDescription(project, lang)).trim();
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
+  const city = getProjectCity(project, lang);
+  const description = getApartmentDescription(apt, project, lang).trim();
   const planPdfUrl = apt.planPdfUrl?.trim() || "";
   const pricePerSqm = apt.area > 0 ? Math.round(apt.price / apt.area) : 0;
-  const address = `${project.location}${project.city ? `, ${project.city}` : ""}`;
+  const address = `${location}${city ? `, ${city}` : ""}`;
   const priceLabel = sold ? "—" : formatPrice(apt.price);
   const whatsappMessage =
     lang === "hy"
-      ? `Բարև, հետաքրքրված եմ ${project.title} նախագծի №${aptNumber} բնակարանով։\nՀասցե՝ ${address}\nՄակերես՝ ${apt.area} մ²\nԳին՝ ${priceLabel}`
-      : `Hello, I'm interested in apartment №${aptNumber} at ${project.title}.\nAddress: ${address}\nArea: ${apt.area} m²\nPrice: ${priceLabel}`;
+      ? `Բարև, հետաքրքրված եմ ${title} նախագծի №${aptNumber} բնակարանով։\nՀասցե՝ ${address}\nՄակերես՝ ${apt.area} մ²\nԳին՝ ${priceLabel}`
+      : `Hello, I'm interested in apartment №${aptNumber} at ${title}.\nAddress: ${address}\nArea: ${apt.area} m²\nPrice: ${priceLabel}`;
   const whatsappHref = `https://wa.me/37496799733?text=${encodeURIComponent(whatsappMessage)}`;
   const galleryImages = (apt.gallery ?? []).map((u) => u.trim()).filter(Boolean);
   const floorPlanIndex = apt.floorPlanImage?.trim()
@@ -160,8 +168,8 @@ export default function ApartmentDetailPage() {
   return (
     <main className="bg-white min-h-screen pt-header">
       <Seo
-        title={`${showUnitPlaque ? `№${aptNumber} · ` : ""}${apt.rooms} BR · ${project.title}`}
-        description={description || `${apt.area} m² apartment at ${project.title}, ${project.city}.`}
+        title={`${showUnitPlaque ? `№${aptNumber} · ` : ""}${apt.rooms} BR · ${title}`}
+        description={description || `${apt.area} m² apartment at ${title}, ${city}.`}
         path={path}
         image={apt.floorPlanImage || undefined}
         lang={lang}
@@ -171,14 +179,14 @@ export default function ApartmentDetailPage() {
         data={breadcrumbListSchema([
           { name: t.aptDetail.breadHome, path: "/" },
           { name: t.aptDetail.breadProjects, path: "/projects" },
-          { name: project.title, path: `/projects/${project.slug}` },
+          { name: title, path: `/projects/${project.slug}` },
           { name: showUnitPlaque ? `№${aptNumber}` : `${apt.rooms} BR`, path },
         ])}
       />
 
       <Container className="py-6 md:py-10">
         <nav className="text-sm text-[#6B7280] mb-6">
-          <Link href={`/projects/${project.slug}`} className="hover:text-[#0c1428]">{project.title}</Link>
+          <Link href={`/projects/${project.slug}`} className="hover:text-[#0c1428]">{title}</Link>
           <span className="mx-2">/</span>
           <span className="text-[#0c1428]">
             {showUnitPlaque ? `№${aptNumber} · ` : null}
@@ -204,11 +212,11 @@ export default function ApartmentDetailPage() {
               <div className="hidden h-16 w-px bg-white/10 sm:block" aria-hidden />
               <div className="sm:text-right">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-                  {project.title}
+                  {title}
                 </p>
                 <p className="mt-1 text-sm text-white/70">
-                  {project.location}
-                  {project.city ? `, ${project.city}` : ""}
+                  {location}
+                  {city ? `, ${city}` : ""}
                 </p>
               </div>
             </div>
@@ -288,11 +296,11 @@ export default function ApartmentDetailPage() {
                 <SpecItem icon={BedDouble} label={t.aptDetail.bedrooms} value={apt.rooms} />
                 <SpecItem icon={Maximize2} label={t.aptDetail.area} value={`${apt.area} m²`} />
                 <SpecItem icon={Layers} label={t.aptDetail.floorSpec} value={apt.floor} />
-                <SpecItem icon={Eye} label={t.aptDetail.viewSpec} value={apt.viewType?.trim() || "—"} />
+                <SpecItem icon={Eye} label={t.aptDetail.viewSpec} value={getApartmentViewType(apt, lang) || "—"} />
                 <SpecItem
                   icon={MapPin}
                   label={t.aptDetail.locationSpec}
-                  value={`${project.location}${project.city ? `, ${project.city}` : ""}`}
+                  value={address}
                 />
                 {apt.balcony ? (
                   <SpecItem icon={Sun} label={t.aptDetail.balcony} value={t.aptDetail.yes} />
@@ -397,7 +405,7 @@ export default function ApartmentDetailPage() {
         type={inquiryType}
         onClose={() => setInquiryType(null)}
         context={{
-          projectTitle: project.title,
+          projectTitle: title,
           listingCode: aptNumber,
           whatsappHref,
           price: apt.price,

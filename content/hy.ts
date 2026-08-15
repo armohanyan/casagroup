@@ -1353,6 +1353,19 @@ export const hyTranslations: Translations = {
     newProjectSubtitle: "Լրացրեք տվյալները նոր գույքի ցանկը հրապարակելու համար։",
     editProjectSubtitle: "Թարմացրեք նախագծի տեղեկությունը։",
     rooms: "Սենյակներ",
+    langHy: "Հայերեն",
+    langEn: "English",
+    bilingualHint:
+      "Կայքի այցելուները տեսնում են հայերեն կամ անգլերեն՝ ըստ ընտրած լեզվի։ Լրացրեք երկու սյունակները — դատարկ դաշտը ցուցադրվում է մյուս լեզվով։",
+    copyFromOther: "Պատճենել",
+    fillEmptyFromEn: "Լրացնել դատարկ հայերենը անգլերենից",
+    fillEmptyFromHy: "Լրացնել դատարկ անգլերենը հայերենից",
+    titleRequired: "Ավելացրեք նախագծի վերնագիր հայերեն կամ անգլերեն",
+    amenityLabelHy: "Հայերեն",
+    amenityLabelEn: "English",
+    customAmenityHy: "Հայերեն անվանում",
+    customAmenityEn: "Անգլերեն անվանում",
+    cityFilterHint: "Անգլերեն քաղաքի անունը օգտագործվում է ֆիլտրերի համար (օր. Yerevan)։",
   },
   seo: {
     home: {

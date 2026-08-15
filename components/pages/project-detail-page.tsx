@@ -14,7 +14,7 @@ import { Container } from "@/components/site/Container";
 import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getProjectGallery } from "@/lib/project-gallery";
-import { getProjectDescription, getProjectLongDescription } from "@/lib/project-i18n";
+import { getAmenityLabel, getProjectCity, getProjectDescription, getProjectLongDescription, getProjectTitle } from "@/lib/project-i18n";
 import { recordProjectView } from "@/lib/project-views";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
@@ -23,25 +23,6 @@ import { cn } from "@/lib/utils";
 import { ProjectKeyFacts } from "@/components/site/ProjectKeyFacts";
 
 const WHATSAPP = "https://wa.me/37496799733";
-const AMENITY_LABELS_HY: Record<string, string> = {
-  "Rooftop Pool": "Տանիքի լողավազան",
-  "Fitness Center": "Ֆիթնես կենտրոն",
-  "Parking": "Կայանատեղի",
-  "Security": "Անվտանգություն",
-  "Terrace Gardens": "Տեռասային այգիներ",
-  "Smart Home": "Խելացի տուն",
-  "Underground Parking": "Ստորգետնյա կայանատեղի",
-  "24/7 Security": "24/7 անվտանգություն",
-  "Valet Parking": "Վալետ կայանատեղի",
-  "Concierge": "Կոնսիերժ ծառայություն",
-  "Infinity Pool": "Ինֆինիտի լողավազան",
-  "Private Gardens": "Մասնավոր այգիներ",
-  "Private Security": "Մասնավոր անվտանգություն",
-};
-const AMENITY_LABELS_EN: Record<string, string> = Object.fromEntries(
-  Object.entries(AMENITY_LABELS_HY).map(([enLabel, hyLabel]) => [hyLabel, enLabel]),
-);
-
 const OVERVIEW_PREVIEW_LINES = 10;
 
 function ExpandableDescription({
@@ -114,9 +95,17 @@ export default function ProjectDetailPage() {
   const project = slug ? getBySlug(slug) : undefined;
 
   const galleryItems = useMemo(() => (project ? getProjectGallery(project) : []), [project]);
+  const [recordedViews, setRecordedViews] = useState<number | null>(null);
 
   useEffect(() => {
-    if (project?.id) void recordProjectView(project.id);
+    if (!project?.id) return;
+    let cancelled = false;
+    void recordProjectView(project.id).then((views) => {
+      if (!cancelled && views != null) setRecordedViews(views);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [project?.id]);
 
   if (loading) {
@@ -141,12 +130,14 @@ export default function ProjectDetailPage() {
 
   const path = `/projects/${project.slug}`;
   const heroImage = galleryItems[0]?.url ?? project.images[0];
+  const title = getProjectTitle(project, lang);
+  const city = getProjectCity(project, lang);
   const description = getProjectDescription(project, lang);
   const longDescription = getProjectLongDescription(project, lang).trim();
   const overviewText = (longDescription || description).trim();
-  const localizeAmenityLabel = (label: string) =>
-    lang === "hy" ? (AMENITY_LABELS_HY[label] ?? label) : (AMENITY_LABELS_EN[label] ?? label);
   const hasDroneVideos = (project.droneVideos?.length ?? 0) > 0;
+  const projectWithViews =
+    recordedViews != null ? { ...project, viewCount: recordedViews } : project;
 
   const overviewSection = overviewText ? (
     <section className={cn(hasDroneVideos ? "max-w-3xl" : "mb-8 max-w-3xl")}>
@@ -183,7 +174,7 @@ export default function ProjectDetailPage() {
                 )}
               >
                 <BadgeCheck size={16} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
-                {localizeAmenityLabel(a.label)}
+                {getAmenityLabel(a, lang)}
               </span>
             ))}
           </div>
@@ -194,23 +185,23 @@ export default function ProjectDetailPage() {
 
   return (
     <main className="bg-white min-h-screen">
-      <Seo title={`${project.title} — ${project.city}`} description={description} path={path} image={heroImage} lang={lang} ogType="article" />
+      <Seo title={`${title} — ${city}`} description={description} path={path} image={heroImage} lang={lang} ogType="article" />
       <JsonLd
         data={breadcrumbListSchema([
           { name: t.projectDetail.breadHome, path: "/" },
           { name: t.projectDetail.breadProjects, path: "/projects" },
-          { name: project.title, path },
+          { name: title, path },
         ])}
       />
 
-      <ProjectMediaShowcase project={project} items={galleryItems} />
+      <ProjectMediaShowcase project={projectWithViews} items={galleryItems} />
 
       {hasDroneVideos ? (
         <section className="border-t border-[#E5E7EB] bg-[#F9FAFB] py-8 md:py-11">
           <Container>
             <DroneVideoSection
               videos={project.droneVideos ?? []}
-              projectTitle={project.title}
+              projectTitle={title}
               embedded
               sideContent={overviewSection}
             />

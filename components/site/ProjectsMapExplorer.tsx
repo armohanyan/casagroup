@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { MapPin, ArrowRight, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
+import { getProjectLocation, getProjectTitle, projectMatchesQuery } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -21,18 +22,11 @@ interface Props {
 }
 
 function matchesMapQuery(project: Project, query: string) {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  return (
-    project.title.toLowerCase().includes(q) ||
-    project.location.toLowerCase().includes(q) ||
-    project.city.toLowerCase().includes(q) ||
-    project.tags.some((tag) => tag.toLowerCase().includes(q))
-  );
+  return projectMatchesQuery(project, query) || project.tags.some((tag) => tag.toLowerCase().includes(query.trim().toLowerCase()));
 }
 
 export function ProjectsMapExplorer({ projects }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [centerId, setCenterId] = useState<string | null>(null);
@@ -167,10 +161,10 @@ export function ProjectsMapExplorer({ projects }: Props) {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#0c1428] truncate">{project.title}</p>
+                      <p className="text-sm font-semibold text-[#0c1428] truncate">{getProjectTitle(project, lang)}</p>
                       <p className="text-xs text-[#6B7280] flex items-center gap-1 mt-0.5 truncate">
                         <MapPin size={11} className="shrink-0 text-[#c9a96e]" />
-                        {project.location}
+                        {getProjectLocation(project, lang)}
                       </p>
                       <p className="text-xs font-medium text-[#0c1428] mt-1 tabular-nums">
                         {formatPrice(project.startingPrice)}
@@ -208,6 +202,7 @@ function ProjectListRow({
   onSelect: () => void;
   viewLabel: string;
 }) {
+  const { lang } = useI18n();
   return (
     <li>
       <div
@@ -233,10 +228,10 @@ function ProjectListRow({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-[#0c1428] truncate">{project.title}</p>
+          <p className="text-sm font-semibold text-[#0c1428] truncate">{getProjectTitle(project, lang)}</p>
           <p className="text-xs text-[#6B7280] flex items-center gap-1 mt-0.5 truncate">
             <MapPin size={11} className="shrink-0 text-[#c9a96e]" />
-            {project.location}
+            {getProjectLocation(project, lang)}
           </p>
           <p className="text-xs font-medium text-[#0c1428] mt-1 tabular-nums">
             {formatPrice(project.startingPrice)}

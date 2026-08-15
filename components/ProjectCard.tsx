@@ -5,12 +5,15 @@ import Link from "next/link";
 import { MapPin, Calendar, Building2, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
+import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import { useMediaQuery } from "@/lib/use-media-query";
 import type { Project } from "@/types";
 import { formatPrice } from "@/lib/format-price";
 
 export function ProjectCard({ project }: { project: Project }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
   const canFineHover = useMediaQuery("(hover: hover) and (pointer: fine)");
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
@@ -56,7 +59,7 @@ export function ProjectCard({ project }: { project: Project }) {
           {project.images[0] ? (
             <Image
               src={project.images[0]}
-              alt={`${project.title} — ${project.location} new construction preview`}
+              alt={`${title} — ${location} new construction preview`}
               fill
               unoptimized
               sizes="(max-width: 768px) 100vw, 33vw"
@@ -78,16 +81,16 @@ export function ProjectCard({ project }: { project: Project }) {
       {/* Content */}
       <div className="p-6">
         <h3 className="font-sans font-semibold text-2xl text-[#1C1917] mb-2 group-hover:text-[#c9a96e] transition-colors">
-          {project.title}
+          {title}
         </h3>
 
         <div className="flex items-center gap-1.5 text-[#57534E] text-sm mb-4">
           <MapPin size={13} className="text-[#c9a96e]" />
-          {project.location}
+          {location}
         </div>
 
         <p className="text-[#57534E] text-sm leading-relaxed mb-6 line-clamp-2">
-          {project.description}
+          {getProjectDescription(project, lang)}
         </p>
 
         <div className="grid grid-cols-3 gap-4 mb-6">

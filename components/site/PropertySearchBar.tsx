@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n } from "@/lib/i18n";
+import { getCityDisplayName } from "@/lib/project-i18n";
+import { useProjects } from "@/lib/projects-context";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -14,7 +16,8 @@ interface Props {
 }
 
 export function PropertySearchBar({ cities, className, variant = "default" }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { projects } = useProjects();
   const router = useRouter();
   const isHero = variant === "hero";
   const [open, setOpen] = useState(false);
@@ -96,7 +99,7 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
             <option value="">{t.home.searchAllLocations}</option>
             {cities.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {getCityDisplayName(c, projects, lang)}
               </option>
             ))}
           </select>

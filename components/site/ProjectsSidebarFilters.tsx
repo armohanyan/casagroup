@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n } from "@/lib/i18n";
+import { getCityDisplayName } from "@/lib/project-i18n";
+import { useProjects } from "@/lib/projects-context";
 import type { FilterState } from "@/components/FilterBar";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +45,8 @@ function countActiveFilters(filters: FilterState) {
 }
 
 export function ProjectsSidebarFilters({ filters, onChange, cities }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { projects } = useProjects();
   const [open, setOpen] = useState(false);
   const activeCount = useMemo(() => countActiveFilters(filters), [filters]);
 
@@ -69,7 +72,7 @@ export function ProjectsSidebarFilters({ filters, onChange, cities }: Props) {
           <option value="">{t.filter.allLocations}</option>
           {cities.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {getCityDisplayName(c, projects, lang)}
             </option>
           ))}
         </select>

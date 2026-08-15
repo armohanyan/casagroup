@@ -1,5 +1,7 @@
 import type { Apartment, Project } from "@/types";
 import { formatPrice } from "@/lib/format-price";
+import { getApartmentViewType, getProjectCity, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import type { Lang } from "@/lib/i18n";
 
 export interface ProjectInfoPdfLabels {
   title: string;
@@ -26,6 +28,7 @@ interface ProjectInfoPdfInput {
   statusLabel: string;
   description: string;
   labels: ProjectInfoPdfLabels;
+  lang?: Lang;
 }
 
 function esc(value: string): string {
@@ -38,11 +41,12 @@ function esc(value: string): string {
 
 /** Opens a print-ready document so the user can save project info as PDF. */
 export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
-  const { project, apartment, statusLabel, description, labels } = input;
+  const { project, apartment, statusLabel, description, labels, lang = "hy" } = input;
+  const title = getProjectTitle(project, lang);
   const rows: { label: string; value: string }[] = [
-    { label: labels.project, value: project.title },
-    { label: labels.location, value: project.location },
-    { label: labels.city, value: project.city },
+    { label: labels.project, value: title },
+    { label: labels.location, value: getProjectLocation(project, lang) },
+    { label: labels.city, value: getProjectCity(project, lang) },
     { label: labels.status, value: statusLabel },
     { label: labels.developer, value: project.developer },
     { label: labels.completion, value: project.completionDate || "—" },
@@ -59,7 +63,7 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
       { label: labels.bedrooms, value: String(apartment.rooms) },
       { label: labels.area, value: `${apartment.area} m²` },
       { label: labels.floor, value: String(apartment.floor) },
-      { label: labels.view, value: apartment.viewType || "—" },
+      { label: labels.view, value: getApartmentViewType(apartment, lang) || "—" },
     );
   }
 
@@ -67,7 +71,7 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
 <html lang="hy">
 <head>
   <meta charset="utf-8" />
-  <title>${esc(labels.title)} — ${esc(project.title)}</title>
+  <title>${esc(labels.title)} — ${esc(title)}</title>
   <style>
     @page { margin: 18mm; }
     body {
@@ -87,7 +91,7 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
   </style>
 </head>
 <body>
-  <h1>${esc(project.title)}</h1>
+  <h1>${esc(title)}</h1>
   <p class="meta">${esc(labels.generated)} · CasaGroup</p>
   <table>
     ${rows

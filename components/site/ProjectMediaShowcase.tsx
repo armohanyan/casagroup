@@ -4,8 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, MapPin, X } from "lucide-react";
+import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
+import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { GalleryCategory, Project, ProjectGalleryItem } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +17,9 @@ interface Props {
 }
 
 export function ProjectMediaShowcase({ project, items }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
   const [index, setIndex] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -109,7 +113,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   }
 
   return (
-    <section className="bg-[#0B1220]" aria-label={project.title}>
+    <section className="bg-[#0B1220]" aria-label={title}>
       <div
         ref={heroRef}
         className="relative h-[68vh] min-h-[440px] max-h-[720px] group touch-pan-y sm:h-[72vh] sm:min-h-[500px] sm:max-h-[820px] xl:h-[78vh] xl:max-h-[960px] 2xl:max-h-[1040px]"
@@ -128,7 +132,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
               <div className="relative h-full w-full max-w-[1600px] 2xl:max-w-[1760px]">
                 <Image
                   src={active.url}
-                  alt={`${project.title} — ${categoryLabel(active.category)}`}
+                  alt={`${title} — ${categoryLabel(active.category)}`}
                   fill
                   priority
                   unoptimized
@@ -183,15 +187,20 @@ export function ProjectMediaShowcase({ project, items }: Props) {
         <div className="absolute inset-x-0 bottom-0 z-20 px-4 sm:px-6 lg:px-8 pb-5 md:pb-6 pt-20 pointer-events-none">
           <div className="mx-auto w-full max-w-[1600px] 2xl:max-w-[1760px]">
             <p className="text-sm font-medium text-[#c9a96e]">{getStatusLabel(t, project.status)}</p>
-            <h1 className="mt-1 font-display text-3xl md:text-5xl text-white tracking-tight">{project.title}</h1>
+            <h1 className="mt-1 font-display text-3xl md:text-5xl text-white tracking-tight">{title}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-white/85">
               <p className="flex items-center gap-1.5 text-sm md:text-base">
                 <MapPin size={15} className="shrink-0 text-[#c9a96e]" />
-                {project.location}
+                {location}
               </p>
               <p className="text-sm md:text-base font-semibold tabular-nums">
                 {t.home.startingFrom} {formatPrice(project.startingPrice)}
               </p>
+              <ProjectViewCount
+                projectId={project.id}
+                count={project.viewCount}
+                className="bg-white/15 text-white"
+              />
             </div>
             {active && (
               <p className="mt-3 text-xs text-white/55 tabular-nums">
@@ -239,7 +248,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
           >
             <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-white/10">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">{project.title}</p>
+                <p className="text-sm font-medium text-white truncate">{title}</p>
                 <p className="text-xs text-white/60 mt-0.5">
                   {categoryLabel(active.category)} · {safeIndex + 1} / {items.length}
                 </p>

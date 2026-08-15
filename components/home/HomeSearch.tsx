@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { buildPropertySearchQuery } from "@/lib/property-search";
 import { useI18n } from "@/lib/i18n";
+import { getCityDisplayName, getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 import { SectionHeader } from "./SectionHeader";
 import { Reveal } from "./Reveal";
@@ -16,7 +17,7 @@ interface Props {
 }
 
 function HomeSearchInner({ cities, projects }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const [city, setCity] = useState("");
   const [projectSlug, setProjectSlug] = useState("");
@@ -52,7 +53,7 @@ function HomeSearchInner({ cities, projects }: Props) {
                 <select className="field-select" value={city} onChange={(e) => setCity(e.target.value)}>
                   <option value="">{t.home.searchAllLocations}</option>
                   {cities.map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>{getCityDisplayName(c, projects, lang)}</option>
                   ))}
                 </select>
               </div>
@@ -61,7 +62,7 @@ function HomeSearchInner({ cities, projects }: Props) {
                 <select className="field-select" value={projectSlug} onChange={(e) => setProjectSlug(e.target.value)}>
                   <option value="">{t.sales.anyProject}</option>
                   {projects.map((p) => (
-                    <option key={p.id} value={p.slug}>{p.title}</option>
+                    <option key={p.id} value={p.slug}>{getProjectTitle(p, lang)}</option>
                   ))}
                 </select>
               </div>

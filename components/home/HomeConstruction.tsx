@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 import { SectionHeader } from "./SectionHeader";
 import { Reveal } from "./Reveal";
@@ -22,7 +23,7 @@ function progressForStatus(status: Project["status"]): number {
 }
 
 export function HomeConstruction({ projects }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [tab, setTab] = useState<Tab>("underConstruction");
 
   const tabs: { id: Tab; label: string }[] = [
@@ -72,6 +73,8 @@ export function HomeConstruction({ projects }: Props) {
         <div className="space-y-6">
           {display.map((project, i) => {
             const progress = progressForStatus(project.status);
+            const title = getProjectTitle(project, lang);
+            const location = getProjectLocation(project, lang);
             return (
               <Reveal key={project.id} delay={i * 0.06}>
                 <div className="flex flex-col md:flex-row gap-6 p-6 rounded-lg border border-[#E2E8F0] hover:border-[#c9a96e]/30 transition-colors">
@@ -79,7 +82,7 @@ export function HomeConstruction({ projects }: Props) {
                     {project.images[0] && (
                       <Image
                         src={project.images[0]}
-                        alt={project.title}
+                        alt={title}
                         fill
                         unoptimized
                         sizes="192px"
@@ -90,8 +93,8 @@ export function HomeConstruction({ projects }: Props) {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                       <div>
-                        <h3 className="font-display text-lg text-[#0F172A]">{project.title}</h3>
-                        <p className="text-sm text-[#6B7280] mt-1">{project.location}</p>
+                        <h3 className="font-display text-lg text-[#0F172A]">{title}</h3>
+                        <p className="text-sm text-[#6B7280] mt-1">{location}</p>
                       </div>
                       <Link
                         href={`/projects/${project.slug}`}

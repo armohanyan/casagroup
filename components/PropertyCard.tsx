@@ -7,11 +7,14 @@ import { MapPin, Bed, Maximize, Building2 } from "lucide-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n } from "@/lib/i18n";
+import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { PropertyListing } from "@/lib/properties";
 
 export function PropertyCard({ listing }: { listing: PropertyListing }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { apartment, project } = listing;
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
   const image = apartment.gallery[0] ?? project.images[0];
 
   return (
@@ -27,7 +30,7 @@ export function PropertyCard({ listing }: { listing: PropertyListing }) {
           {image ? (
             <Image
               src={image}
-              alt={`${project.title} — ${apartment.rooms} bedroom apartment`}
+              alt={`${title} — ${apartment.rooms} bedroom apartment`}
               fill
               unoptimized
               sizes="(max-width: 768px) 100vw, 33vw"
@@ -47,12 +50,12 @@ export function PropertyCard({ listing }: { listing: PropertyListing }) {
 
           <div className="flex items-center gap-1.5 text-[#57534E] text-sm mb-3">
             <MapPin size={13} className="text-[#c9a96e] shrink-0" />
-            <span className="truncate">{project.location}</span>
+            <span className="truncate">{location}</span>
           </div>
 
           <p className="text-xs text-[#A8A29E] mb-4 flex items-center gap-1">
             <Building2 size={12} />
-            {project.title}
+            {title}
           </p>
 
           <div className="flex items-center gap-4 text-sm text-[#57534E] pt-3 border-t border-[#E7E0D5]">

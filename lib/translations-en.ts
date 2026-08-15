@@ -1345,6 +1345,19 @@ export const en = {
     newProjectSubtitle: "Fill in the details to publish a new property listing.",
     editProjectSubtitle: "Update project information.",
     rooms: "Rooms",
+    langHy: "Armenian",
+    langEn: "English",
+    bilingualHint:
+      "Visitors see Armenian or English based on the language they choose. Fill both columns — empty fields fall back to the other language.",
+    copyFromOther: "Copy",
+    fillEmptyFromEn: "Fill empty Armenian from English",
+    fillEmptyFromHy: "Fill empty English from Armenian",
+    titleRequired: "Add a project title in Armenian or English",
+    amenityLabelHy: "Armenian",
+    amenityLabelEn: "English",
+    customAmenityHy: "Armenian label",
+    customAmenityEn: "English label",
+    cityFilterHint: "Keep the English city as a stable name for filters (e.g. Yerevan).",
   },
   seo: {
     home: {

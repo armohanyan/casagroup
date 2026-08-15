@@ -6,10 +6,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Expand, Play, Video, X } from "lucide-react";
 import { Container } from "@/components/site/Container";
 import { useI18n } from "@/lib/i18n";
+import { getDroneVideoTitle } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 
 interface DroneVideo {
   title: string;
+  titleHy?: string;
   url: string;
   thumbnail?: string;
 }
@@ -170,8 +172,9 @@ function VideoFrame({
   );
 }
 
-export function DroneVideoSection({ videos, projectTitle, embedded = false, sideContent }: Props) {
-  const { t } = useI18n();
+export function DroneVideoSection({ videos: rawVideos, projectTitle, embedded = false, sideContent }: Props) {
+  const { t, lang } = useI18n();
+  const videos = rawVideos.map((v) => ({ ...v, title: getDroneVideoTitle(v, lang) }));
   const [activeIndex, setActiveIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [expanded, setExpanded] = useState(false);

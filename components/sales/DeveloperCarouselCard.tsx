@@ -3,10 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { listingCode } from "@/lib/listing-code";
+import { useI18n } from "@/lib/i18n";
+import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 
 export function DeveloperCarouselCard({ project, className = "" }: { project: Project; className?: string }) {
+  const { lang } = useI18n();
   const code = listingCode(project.id);
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
   const isNew = project.status === "Under Construction";
 
   return (
@@ -38,9 +43,9 @@ export function DeveloperCarouselCard({ project, className = "" }: { project: Pr
       </div>
       <div className="p-4 bg-[#F6F7FB] rounded-b-xl min-h-[88px]">
         <h3 className="text-sm font-semibold text-[#1C1917] leading-snug line-clamp-2 group-hover:text-[#c9a96e] transition-colors">
-          {project.title}
+          {title}
         </h3>
-        <p className="text-xs text-[#57534E] mt-1 truncate">{project.location}</p>
+        <p className="text-xs text-[#57534E] mt-1 truncate">{location}</p>
       </div>
     </Link>
   );

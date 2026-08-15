@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MapPin, Phone, MessageCircle } from "lucide-react";
 import { listingCode } from "@/lib/listing-code";
 import { useI18n } from "@/lib/i18n";
+import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 
 interface Props {
@@ -11,9 +12,11 @@ interface Props {
 }
 
 export function DeveloperProjectHeader({ project }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const code = listingCode(project.id);
-  const tagline = project.description;
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
+  const tagline = getProjectDescription(project, lang);
 
   const metaRows = [
     { label: t.developerDetail.developer, value: project.developer },
@@ -70,7 +73,7 @@ export function DeveloperProjectHeader({ project }: Props) {
 
       <div className="p-5 sm:p-8">
         <h1 className="text-xl sm:text-2xl lg:text-[1.65rem] font-bold text-[#1C1917] leading-snug">
-          {project.title}
+          {title}
           {tagline ? (
             <span className="block mt-2 text-base sm:text-lg font-medium text-[#57534E]">{tagline}</span>
           ) : null}
@@ -84,7 +87,7 @@ export function DeveloperProjectHeader({ project }: Props) {
 
         <div className="flex items-start gap-2 mt-4 text-sm text-[#57534E]">
           <MapPin size={16} className="text-[#c9a96e] shrink-0 mt-0.5" />
-          <span>{project.location}</span>
+          <span>{location}</span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">

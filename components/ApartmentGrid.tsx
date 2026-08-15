@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
+import { getApartmentViewType } from "@/lib/project-i18n";
 import type { Apartment } from "@/types";
 import { formatPrice } from "@/lib/format-price";
 import { hasApartmentNumber, apartmentDisplayNumber } from "@/lib/apartment-number";
@@ -45,7 +46,7 @@ function SpecItem({
 }
 
 export function ApartmentGrid({ apartments, projectSlug }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -122,7 +123,7 @@ export function ApartmentGrid({ apartments, projectSlug }: Props) {
                   <SpecItem
                     icon={Eye}
                     label={t.table.view}
-                    value={apt.viewType}
+                    value={getApartmentViewType(apt, lang) || "—"}
                   />
                 </div>
 

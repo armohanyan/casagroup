@@ -6,9 +6,12 @@ export const MOCK_PROJECTS: Project[] = [
   {
     id: "2",
     title: "Cascade Residences",
+    titleHy: "Կասկադ Ռեզիդենս",
     slug: "cascade-residences",
     location: "Tamanyan St 8, Yerevan",
+    locationHy: "Թամանյան 8, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "Contemporary luxury residences nestled beside the iconic Cascade complex.",
     descriptionHy: "Ժամանակակից շքեղ բնակարաններ՝ Կասկադ համալիրի կողքին։",
     longDescription:
@@ -267,9 +270,12 @@ export const MOCK_PROJECTS: Project[] = [
   {
     id: "3",
     title: "Arabkir Heights",
+    titleHy: "Արաբկիր Հայթս",
     slug: "arabkir-heights",
     location: "Komitas Ave 42, Yerevan",
+    locationHy: "Կոմիտասի պող. 42, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "Elevated living in one of Yerevan's most sought-after residential districts.",
     descriptionHy: "Բարձրակարգ կյանք Երևանի ամենապահանջված բնակելի թաղամասերից մեկում։",
     longDescription:
@@ -344,9 +350,12 @@ export const MOCK_PROJECTS: Project[] = [
   {
     id: "4",
     title: "Northern Residences",
+    titleHy: "Հյուսիսային Ռեզիդենս",
     slug: "northern-residences",
     location: "Azatutyan Ave 12, Yerevan",
+    locationHy: "Ազատության պող. 12, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "Move-in ready luxury apartments in the prestigious Northern Avenue district.",
     descriptionHy: "Պատրաստ շքեղ բնակարաններ Հյուսիսային պողոտայի հեղինակավոր թաղամասում։",
     longDescription:
@@ -420,9 +429,12 @@ export const MOCK_PROJECTS: Project[] = [
   {
     id: "5",
     title: "Victory Park Estates",
+    titleHy: "Հաղթանակի այգու էսթեյթս",
     slug: "victory-park-estates",
     location: "Baghramyan Ave 24, Yerevan",
+    locationHy: "Բաղրամյան պող. 24, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "An exclusive hillside development overlooking Victory Park and Mount Ararat.",
     descriptionHy: "Բացառիկ բլրային նախագիծ՝ Հաղթանակի այգու և Արարատ լեռան տեսարանով։",
     longDescription:

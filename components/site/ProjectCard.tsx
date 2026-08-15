@@ -4,12 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
-import { getProjectDescription } from "@/lib/project-i18n";
+import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import { formatPrice } from "@/lib/format-price";
 import type { Project } from "@/types";
 
 export function ProjectCard({ project }: { project: Project }) {
   const { t, lang } = useI18n();
+  const title = getProjectTitle(project, lang);
+  const location = getProjectLocation(project, lang);
 
   return (
     <article className="flex flex-col bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
@@ -17,7 +19,7 @@ export function ProjectCard({ project }: { project: Project }) {
         {project.images[0] && (
           <Image
             src={project.images[0]}
-            alt={project.title}
+            alt={title}
             fill
             unoptimized
             sizes="(max-width: 768px) 100vw, 33vw"
@@ -29,10 +31,10 @@ export function ProjectCard({ project }: { project: Project }) {
         </span>
       </div>
       <div className="flex flex-col flex-1 p-5">
-        <h3 className="text-lg font-semibold text-[#0c1428]">{project.title}</h3>
+        <h3 className="text-lg font-semibold text-[#0c1428]">{title}</h3>
         <p className="mt-1 flex items-center gap-1 text-sm text-[#6B7280]">
           <MapPin size={14} className="shrink-0" />
-          {project.location}
+          {location}
         </p>
         <p className="mt-3 text-sm text-[#6B7280] leading-relaxed line-clamp-2 flex-1">{getProjectDescription(project, lang)}</p>
         <p className="mt-4 text-sm font-medium text-[#0c1428]">

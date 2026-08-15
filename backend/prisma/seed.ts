@@ -75,16 +75,19 @@ type SeedBuilding = {
 type SeedProject = {
   id: string;
   title: string;
+  titleHy: string;
   slug: string;
   location: string;
+  locationHy: string;
   city: string;
+  cityHy: string;
   description: string;
   descriptionHy: string;
   longDescription: string;
   longDescriptionHy: string;
   images: string[];
   gallery: { url: string; category: string }[] | null;
-  droneVideos: { title: string; url: string; thumbnail: string }[] | null;
+  droneVideos: { title: string; titleHy?: string; url: string; thumbnail: string }[] | null;
   videoUrl?: string | null;
   startingPrice: number;
   completionDate: string;
@@ -113,9 +116,12 @@ const MOCK_PROJECTS: SeedProject[] = [
   {
     id: "2",
     title: "Cascade Residences",
+    titleHy: "Կասկադ Ռեզիդենս",
     slug: "cascade-residences",
     location: "Tamanyan St 8, Yerevan",
+    locationHy: "Թամանյան 8, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "Contemporary luxury residences nestled beside the iconic Cascade complex.",
     descriptionHy: "Ժամանակակից շքեղ բնակարաններ՝ Կասկադ համալիրի կողքին։",
     longDescription:
@@ -147,6 +153,7 @@ const MOCK_PROJECTS: SeedProject[] = [
     droneVideos: [
       {
         title: "Cascade District Overview",
+        titleHy: "Կասկադ թաղամասի ընդհանուր տեսարան",
         url: "https://www.youtube.com/embed/nFm7n9B9nf0",
         thumbnail: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80",
       },
@@ -375,9 +382,12 @@ const MOCK_PROJECTS: SeedProject[] = [
   {
     id: "3",
     title: "Arabkir Heights",
+    titleHy: "Արաբկիր Հայթս",
     slug: "arabkir-heights",
     location: "Komitas Ave 42, Yerevan",
+    locationHy: "Կոմիտասի պող. 42, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "Elevated living in one of Yerevan's most sought-after residential districts.",
     descriptionHy: "Բարձրակարգ կյանք Երևանի ամենապահանջված բնակելի թաղամասերից մեկում։",
     longDescription:
@@ -401,6 +411,7 @@ const MOCK_PROJECTS: SeedProject[] = [
     droneVideos: [
       {
         title: "Arabkir Hillside Flyover",
+        titleHy: "Արաբկիրի բլրային տեսարան",
         url: "https://www.youtube.com/embed/nFm7n9B9nf0",
         thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
       },
@@ -613,9 +624,12 @@ const MOCK_PROJECTS: SeedProject[] = [
   {
     id: "4",
     title: "Northern Residences",
+    titleHy: "Հյուսիսային Ռեզիդենս",
     slug: "northern-residences",
     location: "Azatutyan Ave 12, Yerevan",
+    locationHy: "Ազատության պող. 12, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "Move-in ready luxury apartments in the prestigious Northern Avenue district.",
     descriptionHy: "Պատրաստ շքեղ բնակարաններ Հյուսիսային պողոտայի հեղինակավոր թաղամասում։",
     longDescription:
@@ -778,9 +792,12 @@ const MOCK_PROJECTS: SeedProject[] = [
   {
     id: "5",
     title: "Victory Park Estates",
+    titleHy: "Հաղթանակի այգու էսթեյթս",
     slug: "victory-park-estates",
     location: "Baghramyan Ave 24, Yerevan",
+    locationHy: "Բաղրամյան պող. 24, Երևան",
     city: "Yerevan",
+    cityHy: "Երևան",
     description: "An exclusive hillside development overlooking Victory Park and Mount Ararat.",
     descriptionHy: "Բացառիկ բլրային նախագիծ՝ Հաղթանակի այգու և Արարատ լեռան տեսարանով։",
     longDescription:
@@ -803,6 +820,7 @@ const MOCK_PROJECTS: SeedProject[] = [
     droneVideos: [
       {
         title: "Victory Park & Ararat Views",
+        titleHy: "Հաղթանակի այգի և Արարատի տեսարան",
         url: "https://www.youtube.com/embed/nFm7n9B9nf0",
         thumbnail: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80",
       },
@@ -950,9 +968,12 @@ async function main() {
       data: {
         id: project.id,
         title: project.title,
+        titleHy: project.titleHy,
         slug: project.slug,
         location: project.location,
+        locationHy: project.locationHy,
         city: project.city,
+        cityHy: project.cityHy,
         description: project.description,
         descriptionHy: project.descriptionHy,
         longDescription: project.longDescription,

@@ -10,9 +10,12 @@ datasource db {
 model Project {
   id                       String      @id @default(cuid())
   title                    String
+  titleHy                  String?
   slug                     String      @unique
   location                 String
+  locationHy               String?
   city                     String
+  cityHy                   String?
   description              String      @db.Text
   descriptionHy            String?     @db.Text
   longDescription          String      @db.Text
@@ -107,9 +110,11 @@ model Apartment {
   price           Int
   status          String
   viewType        String    @default("")
+  viewTypeHy      String?
   floorPlanImage  String    @default("")
   planPdfUrl      String?
   description     String?   @db.Text
+  descriptionHy   String?   @db.Text
   gallery         Json
   balcony         Boolean   @default(false)
   createdAt       DateTime  @default(now())

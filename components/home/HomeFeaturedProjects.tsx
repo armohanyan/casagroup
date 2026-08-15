@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Download, MapPin } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n } from "@/lib/i18n";
+import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 import { SectionHeader } from "./SectionHeader";
 import { Reveal } from "./Reveal";
@@ -20,7 +21,7 @@ function statusLabel(status: Project["status"], t: ReturnType<typeof useI18n>["t
 }
 
 export function HomeFeaturedProjects({ projects }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <section className="py-16 md:py-24 bg-[#F8FAFC]">
@@ -41,14 +42,17 @@ export function HomeFeaturedProjects({ projects }: Props) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {projects.map((project, i) => (
+          {projects.map((project, i) => {
+            const title = getProjectTitle(project, lang);
+            const location = getProjectLocation(project, lang);
+            return (
             <Reveal key={project.id} delay={i * 0.08}>
               <article className="group bg-white rounded-lg overflow-hidden border border-[#E2E8F0] hover:shadow-[0_16px_48px_rgba(15,23,42,0.1)] transition-shadow duration-500">
                 <div className="relative aspect-[16/10] image-zoom">
                   {project.images[0] && (
                     <Image
                       src={project.images[0]}
-                      alt={project.title}
+                      alt={title}
                       fill
                       unoptimized
                       sizes="(max-width: 1024px) 100vw, 50vw"
@@ -64,13 +68,13 @@ export function HomeFeaturedProjects({ projects }: Props) {
 
                 <div className="p-6 md:p-8">
                   <h3 className="font-display text-2xl md:text-[1.75rem] text-[#0F172A] leading-tight group-hover:text-[#c9a96e] transition-colors">
-                    {project.title}
+                    {title}
                   </h3>
                   <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
                     <MapPin size={14} className="text-[#c9a96e] shrink-0" />
-                    {project.location}
+                    {location}
                   </p>
-                  <p className="mt-4 text-sm text-[#6B7280] leading-relaxed line-clamp-2">{project.description}</p>
+                  <p className="mt-4 text-sm text-[#6B7280] leading-relaxed line-clamp-2">{getProjectDescription(project, lang)}</p>
 
                   <div className="mt-6 flex flex-wrap gap-6 text-sm">
                     <div>
@@ -101,7 +105,8 @@ export function HomeFeaturedProjects({ projects }: Props) {
                 </div>
               </article>
             </Reveal>
-          ))}
+          );
+          })}
         </div>
       </div>
     </section>

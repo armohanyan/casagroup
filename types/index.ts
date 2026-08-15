@@ -10,6 +10,8 @@ export interface NearbyPlace {
 export interface Amenity {
   icon: string;
   label: string;
+  /** Armenian amenity label; falls back to `label` when missing. */
+  labelHy?: string;
 }
 
 export interface PaymentOption {
@@ -54,9 +56,11 @@ export interface Apartment {
   price: number;
   status: ApartmentStatus;
   viewType: string;
+  viewTypeHy?: string;
   floorPlanImage: string;
   planPdfUrl?: string;
   description?: string;
+  descriptionHy?: string;
   gallery: string[];
   balcony?: boolean;
 }
@@ -81,9 +85,13 @@ export interface ProjectGalleryItem {
 export interface Project {
   id: string;
   title: string;
+  /** Armenian project title; falls back to `title` when missing. */
+  titleHy?: string;
   slug: string;
   location: string;
+  locationHy?: string;
   city: string;
+  cityHy?: string;
   description: string;
   /** Armenian short description; falls back to `description` when missing. */
   descriptionHy?: string;
@@ -92,7 +100,7 @@ export interface Project {
   images: string[];
   gallery?: ProjectGalleryItem[];
   videoUrl?: string;
-  droneVideos?: { title: string; url: string; thumbnail?: string }[];
+  droneVideos?: { title: string; titleHy?: string; url: string; thumbnail?: string }[];
   startingPrice: number;
   completionDate: string;
   status: ProjectStatus;
@@ -113,6 +121,8 @@ export interface Project {
   coordinates: { lat: number; lng: number };
   tags: string[];
   featured: boolean;
+  /** Unique browser-session views of this project. */
+  viewCount?: number;
 }
 
 export interface InquiryFormData {

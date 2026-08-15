@@ -12,6 +12,7 @@ import {
 } from "@/components/admin/admin-config";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel } from "@/lib/i18n";
+import { getApartmentViewType, getProjectTitle } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { hyTranslations } from "@/content/hy";
 import type { ApartmentStatus } from "@/types";
@@ -31,6 +32,7 @@ export function AdminApartmentsList() {
           if (!query) return true;
           return (
             p.title.toLowerCase().includes(query) ||
+            (p.titleHy ?? "").toLowerCase().includes(query) ||
             apt.id.toLowerCase().includes(query) ||
             (apt.apartmentNumber ?? "").toLowerCase().includes(query) ||
             String(apt.rooms).includes(query)
@@ -114,14 +116,14 @@ export function AdminApartmentsList() {
                   </td>
                   <td className="px-4 py-3">
                     <Link href={`${ADMIN_BASE}/projects/${project.id}`} className="font-medium text-[#0c1428] hover:text-[#c9a96e]">
-                      {project.title}
+                      {getProjectTitle(project, "hy")}
                     </Link>
                   </td>
                   <td className="px-4 py-3 tabular-nums">{apt.floor}</td>
                   <td className="px-4 py-3 tabular-nums">{apt.rooms}</td>
                   <td className="px-4 py-3 tabular-nums">{apt.area}</td>
                   <td className="px-4 py-3 tabular-nums font-medium">{formatPrice(apt.price)}</td>
-                  <td className="px-4 py-3 text-[#6B7280]">{apt.viewType || "—"}</td>
+                  <td className="px-4 py-3 text-[#6B7280]">{getApartmentViewType(apt, "hy") || "—"}</td>
                   <td className="px-4 py-3">
                     <span className="rounded-[5px] bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold">
                       {getStatusLabel(hyTranslations, apt.status)}

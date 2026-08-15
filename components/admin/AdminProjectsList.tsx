@@ -25,6 +25,7 @@ import {
 } from "@/components/admin/admin-config";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel } from "@/lib/i18n";
+import { getProjectCity, getProjectLocation, getProjectTitle, projectMatchesQuery } from "@/lib/project-i18n";
 import { useProjects } from "@/lib/projects-context";
 import { hyTranslations } from "@/content/hy";
 import type { ProjectStatus } from "@/types";
@@ -47,12 +48,7 @@ export function AdminProjectsList() {
     return projects.filter((p) => {
       if (status && p.status !== status) return false;
       if (!query) return true;
-      return (
-        p.title.toLowerCase().includes(query) ||
-        p.location.toLowerCase().includes(query) ||
-        p.city.toLowerCase().includes(query) ||
-        p.developer.toLowerCase().includes(query)
-      );
+      return projectMatchesQuery(p, query);
     });
   }, [projects, q, status]);
 
@@ -125,6 +121,7 @@ export function AdminProjectsList() {
                 <th className="px-4 py-3">{hy ? "Կառուցապատող" : "Developer"}</th>
                 <th className="px-4 py-3">{hy ? "Կարգավիճակ" : "Status"}</th>
                 <th className="px-4 py-3">{hy ? "Հասանելի" : "Available"}</th>
+                <th className="px-4 py-3">{hy ? "Դիտումներ" : "Views"}</th>
                 <th className="px-4 py-3">{hy ? "Սկսած" : "From"}</th>
                 <th className="px-4 py-3 text-right">{hy ? "Գործողություններ" : "Actions"}</th>
               </tr>
@@ -132,14 +129,14 @@ export function AdminProjectsList() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-[#9CA3AF]">
+                  <td colSpan={8} className="px-4 py-12 text-center text-[#9CA3AF]">
                     {hy ? "Բեռնվում է…" : "Loading…"}
                   </td>
                 </tr>
               )}
               {!loading && pageItems.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-[#9CA3AF]">
+                  <td colSpan={8} className="px-4 py-12 text-center text-[#9CA3AF]">
                     {hy ? "Արդյունքներ չկան" : "No results"}
                   </td>
                 </tr>
@@ -164,13 +161,15 @@ export function AdminProjectsList() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate font-semibold text-[#0c1428]">{p.title}</p>
-                        <p className="truncate text-xs text-[#9CA3AF]">{p.slug}</p>
+                        <p className="truncate font-semibold text-[#0c1428]">{getProjectTitle(p, "hy")}</p>
+                        <p className="truncate text-xs text-[#9CA3AF]">
+                          {p.titleHy && p.title && p.titleHy.trim() !== p.title.trim() ? p.title : p.slug}
+                        </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-[#6B7280]">
-                    <span className="line-clamp-2">{p.city}, {p.location}</span>
+                    <span className="line-clamp-2">{getProjectCity(p, "hy")}, {getProjectLocation(p, "hy")}</span>
                   </td>
                   <td className="px-4 py-3 text-[#0c1428]">{p.developer}</td>
                   <td className="px-4 py-3">
@@ -180,6 +179,9 @@ export function AdminProjectsList() {
                   </td>
                   <td className="px-4 py-3 tabular-nums font-medium text-[#0c1428]">
                     {p.availableApartmentsCount}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums font-medium text-[#0c1428]">
+                    {(p.viewCount ?? 0).toLocaleString("hy-AM")}
                   </td>
                   <td className="px-4 py-3 tabular-nums font-medium text-[#0c1428]">
                     {formatPrice(p.startingPrice)}
