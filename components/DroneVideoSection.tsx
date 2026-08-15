@@ -451,10 +451,7 @@ export function DroneVideoSection({ videos: rawVideos, projectTitle, embedded = 
       return (
         <>
           <div className="flex flex-col gap-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10 xl:gap-12">
-            <div className="order-2 flex min-w-0 flex-col lg:order-1">
-              {header}
-              <div className="mt-6 md:mt-8">{sideContent}</div>
-            </div>
+            <div className="order-2 min-w-0 lg:order-1">{sideContent}</div>
             <div className="order-1 min-w-0 lg:order-2">{player}</div>
           </div>
           {lightbox}

@@ -8,12 +8,19 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   projectId: string;
+  count?: number;
   className?: string;
 }
 
-export function ProjectViewCount({ projectId, className }: Props) {
+export function ProjectViewCount({ projectId, count: initialCount, className }: Props) {
   const { t } = useI18n();
-  const [count, setCount] = useState<number | null>(null);
+  const [count, setCount] = useState<number | null>(
+    typeof initialCount === "number" ? initialCount : null,
+  );
+
+  useEffect(() => {
+    if (typeof initialCount === "number") setCount(initialCount);
+  }, [initialCount]);
 
   useEffect(() => {
     let cancelled = false;
