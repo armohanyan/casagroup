@@ -63,7 +63,7 @@ export const hyTranslations: Translations = {
     whatsappLabel: "Կապվել WhatsApp-ով",
     callLabel: "Զանգահարել",
     contactFabLabel: "Կապ մեզ հետ",
-    contactFabBubble: "Օգնություն է պե՞տք",
+    contactFabBubble: "Օգնությու՞ն է պետք",
   },
   trust: {
     eyebrow: "Ինչու CasaGroup",

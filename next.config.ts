@@ -1,9 +1,25 @@
 import type { NextConfig } from "next";
 
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Pre-existing lint errors must not block production builds; lint runs separately via `npm run lint`.
   eslint: { ignoreDuringBuilds: true },
+  async rewrites() {
+    return [
+      { source: "/api/views", destination: `${API_ORIGIN}/api/views` },
+      { source: "/api/views/:path*", destination: `${API_ORIGIN}/api/views/:path*` },
+      { source: "/api/projects", destination: `${API_ORIGIN}/api/projects` },
+      { source: "/api/projects/:path*", destination: `${API_ORIGIN}/api/projects/:path*` },
+      { source: "/api/inquiries", destination: `${API_ORIGIN}/api/inquiries` },
+      { source: "/api/inquiries/:path*", destination: `${API_ORIGIN}/api/inquiries/:path*` },
+      { source: "/api/auth/:path*", destination: `${API_ORIGIN}/api/auth/:path*` },
+      { source: "/api/admin/:path*", destination: `${API_ORIGIN}/api/admin/:path*` },
+      { source: "/api/hero-slides", destination: `${API_ORIGIN}/api/hero-slides` },
+      { source: "/api/hero-slides/:path*", destination: `${API_ORIGIN}/api/hero-slides/:path*` },
+    ];
+  },
   async redirects() {
     return [
       { source: "/partner", destination: "/partners", permanent: true },

@@ -31,6 +31,8 @@ model Project {
   droneVideos              Json?
   startingPrice            Int
   completionDate           String      @default("")
+  completionDateHy         String?
+  completionDateRu         String?
   status                   String
   availableApartmentsCount Int         @default(0)
   totalApartments          Int         @default(0)
@@ -43,6 +45,8 @@ model Project {
   managementCompany        String?
   partnerBank              String?
   constructionStart        String?
+  constructionStartHy      String?
+  constructionStartRu      String?
   exclusiveSalesRights     String?
   lat                      Float
   lng                      Float

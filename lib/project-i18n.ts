@@ -88,6 +88,14 @@ export function getProjectLongDescription(project: Project, lang: Lang): string 
   return pick(project.longDescription, project.longDescriptionHy, project.longDescriptionRu, lang);
 }
 
+export function getProjectCompletionDate(project: Project, lang: Lang): string {
+  return pick(project.completionDate, project.completionDateHy, project.completionDateRu, lang);
+}
+
+export function getProjectConstructionStart(project: Project, lang: Lang): string {
+  return pick(project.constructionStart, project.constructionStartHy, project.constructionStartRu, lang);
+}
+
 export function getAmenityLabel(amenity: Amenity, lang: Lang): string {
   if (lang === "hy") {
     return amenity.labelHy?.trim() || AMENITY_LABELS_HY[amenity.label] || amenity.label;

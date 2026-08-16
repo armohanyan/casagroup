@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MapPin, Calendar, Building2, ChevronRight } from "lucide-react";
 import { StatusBadge } from "./ui/StatusBadge";
 import { useI18n } from "@/lib/i18n";
-import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import { getProjectDescription, getProjectLocation, getProjectTitle, getProjectCompletionDate } from "@/lib/project-i18n";
 import { useMediaQuery } from "@/lib/use-media-query";
 import type { Project } from "@/types";
 import { formatPrice } from "@/lib/format-price";
@@ -104,7 +104,7 @@ export function ProjectCard({ project }: { project: Project }) {
           </div>
           <div>
             <p className="text-xs text-[#A8A29E] uppercase tracking-wider mb-1">{t.card.completion}</p>
-            <p className="text-[#1C1917] text-sm font-medium">{project.completionDate}</p>
+            <p className="text-[#1C1917] text-sm font-medium">{getProjectCompletionDate(project, lang)}</p>
           </div>
         </div>
 
@@ -113,7 +113,7 @@ export function ProjectCard({ project }: { project: Project }) {
             <Building2 size={13} />
             <span>{project.floors} {t.card.floors}</span>
             <Calendar size={13} className="ml-2" />
-            <span>{project.completionDate}</span>
+            <span>{getProjectCompletionDate(project, lang)}</span>
           </div>
           <Link href={`/projects/${project.slug}`}>
             <span className="flex items-center gap-1 text-xs tracking-widest uppercase text-[#c9a96e] hover:gap-2 transition-all cursor-pointer">

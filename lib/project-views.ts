@@ -22,13 +22,13 @@ function viewedKey(projectId: string) {
   return `${VIEWED_PREFIX}${projectId}`;
 }
 
-/** Fetch real view count from API (0 on failure). */
-export async function fetchProjectViewCount(projectId: string): Promise<number> {
+/** Fetch real view count from API. Returns null on failure so UI can keep a known count. */
+export async function fetchProjectViewCount(projectId: string): Promise<number | null> {
   try {
     const data = await apiFetch<{ views: number }>(`/api/views/${encodeURIComponent(projectId)}`);
-    return Number.isFinite(data.views) ? data.views : 0;
+    return Number.isFinite(data.views) ? data.views : null;
   } catch {
-    return 0;
+    return null;
   }
 }
 

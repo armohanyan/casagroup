@@ -4,7 +4,7 @@ import Image from "next/image";
 import { MapPin, Phone, MessageCircle } from "lucide-react";
 import { listingCode } from "@/lib/listing-code";
 import { useI18n } from "@/lib/i18n";
-import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import { getProjectConstructionStart, getProjectDescription, getProjectLocation, getProjectTitle, getProjectCompletionDate } from "@/lib/project-i18n";
 import type { Project } from "@/types";
 
 interface Props {
@@ -31,11 +31,11 @@ export function DeveloperProjectHeader({ project }: Props) {
     },
     {
       label: t.developerDetail.constructionStart,
-      value: project.constructionStart ?? t.developerDetail.tbd,
+      value: getProjectConstructionStart(project, lang) || t.developerDetail.tbd,
     },
     {
       label: t.developerDetail.constructionEnd,
-      value: project.completionDate,
+      value: getProjectCompletionDate(project, lang),
     },
   ];
 

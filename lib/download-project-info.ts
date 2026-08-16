@@ -1,6 +1,6 @@
 import type { Apartment, Project } from "@/types";
 import { formatPrice } from "@/lib/format-price";
-import { getApartmentViewType, getProjectCity, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import { getApartmentViewType, getProjectCity, getProjectCompletionDate, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { Lang } from "@/lib/i18n";
 
 export interface ProjectInfoPdfLabels {
@@ -50,7 +50,7 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
     { label: labels.city, value: getProjectCity(project, lang) },
     { label: labels.status, value: statusLabel },
     { label: labels.developer, value: project.developer },
-    { label: labels.completion, value: project.completionDate || "—" },
+    { label: labels.completion, value: getProjectCompletionDate(project, lang) || "—" },
     { label: labels.floors, value: String(project.floors || "—") },
   ];
 

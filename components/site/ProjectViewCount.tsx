@@ -25,7 +25,7 @@ export function ProjectViewCount({ projectId, count: initialCount, className }: 
   useEffect(() => {
     let cancelled = false;
     fetchProjectViewCount(projectId).then((views) => {
-      if (!cancelled) setCount(views);
+      if (!cancelled && views != null) setCount(views);
     });
     return () => {
       cancelled = true;

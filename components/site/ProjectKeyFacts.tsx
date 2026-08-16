@@ -3,7 +3,8 @@
 import type { LucideIcon } from "lucide-react";
 import { CalendarDays, Home, Landmark, Layers, Search } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Lang } from "@/lib/i18n";
+import { getProjectCompletionDate, getProjectConstructionStart } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -14,9 +15,9 @@ interface Fact {
   value: string;
 }
 
-function periodValue(project: Project): string {
-  const start = project.constructionStart?.trim() ?? "";
-  const end = project.completionDate?.trim() ?? "";
+function periodValue(project: Project, lang: Lang): string {
+  const start = getProjectConstructionStart(project, lang).trim();
+  const end = getProjectCompletionDate(project, lang).trim();
   if (start && end) return `${start} – ${end}`;
   return end || start;
 }
@@ -28,11 +29,13 @@ export function ProjectKeyFacts({
   project: Project;
   className?: string;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const total = project.totalApartments;
   const available = project.availableApartmentsCount;
-  const period = periodValue(project);
-  const hasFullPeriod = Boolean(project.constructionStart?.trim() && project.completionDate?.trim());
+  const period = periodValue(project, lang);
+  const hasFullPeriod = Boolean(
+    getProjectConstructionStart(project, lang).trim() && getProjectCompletionDate(project, lang).trim(),
+  );
 
   const facts: Fact[] = [];
 

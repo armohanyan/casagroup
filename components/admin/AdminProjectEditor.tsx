@@ -1078,22 +1078,38 @@ export function AdminProjectEditor({ projectId }: Props) {
                 <option value="Sold Out">{getStatusLabel(hyTranslations, "Sold Out")}</option>
               </select>
             </Field>
-            <Field label={a.constructionStart}>
-              <input
-                className={adminInputCls}
-                value={form.constructionStart ?? ""}
-                placeholder={a.constructionStartPlaceholder}
-                onChange={(e) => set("constructionStart", e.target.value)}
-              />
-            </Field>
-            <Field label={a.completionDate}>
-              <input
-                className={adminInputCls}
-                value={form.completionDate}
-                placeholder={a.completionPlaceholder}
-                onChange={(e) => set("completionDate", e.target.value)}
-              />
-            </Field>
+            <BilingualField
+              className="col-span-2 md:col-span-3"
+              label={a.constructionStart}
+              hy={form.constructionStartHy ?? ""}
+              ru={form.constructionStartRu ?? ""}
+              en={form.constructionStart ?? ""}
+              onHy={(v) => set("constructionStartHy", v)}
+              onRu={(v) => set("constructionStartRu", v)}
+              onEn={(v) => set("constructionStart", v)}
+              placeholderHy={a.constructionStartPlaceholder}
+              placeholderRu={ru.admin.constructionStartPlaceholder}
+              placeholderEn={en.admin.constructionStartPlaceholder}
+              copyHyLabel={a.copyFromOther}
+              copyRuLabel={a.copyFromOther}
+              copyEnLabel={a.copyFromOther}
+            />
+            <BilingualField
+              className="col-span-2 md:col-span-3"
+              label={a.completionDate}
+              hy={form.completionDateHy ?? ""}
+              ru={form.completionDateRu ?? ""}
+              en={form.completionDate}
+              onHy={(v) => set("completionDateHy", v)}
+              onRu={(v) => set("completionDateRu", v)}
+              onEn={(v) => set("completionDate", v)}
+              placeholderHy={a.completionPlaceholder}
+              placeholderRu={ru.admin.completionPlaceholder}
+              placeholderEn={en.admin.completionPlaceholder}
+              copyHyLabel={a.copyFromOther}
+              copyRuLabel={a.copyFromOther}
+              copyEnLabel={a.copyFromOther}
+            />
             <Field label={a.totalFloors}>
               <input
                 type="number"

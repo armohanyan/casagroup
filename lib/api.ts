@@ -1,7 +1,12 @@
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
 
 export function getApiUrl(path = "") {
-  return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  // Browser: same-origin /api so Next can proxy (avoids CORS blocking view counts).
+  if (typeof window !== "undefined" && suffix.startsWith("/api/")) {
+    return suffix;
+  }
+  return `${API_URL}${suffix}`;
 }
 
 export class ApiError extends Error {

@@ -20,29 +20,8 @@ const projectInclude = {
       floors: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
     },
   },
+  _count: { select: { views: true } },
 };
-
-async function attachViewCounts<T extends { id: string }>(projects: T[]) {
-  const counts = new Map<string, number>();
-  if (projects.length > 0) {
-    try {
-      const grouped = await prisma.projectView.groupBy({
-        by: ["projectId"],
-        where: { projectId: { in: projects.map((p) => p.id) } },
-        _count: { _all: true },
-      });
-      for (const row of grouped) {
-        counts.set(row.projectId, row._count._all);
-      }
-    } catch (err) {
-      console.error("[views] count failed", err);
-    }
-  }
-  return projects.map((project) => ({
-    ...project,
-    _count: { views: counts.get(project.id) ?? 0 },
-  }));
-}
 
 function parseJsonField<T>(value: unknown, fallback: T): T {
   if (value === undefined || value === null) return fallback;
@@ -205,7 +184,7 @@ export async function listProjects(filters: ProjectFilters = {}) {
     projects = projects.filter((p) => p.apartments.some((a) => a.rooms === filters.rooms));
   }
 
-  return (await attachViewCounts(projects)).map(mapProject);
+  return projects.map(mapProject);
 }
 
 export async function getProjectBySlug(slug: string) {
@@ -214,8 +193,7 @@ export async function getProjectBySlug(slug: string) {
     include: projectInclude,
   });
   if (!project) throw httpError(404, "Project not found");
-  const [withViews] = await attachViewCounts([project]);
-  return mapProject(withViews);
+  return mapProject(project);
 }
 
 export async function getApartmentByProjectSlug(slug: string, apartmentId: string) {
@@ -226,8 +204,7 @@ export async function getApartmentByProjectSlug(slug: string, apartmentId: strin
   if (!project) throw httpError(404, "Project not found");
   const apt = project.apartments.find((a) => a.id === apartmentId);
   if (!apt) throw httpError(404, "Apartment not found");
-  const [withViews] = await attachViewCounts([project]);
-  return { project: mapProject(withViews), apartment: mapApartment(apt) };
+  return { project: mapProject(project), apartment: mapApartment(apt) };
 }
 
 async function uniqueSlug(base: string, excludeId?: string) {
@@ -272,6 +249,8 @@ export async function createProject(input: Record<string, unknown>) {
       droneVideos: jsonOrNull(input.droneVideos ?? null) ?? Prisma.JsonNull,
       startingPrice: Number(input.startingPrice || 0),
       completionDate: String(input.completionDate || ""),
+      completionDateHy: (input.completionDateHy as string) || null,
+      completionDateRu: (input.completionDateRu as string) || null,
       status: String(input.status || "Under Construction"),
       availableApartmentsCount: Number(input.availableApartmentsCount || apartments.length || 0),
       totalApartments: Number(input.totalApartments || apartments.length || 0),
@@ -284,6 +263,8 @@ export async function createProject(input: Record<string, unknown>) {
       managementCompany: (input.managementCompany as string) || null,
       partnerBank: (input.partnerBank as string) || null,
       constructionStart: (input.constructionStart as string) || null,
+      constructionStartHy: (input.constructionStartHy as string) || null,
+      constructionStartRu: (input.constructionStartRu as string) || null,
       exclusiveSalesRights: (input.exclusiveSalesRights as string) || null,
       lat: Number(coords.lat ?? 40.1872),
       lng: Number(coords.lng ?? 44.5152),
@@ -322,8 +303,7 @@ export async function createProject(input: Record<string, unknown>) {
     include: projectInclude,
   });
 
-  const [createdWithViews] = await attachViewCounts([project]);
-  return mapProject(createdWithViews);
+  return mapProject(project);
 }
 
 export async function updateProject(id: string, input: Record<string, unknown>) {
@@ -363,6 +343,8 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
   assign("droneVideos", input.droneVideos !== undefined ? jsonOrNull(input.droneVideos) : undefined);
   assign("startingPrice", input.startingPrice !== undefined ? Number(input.startingPrice) : undefined);
   assign("completionDate", input.completionDate !== undefined ? String(input.completionDate) : undefined);
+  assign("completionDateHy", input.completionDateHy !== undefined ? input.completionDateHy || null : undefined);
+  assign("completionDateRu", input.completionDateRu !== undefined ? input.completionDateRu || null : undefined);
   assign("status", input.status !== undefined ? String(input.status) : undefined);
   assign(
     "availableApartmentsCount",
@@ -378,6 +360,8 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
   assign("managementCompany", input.managementCompany !== undefined ? input.managementCompany || null : undefined);
   assign("partnerBank", input.partnerBank !== undefined ? input.partnerBank || null : undefined);
   assign("constructionStart", input.constructionStart !== undefined ? input.constructionStart || null : undefined);
+  assign("constructionStartHy", input.constructionStartHy !== undefined ? input.constructionStartHy || null : undefined);
+  assign("constructionStartRu", input.constructionStartRu !== undefined ? input.constructionStartRu || null : undefined);
   assign("exclusiveSalesRights", input.exclusiveSalesRights !== undefined ? input.exclusiveSalesRights || null : undefined);
   assign("lat", input.coordinates !== undefined ? Number(coords.lat ?? existing.lat) : undefined);
   assign("lng", input.coordinates !== undefined ? Number(coords.lng ?? existing.lng) : undefined);
@@ -455,8 +439,7 @@ export async function getProjectById(id: string) {
     include: projectInclude,
   });
   if (!project) throw httpError(404, "Project not found");
-  const [withViews] = await attachViewCounts([project]);
-  return mapProject(withViews);
+  return mapProject(project);
 }
 
 export async function createApartment(projectId: string, input: Record<string, unknown>) {

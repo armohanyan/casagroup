@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, Expand, X } from "lucide-react";
 import { Container } from "@/components/site/Container";
-import { useI18n } from "@/lib/i18n";
+import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { cn } from "@/lib/utils";
@@ -59,7 +59,9 @@ function HotspotTooltip({
         {apartment.rooms} {t.aptDetail.bedrooms.toLowerCase()} · {apartment.area} m²
       </p>
       <p className="mt-0.5 text-xs text-[#c9a96e]">{formatPrice(apartment.price)}</p>
-      <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/50">{apartment.status}</p>
+      <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/50">
+        {getStatusLabel(t, apartment.status)}
+      </p>
     </div>
   );
 }
@@ -152,6 +154,21 @@ function FloorPlanCanvas({
             );
           })}
         </svg>
+        {floor.hotspots.map((h) => {
+          const apt = aptById.get(h.apartmentId);
+          if (!apt || apt.status !== "Sold") return null;
+          const cx = h.points.reduce((s, p) => s + p[0], 0) / h.points.length;
+          const cy = h.points.reduce((s, p) => s + p[1], 0) / h.points.length;
+          return (
+            <span
+              key={`sold-${h.apartmentId}`}
+              className="pointer-events-none absolute z-[5] -translate-x-1/2 -translate-y-1/2 rounded-sm bg-[#0c1428]/70 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]"
+              style={{ left: `${cx}%`, top: `${cy}%` }}
+            >
+              {t.developerDetail.sold}
+            </span>
+          );
+        })}
         {tooltip && hoveredApt && (
           <HotspotTooltip apartment={hoveredApt} x={tooltip.x} y={tooltip.y} />
         )}
@@ -163,7 +180,7 @@ function FloorPlanCanvas({
             e.stopPropagation();
             onBackgroundClick();
           }}
-          className="absolute right-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-[5px] bg-black/45 text-white backdrop-blur-sm hover:bg-black/60 sm:right-3 sm:top-3 sm:h-9 sm:w-9"
+          className="absolute right-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center bg-transparent text-white hover:opacity-80 sm:right-3 sm:top-3 sm:h-9 sm:w-9"
           aria-label={t.developerDetail.floorMapExpand}
         >
           <Expand size={15} aria-hidden />

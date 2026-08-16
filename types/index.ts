@@ -112,6 +112,8 @@ export interface Project {
   droneVideos?: { title: string; titleHy?: string; titleRu?: string; url: string; thumbnail?: string }[];
   startingPrice: number;
   completionDate: string;
+  completionDateHy?: string;
+  completionDateRu?: string;
   status: ProjectStatus;
   availableApartmentsCount: number;
   totalApartments: number;
@@ -126,6 +128,8 @@ export interface Project {
   managementCompany?: string;
   partnerBank?: string;
   constructionStart?: string;
+  constructionStartHy?: string;
+  constructionStartRu?: string;
   exclusiveSalesRights?: string;
   coordinates: { lat: number; lng: number };
   tags: string[];
