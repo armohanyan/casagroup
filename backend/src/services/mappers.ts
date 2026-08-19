@@ -27,11 +27,17 @@ export function mapBuilding(building: BuildingWithFloors) {
   const floors = [...(building.floors ?? [])].sort(
     (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true }),
   );
+  const kind = building.kind === "neighborhood" ? "neighborhood" : "building";
+  const images = asArray<string>(building.images);
   return {
     id: building.id,
     projectId: building.projectId,
     name: building.name,
     sortOrder: building.sortOrder,
+    kind,
+    landArea: building.landArea ?? undefined,
+    price: building.price ?? undefined,
+    images: images.length ? images : undefined,
     floors: floors.map(mapBuildingFloor),
   };
 }
@@ -46,6 +52,7 @@ export function mapApartment(apt: Apartment) {
     floor: apt.floor,
     rooms: apt.rooms,
     area: apt.area,
+    landArea: apt.landArea ?? undefined,
     price: apt.price,
     status: apt.status,
     viewType: apt.viewType,

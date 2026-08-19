@@ -43,10 +43,11 @@ import {
 import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
+import { buildingKind, isNeighborhood } from "@/lib/building-kind";
 import { en } from "@/lib/translations-en";
 import { ru } from "@/lib/translations-ru";
 import { hyTranslations } from "@/content/hy";
-import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, Project, ProjectStatus } from "@/types";
+import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, BuildingKind, Project, ProjectStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
@@ -223,12 +224,48 @@ function PlanPicker({
   );
 }
 
+function PlanTypeToggle({
+  value,
+  onChange,
+  buildingLabel,
+  neighborhoodLabel,
+}: {
+  value: BuildingKind;
+  onChange: (kind: BuildingKind) => void;
+  buildingLabel: string;
+  neighborhoodLabel: string;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {(["building", "neighborhood"] as const).map((kind) => {
+        const active = value === kind;
+        return (
+          <button
+            key={kind}
+            type="button"
+            onClick={() => onChange(kind)}
+            className={cn(
+              "h-11 rounded-[5px] border text-sm font-semibold transition-colors",
+              active
+                ? "border-[#c9a96e] bg-[#F8F6F1] text-[#0c1428]"
+                : "border-[#E8EAED] bg-white text-[#6B7280] hover:border-[#c9a96e]/60",
+            )}
+          >
+            {kind === "building" ? buildingLabel : neighborhoodLabel}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 type AptCreateDraft = {
   apartmentNumber: string;
   buildingId: string;
   floor: number;
   rooms: number;
   area: number;
+  landArea: number;
   price: number;
   status: ApartmentStatus;
 };
@@ -240,6 +277,7 @@ function emptyAptCreateDraft(buildingId = ""): AptCreateDraft {
     floor: 1,
     rooms: 2,
     area: 80,
+    landArea: 0,
     price: 150000,
     status: "Available",
   };
@@ -268,6 +306,7 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [uploadingDrone, setUploadingDrone] = useState(false);
   const [uploadingPdfId, setUploadingPdfId] = useState<string | null>(null);
   const [uploadingFloorId, setUploadingFloorId] = useState<string | null>(null);
+  const [uploadingNeighborhoodId, setUploadingNeighborhoodId] = useState<string | null>(null);
   const [uploadingAptPlanId, setUploadingAptPlanId] = useState<string | null>(null);
   const [uploadingAptGalleryId, setUploadingAptGalleryId] = useState<string | null>(null);
   const [amenityDraftHy, setAmenityDraftHy] = useState("");
@@ -279,6 +318,9 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [openFloorIds, setOpenFloorIds] = useState<string[]>([]);
   const [buildingModalOpen, setBuildingModalOpen] = useState(false);
   const [buildingNameDraft, setBuildingNameDraft] = useState("");
+  const [buildingKindDraft, setBuildingKindDraft] = useState<BuildingKind>("building");
+  const [neighborhoodUrlDrafts, setNeighborhoodUrlDrafts] = useState<Record<string, string>>({});
+  const [aptModalMode, setAptModalMode] = useState<"apartment" | "house">("apartment");
   const [floorModalBuildingId, setFloorModalBuildingId] = useState<string | null>(null);
   const [floorModalMode, setFloorModalMode] = useState<"create" | "duplicate">("create");
   const [floorLabelDraft, setFloorLabelDraft] = useState("");
@@ -292,18 +334,25 @@ export function AdminProjectEditor({ projectId }: Props) {
   const droneFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
   const floorImageRef = useRef<HTMLInputElement>(null);
+  const neighborhoodImageRef = useRef<HTMLInputElement>(null);
   const aptPlanFileRef = useRef<HTMLInputElement>(null);
   const aptGalleryFileRef = useRef<HTMLInputElement>(null);
   const pdfTargetAptId = useRef<string | null>(null);
   const aptPlanTargetAptId = useRef<string | null>(null);
   const aptGalleryTargetAptId = useRef<string | null>(null);
   const floorImageTarget = useRef<{ buildingId: string; floorId: string } | null>(null);
+  const neighborhoodImageTarget = useRef<string | null>(null);
 
   useEffect(() => {
     if (existing) {
       setForm({
         ...existing,
-        buildings: (existing.buildings ?? []).map((b) => ({ ...b, floors: b.floors ?? [] })),
+        buildings: (existing.buildings ?? []).map((b) => ({
+          ...b,
+          kind: buildingKind(b),
+          floors: b.floors ?? [],
+          images: b.images ?? [],
+        })),
         apartments: existing.apartments ?? [],
       });
       setHydrated(true);
@@ -494,21 +543,29 @@ export function AdminProjectEditor({ projectId }: Props) {
 
   function openCreateBuildingModal() {
     setBuildingNameDraft("");
+    setBuildingKindDraft("building");
     setBuildingModalOpen(true);
   }
 
   function createBuildingFromModal() {
-    const building = emptyBuilding(apartmentProjectId, buildings.length);
+    const building = emptyBuilding(apartmentProjectId, buildings.length, buildingKindDraft);
     building.name = buildingNameDraft.trim();
     set("buildings", [...buildings, building]);
     setOpenBuildingIds((ids) => [...ids, building.id]);
     setBuildingModalOpen(false);
     setBuildingNameDraft("");
+    setBuildingKindDraft("building");
   }
 
   function aptPlanLabel(apt: Apartment) {
     const num = apt.apartmentNumber?.trim();
-    const title = num ? `${a.apartmentNumber} ${num}` : a.unnamedUnit;
+    const parent = buildings.find((b) => b.id === apt.buildingId);
+    const house = isNeighborhood(parent);
+    const title = num ? `${house ? a.houseNumber : a.apartmentNumber} ${num}` : house ? a.unnamedHouse : a.unnamedUnit;
+    if (house) {
+      const land = apt.landArea && apt.landArea > 0 ? ` · ${a.landAreaSqm} ${apt.landArea}` : "";
+      return `${title} · ${apt.rooms} ${a.roomsShort} · ${apt.area} մ²${land}`;
+    }
     return `${title} · ${apt.rooms} ${a.roomsShort} · ${apt.area} մ² · ${a.floorLabel} ${apt.floor}`;
   }
 
@@ -645,22 +702,34 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   function openCreateAptModal() {
-    setAptCreateDraft(emptyAptCreateDraft(buildings[0]?.id ?? ""));
+    setAptModalMode("apartment");
+    setAptCreateDraft(emptyAptCreateDraft(buildings.filter((b) => !isNeighborhood(b))[0]?.id ?? ""));
+    setAptModalOpen(true);
+  }
+
+  function openCreateHouseModal(buildingId: string) {
+    setAptModalMode("house");
+    setAptCreateDraft({ ...emptyAptCreateDraft(buildingId), floor: 0, landArea: 0 });
     setAptModalOpen(true);
   }
 
   function createAptFromModal() {
     const apt = emptyApartment(apartmentProjectId, aptCreateDraft.buildingId || undefined);
     apt.apartmentNumber = aptCreateDraft.apartmentNumber.trim();
-    apt.floor = aptCreateDraft.floor;
+    apt.floor = aptModalMode === "house" ? 0 : aptCreateDraft.floor;
     apt.rooms = aptCreateDraft.rooms;
     apt.area = aptCreateDraft.area;
+    apt.landArea = aptModalMode === "house" ? aptCreateDraft.landArea : undefined;
     apt.price = aptCreateDraft.price;
     apt.status = aptCreateDraft.status;
     set("apartments", [...form.apartments, apt]);
     setOpenAptIds((ids) => [...ids, apt.id]);
+    if (apt.buildingId) {
+      setOpenBuildingIds((ids) => (ids.includes(apt.buildingId!) ? ids : [...ids, apt.buildingId!]));
+    }
     setAptModalOpen(false);
     setAptCreateDraft(emptyAptCreateDraft());
+    setAptModalMode("apartment");
   }
 
   async function handleFloorImageUpload(file: File, buildingId: string, floorId: string) {
@@ -674,6 +743,45 @@ export function AdminProjectEditor({ projectId }: Props) {
     } finally {
       setUploadingFloorId(null);
     }
+  }
+
+  async function handleNeighborhoodImageUpload(files: FileList | File[], buildingId: string) {
+    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (list.length === 0) {
+      toast("Միայն նկար ֆայլ", "error");
+      return;
+    }
+    setUploadingNeighborhoodId(buildingId);
+    try {
+      const urls: string[] = [];
+      for (const file of list) {
+        const res = await adminUploadFile(file, form.id);
+        const url = res.jpegUrl || res.url;
+        if (url) urls.push(url);
+      }
+      if (urls.length) {
+        const current = buildings.find((b) => b.id === buildingId);
+        updateBuilding(buildingId, { images: [...(current?.images ?? []), ...urls] });
+        toast(urls.length === 1 ? "Նկարը վերբեռնվեց" : `${urls.length} նկար վերբեռնվեց`);
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Upload failed", "error");
+    } finally {
+      setUploadingNeighborhoodId(null);
+    }
+  }
+
+  function addNeighborhoodImageByUrl(buildingId: string) {
+    const url = (neighborhoodUrlDrafts[buildingId] ?? "").trim();
+    if (!url) return;
+    const current = buildings.find((b) => b.id === buildingId);
+    const images = current?.images ?? [];
+    if (images.includes(url)) {
+      setNeighborhoodUrlDrafts((d) => ({ ...d, [buildingId]: "" }));
+      return;
+    }
+    updateBuilding(buildingId, { images: [...images, url] });
+    setNeighborhoodUrlDrafts((d) => ({ ...d, [buildingId]: "" }));
   }
 
   if (!isNew && !loading && !existing) {
@@ -699,18 +807,28 @@ export function AdminProjectEditor({ projectId }: Props) {
     setSaving(true);
     try {
       const cleanedBuildings = (form.buildings ?? [])
-        .map((b, i) => ({
-          ...b,
-          name: b.name.trim(),
-          sortOrder: i,
-          floors: (b.floors ?? []).map((f, fi) => ({
-            ...f,
-            label: f.label.trim() || String(fi + 1),
-            sortOrder: fi,
-            imageUrl: f.imageUrl.trim(),
-            hotspots: f.hotspots ?? [],
-          })),
-        }))
+        .map((b, i) => {
+          const kind = buildingKind(b);
+          const neighborhood = kind === "neighborhood";
+          return {
+            ...b,
+            name: b.name.trim(),
+            sortOrder: i,
+            kind,
+            landArea: neighborhood ? Number(b.landArea || 0) : undefined,
+            price: neighborhood ? Number(b.price || 0) : undefined,
+            images: neighborhood ? (b.images ?? []).filter((url) => url.trim()) : [],
+            floors: neighborhood
+              ? []
+              : (b.floors ?? []).map((f, fi) => ({
+                  ...f,
+                  label: f.label.trim() || String(fi + 1),
+                  sortOrder: fi,
+                  imageUrl: f.imageUrl.trim(),
+                  hotspots: f.hotspots ?? [],
+                })),
+          };
+        })
         .filter((b) => b.name.length > 0);
       const buildingIds = new Set(cleanedBuildings.map((b) => b.id));
       const cleanedApartments = form.apartments.map((apt) => ({
@@ -1504,28 +1622,56 @@ export function AdminProjectEditor({ projectId }: Props) {
             {buildings.map((building, index) => {
               const buildingApts = form.apartments.filter((apt) => apt.buildingId === building.id);
               const floors = building.floors ?? [];
+              const neighborhood = isNeighborhood(building);
               const isOpen = openBuildingIds.includes(building.id);
               return (
                 <AccordionItem
                   key={building.id}
                   open={isOpen}
                   onToggle={() => setOpenBuildingIds((ids) => toggleId(ids, building.id))}
-                  title={building.name.trim() || a.unnamedBuilding}
+                  title={
+                    building.name.trim() ||
+                    (neighborhood ? a.unnamedNeighborhood : a.unnamedBuilding)
+                  }
                   meta={
-                    <>
-                      {a.floorsCount.replace("{count}", String(floors.length))}
-                      {" · "}
-                      {buildingApts.length} {a.plansAttached}
-                    </>
+                    neighborhood ? (
+                      <>
+                        {a.housesCount.replace("{count}", String(buildingApts.length))}
+                        {building.landArea ? ` · ${building.landArea} մ²` : ""}
+                      </>
+                    ) : (
+                      <>
+                        {a.floorsCount.replace("{count}", String(floors.length))}
+                        {" · "}
+                        {buildingApts.length} {a.plansAttached}
+                      </>
+                    )
                   }
                 >
+                  <Field label={a.planType}>
+                    <PlanTypeToggle
+                      value={buildingKind(building)}
+                      onChange={(kind) =>
+                        updateBuilding(building.id, {
+                          kind,
+                          landArea: kind === "neighborhood" ? building.landArea ?? 0 : undefined,
+                          price: kind === "neighborhood" ? building.price ?? 0 : undefined,
+                          images: kind === "neighborhood" ? building.images ?? [] : [],
+                        })
+                      }
+                      buildingLabel={a.planTypeBuilding}
+                      neighborhoodLabel={a.planTypeNeighborhood}
+                    />
+                  </Field>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div className="min-w-0 flex-1">
-                      <Field label={a.buildingName}>
+                      <Field label={neighborhood ? a.neighborhoodName : a.buildingName}>
                         <input
                           className={adminInputCls}
                           value={building.name}
-                          placeholder={a.buildingNamePlaceholder}
+                          placeholder={
+                            neighborhood ? a.neighborhoodNamePlaceholder : a.buildingNamePlaceholder
+                          }
                           onChange={(e) =>
                             updateBuilding(building.id, { name: e.target.value, sortOrder: index })
                           }
@@ -1541,6 +1687,139 @@ export function AdminProjectEditor({ projectId }: Props) {
                     </button>
                   </div>
 
+                  {neighborhood ? (
+                    <div className="space-y-4 border-t border-[#E8EAED] pt-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <Field label={a.landAreaSqm}>
+                          <input
+                            type="number"
+                            className={adminInputCls}
+                            value={building.landArea ?? 0}
+                            onChange={(e) =>
+                              updateBuilding(building.id, { landArea: +e.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label={a.neighborhoodPrice}>
+                          <input
+                            type="number"
+                            className={adminInputCls}
+                            value={building.price ?? 0}
+                            onChange={(e) =>
+                              updateBuilding(building.id, { price: +e.target.value })
+                            }
+                          />
+                        </Field>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
+                          {a.neighborhoodImages}
+                        </p>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <input
+                            className={cn(adminInputCls, "flex-1")}
+                            value={neighborhoodUrlDrafts[building.id] ?? ""}
+                            placeholder={a.addImageUrlPlaceholder}
+                            onChange={(e) =>
+                              setNeighborhoodUrlDrafts((d) => ({
+                                ...d,
+                                [building.id]: e.target.value,
+                              }))
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                addNeighborhoodImageByUrl(building.id);
+                              }
+                            }}
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              className={adminBtnSecondary}
+                              onClick={() => addNeighborhoodImageByUrl(building.id)}
+                            >
+                              {a.addImageUrl}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={uploadingNeighborhoodId === building.id}
+                              className={adminBtnSecondary}
+                              onClick={() => {
+                                neighborhoodImageTarget.current = building.id;
+                                neighborhoodImageRef.current?.click();
+                              }}
+                            >
+                              {uploadingNeighborhoodId === building.id ? "…" : a.uploadImages}
+                            </button>
+                          </div>
+                        </div>
+                        <AdminImageGrid
+                          urls={building.images ?? []}
+                          onRemove={(imageIndex) =>
+                            updateBuilding(building.id, {
+                              images: (building.images ?? []).filter((_, i) => i !== imageIndex),
+                            })
+                          }
+                          coverBadge={a.coverBadge}
+                          emptyLabel={a.neighborhoodImagesEmpty}
+                          removeLabel={a.removeImage}
+                          className="sm:grid-cols-3 md:grid-cols-4"
+                        />
+                      </div>
+                      <div className="space-y-2 border-t border-[#E8EAED] pt-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
+                            {a.housesTitle}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => openCreateHouseModal(building.id)}
+                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+                          >
+                            <Plus size={15} /> {a.addHouse}
+                          </button>
+                        </div>
+                        {buildingApts.length === 0 ? (
+                          <p className="text-xs text-[#9CA3AF]">{a.noHouses}</p>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {buildingApts.map((apt) => (
+                              <div
+                                key={apt.id}
+                                className="flex items-center justify-between gap-2 rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2"
+                              >
+                                <p className="min-w-0 truncate text-sm text-[#0c1428]">
+                                  {apt.apartmentNumber?.trim()
+                                    ? `${a.houseNumber} ${apt.apartmentNumber}`
+                                    : a.unnamedHouse}
+                                  <span className="text-[#9CA3AF]">
+                                    {" · "}
+                                    {apt.rooms} {a.roomsShort} · {apt.area} մ²
+                                    {apt.landArea ? ` · ${apt.landArea} մ² հող` : ""}
+                                  </span>
+                                </p>
+                                <button
+                                  type="button"
+                                  className="shrink-0 text-xs font-semibold text-[#c9a96e] hover:text-[#a88a52]"
+                                  onClick={() => {
+                                    setOpenAptIds((ids) =>
+                                      ids.includes(apt.id) ? ids : [...ids, apt.id],
+                                    );
+                                    document
+                                      .getElementById(`admin-unit-${apt.id}`)
+                                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                  }}
+                                >
+                                  →
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
                   <div className="space-y-2 border-t border-[#E8EAED] pt-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
@@ -1662,6 +1941,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                       );
                     })}
                   </div>
+                  )}
                 </AccordionItem>
               );
             })}
@@ -1682,6 +1962,22 @@ export function AdminProjectEditor({ projectId }: Props) {
               }
               e.target.value = "";
               floorImageTarget.current = null;
+            }}
+          />
+          <input
+            ref={neighborhoodImageRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = e.target.files;
+              const buildingId = neighborhoodImageTarget.current;
+              if (files?.length && buildingId) {
+                void handleNeighborhoodImageUpload(files, buildingId);
+              }
+              e.target.value = "";
+              neighborhoodImageTarget.current = null;
             }}
           />
         </Section>
@@ -1721,37 +2017,45 @@ export function AdminProjectEditor({ projectId }: Props) {
         >
           <div className="space-y-2">
             {form.apartments.map((apt) => {
-              const buildingName =
-                buildings.find((b) => b.id === apt.buildingId)?.name.trim() || a.noBuildingAssigned;
+              const parentBuilding = buildings.find((b) => b.id === apt.buildingId);
+              const house = isNeighborhood(parentBuilding);
+              const buildingName = parentBuilding?.name.trim() || a.noBuildingAssigned;
               const isOpen = openAptIds.includes(apt.id);
               return (
+                <div key={apt.id} id={`admin-unit-${apt.id}`}>
                 <AccordionItem
-                  key={apt.id}
                   open={isOpen}
                   onToggle={() => setOpenAptIds((ids) => toggleId(ids, apt.id))}
                   title={
                     apt.apartmentNumber?.trim()
-                      ? `${a.apartmentNumber} ${apt.apartmentNumber}`
-                      : a.unnamedUnit
+                      ? `${house ? a.houseNumber : a.apartmentNumber} ${apt.apartmentNumber}`
+                      : house
+                        ? a.unnamedHouse
+                        : a.unnamedUnit
                   }
                   meta={
                     <>
                       {buildingName}
-                      {" · "}
-                      {a.floorLabel} {apt.floor}
+                      {house ? null : (
+                        <>
+                          {" · "}
+                          {a.floorLabel} {apt.floor}
+                        </>
+                      )}
                       {" · "}
                       {apt.rooms} {a.roomsShort}
                       {" · "}
                       {apt.area} մ²
+                      {house && apt.landArea ? ` · ${apt.landArea} մ²` : ""}
                     </>
                   }
                 >
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
-                    <Field label={a.apartmentNumber}>
+                    <Field label={house ? a.houseNumber : a.apartmentNumber}>
                       <input
                         className={adminInputCls}
                         value={apt.apartmentNumber ?? ""}
-                        placeholder={a.apartmentNumberPlaceholder}
+                        placeholder={house ? a.houseNumberPlaceholder : a.apartmentNumberPlaceholder}
                         onChange={(e) => updateApt(apt.id, { apartmentNumber: e.target.value })}
                       />
                     </Field>
@@ -1769,18 +2073,30 @@ export function AdminProjectEditor({ projectId }: Props) {
                           .map((b) => (
                             <option key={b.id} value={b.id}>
                               {b.name}
+                              {isNeighborhood(b) ? ` · ${a.planTypeNeighborhood}` : ""}
                             </option>
                           ))}
                       </select>
                     </Field>
-                    <Field label={a.floorLabel}>
-                      <input
-                        type="number"
-                        className={adminInputCls}
-                        value={apt.floor}
-                        onChange={(e) => updateApt(apt.id, { floor: +e.target.value })}
-                      />
-                    </Field>
+                    {house ? (
+                      <Field label={a.landAreaSqm}>
+                        <input
+                          type="number"
+                          className={adminInputCls}
+                          value={apt.landArea ?? 0}
+                          onChange={(e) => updateApt(apt.id, { landArea: +e.target.value })}
+                        />
+                      </Field>
+                    ) : (
+                      <Field label={a.floorLabel}>
+                        <input
+                          type="number"
+                          className={adminInputCls}
+                          value={apt.floor}
+                          onChange={(e) => updateApt(apt.id, { floor: +e.target.value })}
+                        />
+                      </Field>
+                    )}
                     <Field label={a.roomsShort}>
                       <input
                         type="number"
@@ -1977,6 +2293,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                     </p>
                   ) : null}
                 </AccordionItem>
+                </div>
               );
             })}
             <input
@@ -2041,11 +2358,23 @@ export function AdminProjectEditor({ projectId }: Props) {
           </>
         }
       >
-        <Field label={a.buildingName}>
+        <Field label={a.planType}>
+          <PlanTypeToggle
+            value={buildingKindDraft}
+            onChange={setBuildingKindDraft}
+            buildingLabel={a.planTypeBuilding}
+            neighborhoodLabel={a.planTypeNeighborhood}
+          />
+        </Field>
+        <Field label={buildingKindDraft === "neighborhood" ? a.neighborhoodName : a.buildingName}>
           <input
             className={adminInputCls}
             value={buildingNameDraft}
-            placeholder={a.buildingNamePlaceholder}
+            placeholder={
+              buildingKindDraft === "neighborhood"
+                ? a.neighborhoodNamePlaceholder
+                : a.buildingNamePlaceholder
+            }
             autoFocus
             onChange={(e) => setBuildingNameDraft(e.target.value)}
             onKeyDown={(e) => {
@@ -2125,7 +2454,7 @@ export function AdminProjectEditor({ projectId }: Props) {
 
       <AdminModal
         open={aptModalOpen}
-        title={a.newUnitTitle}
+        title={aptModalMode === "house" ? a.newHouseTitle : a.newUnitTitle}
         onClose={() => setAptModalOpen(false)}
         footer={
           <>
@@ -2139,11 +2468,13 @@ export function AdminProjectEditor({ projectId }: Props) {
         }
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={a.apartmentNumber}>
+          <Field label={aptModalMode === "house" ? a.houseNumber : a.apartmentNumber}>
             <input
               className={adminInputCls}
               value={aptCreateDraft.apartmentNumber}
-              placeholder={a.apartmentNumberPlaceholder}
+              placeholder={
+                aptModalMode === "house" ? a.houseNumberPlaceholder : a.apartmentNumberPlaceholder
+              }
               autoFocus
               onChange={(e) => setAptCreateDraft((d) => ({ ...d, apartmentNumber: e.target.value }))}
             />
@@ -2157,6 +2488,7 @@ export function AdminProjectEditor({ projectId }: Props) {
               <option value="">{a.noBuildingAssigned}</option>
               {buildings
                 .filter((b) => b.name.trim())
+                .filter((b) => (aptModalMode === "house" ? isNeighborhood(b) : !isNeighborhood(b)))
                 .map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.name}
@@ -2164,14 +2496,25 @@ export function AdminProjectEditor({ projectId }: Props) {
                 ))}
             </select>
           </Field>
-          <Field label={a.floorLabel}>
-            <input
-              type="number"
-              className={adminInputCls}
-              value={aptCreateDraft.floor}
-              onChange={(e) => setAptCreateDraft((d) => ({ ...d, floor: +e.target.value }))}
-            />
-          </Field>
+          {aptModalMode === "house" ? (
+            <Field label={a.landAreaSqm}>
+              <input
+                type="number"
+                className={adminInputCls}
+                value={aptCreateDraft.landArea}
+                onChange={(e) => setAptCreateDraft((d) => ({ ...d, landArea: +e.target.value }))}
+              />
+            </Field>
+          ) : (
+            <Field label={a.floorLabel}>
+              <input
+                type="number"
+                className={adminInputCls}
+                value={aptCreateDraft.floor}
+                onChange={(e) => setAptCreateDraft((d) => ({ ...d, floor: +e.target.value }))}
+              />
+            </Field>
+          )}
           <Field label={a.roomsShort}>
             <input
               type="number"

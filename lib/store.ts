@@ -55,12 +55,20 @@ export function emptyProject(): Omit<Project, "id" | "slug"> {
   };
 }
 
-export function emptyBuilding(projectId: string, sortOrder = 0): Building {
+export function emptyBuilding(
+  projectId: string,
+  sortOrder = 0,
+  kind: Building["kind"] = "building",
+): Building {
   return {
     id: generateId(),
     projectId,
     name: "",
     sortOrder,
+    kind,
+    landArea: kind === "neighborhood" ? 0 : undefined,
+    price: kind === "neighborhood" ? 0 : undefined,
+    images: kind === "neighborhood" ? [] : undefined,
     floors: [],
   };
 }
@@ -85,6 +93,7 @@ export function emptyApartment(projectId: string, buildingId?: string): Apartmen
     floor: 1,
     rooms: 2,
     area: 80,
+    landArea: 0,
     price: 150000,
     status: "Available",
     viewType: "City",

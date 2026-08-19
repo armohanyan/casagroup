@@ -14,9 +14,10 @@ interface Props {
   apartment: Apartment;
   projectSlug: string;
   entrance?: number;
+  isHouse?: boolean;
 }
 
-export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Props) {
+export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1, isHouse = false }: Props) {
   const { t, lang } = useI18n();
   const sold = apartment.status === "Sold";
   const monthly = estimateMonthlyPayment(apartment.price);
@@ -31,7 +32,11 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
         {cover ? (
           <Image
             src={cover}
-            alt={`${apartment.rooms} BR · ${t.table.floor} ${apartment.floor}`}
+            alt={
+              isHouse
+                ? `${apartment.rooms} BR · ${apartment.area} m²`
+                : `${apartment.rooms} BR · ${t.table.floor} ${apartment.floor}`
+            }
             fill
             unoptimized
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
@@ -59,17 +64,29 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1 }: Prop
           </span>
         </p>
         <p className="mt-3 text-xs text-[#57534E] leading-relaxed">
-          {formatUnitLine(lang, entrance, apartment.floor, apartment.area, apartment.rooms)}
+          {formatUnitLine(lang, entrance, apartment.floor, apartment.area, apartment.rooms, {
+            isHouse,
+            landArea: apartment.landArea,
+          })}
         </p>
         <div className="flex items-center gap-4 mt-3 text-xs text-[#A8A29E]">
           <span className="inline-flex items-center gap-1">
             <BedDouble size={14} className="text-[#c9a96e]" />
             {apartment.rooms}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <Layers size={14} className="text-[#c9a96e]" />
-            {apartment.floor}
-          </span>
+          {isHouse ? (
+            apartment.landArea && apartment.landArea > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <Layers size={14} className="text-[#c9a96e]" />
+                {apartment.landArea} m²
+              </span>
+            ) : null
+          ) : (
+            <span className="inline-flex items-center gap-1">
+              <Layers size={14} className="text-[#c9a96e]" />
+              {apartment.floor}
+            </span>
+          )}
           <span className="inline-flex items-center gap-1">
             <Maximize2 size={14} className="text-[#c9a96e]" />
             {apartment.area} m²

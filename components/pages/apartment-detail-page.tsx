@@ -34,6 +34,7 @@ import { useProjects } from "@/lib/projects-context";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
+import { isHouseUnit } from "@/lib/building-kind";
 
 function SpecItem({
   icon: Icon,
@@ -139,6 +140,7 @@ export default function ApartmentDetailPage() {
   }
 
   const { apartment: apt, project } = result;
+  const isHouse = isHouseUnit(apt, project.buildings);
   const path = `/projects/${project.slug}/apartments/${apt.id}`;
   const sold = apt.status === "Sold";
   const aptNumber = apartmentDisplayNumber(apt);
@@ -192,7 +194,7 @@ export default function ApartmentDetailPage() {
           <span className="mx-2">/</span>
           <span className="text-[#0c1428]">
             {showUnitPlaque ? `№${aptNumber} · ` : null}
-            {apt.rooms} BR · {t.aptDetail.floorLabel} {apt.floor}
+            {apt.rooms} BR · {isHouse ? `${apt.area} m²` : `${t.aptDetail.floorLabel} ${apt.floor}`}
           </span>
         </nav>
 
@@ -201,14 +203,19 @@ export default function ApartmentDetailPage() {
             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a96e]">
-                  {t.aptDetail.apartmentNumberLabel}
+                  {isHouse ? t.aptDetail.houseNumberLabel : t.aptDetail.apartmentNumberLabel}
                 </p>
                 <p className="mt-2 font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl">
                   <span className="mr-1 text-3xl font-medium text-[#c9a96e] sm:text-4xl">№</span>
                   {aptNumber}
                 </p>
                 <p className="mt-3 text-sm text-white/55">
-                  {apt.rooms} BR · {apt.area} m² · {t.aptDetail.floorLabel} {apt.floor}
+                  {apt.rooms} BR · {apt.area} m²
+                  {isHouse
+                    ? apt.landArea && apt.landArea > 0
+                      ? ` · ${t.aptDetail.landSpec} ${apt.landArea} m²`
+                      : ""
+                    : ` · ${t.aptDetail.floorLabel} ${apt.floor}`}
                 </p>
               </div>
               <div className="hidden h-16 w-px bg-white/10 sm:block" aria-hidden />
@@ -293,11 +300,19 @@ export default function ApartmentDetailPage() {
             ) : null}
 
             <section className="rounded-[5px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
-              <h2 className="text-lg font-semibold text-[#0c1428]">{t.aptDetail.specsTitle}</h2>
+              <h2 className="text-lg font-semibold text-[#0c1428]">
+                {isHouse ? t.aptDetail.specsTitleHouse : t.aptDetail.specsTitle}
+              </h2>
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <SpecItem icon={BedDouble} label={t.aptDetail.bedrooms} value={apt.rooms} />
                 <SpecItem icon={Maximize2} label={t.aptDetail.area} value={`${apt.area} m²`} />
-                <SpecItem icon={Layers} label={t.aptDetail.floorSpec} value={apt.floor} />
+                {isHouse ? (
+                  apt.landArea && apt.landArea > 0 ? (
+                    <SpecItem icon={Layers} label={t.aptDetail.landSpec} value={`${apt.landArea} m²`} />
+                  ) : null
+                ) : (
+                  <SpecItem icon={Layers} label={t.aptDetail.floorSpec} value={apt.floor} />
+                )}
                 <SpecItem icon={Eye} label={t.aptDetail.viewSpec} value={getApartmentViewType(apt, lang) || "—"} />
                 <SpecItem
                   icon={MapPin}
@@ -378,7 +393,7 @@ export default function ApartmentDetailPage() {
         </div>
       </Container>
 
-      <ApartmentFloorLocationSection project={project} apartment={apt} />
+      {!isHouse ? <ApartmentFloorLocationSection project={project} apartment={apt} /> : null}
 
       {!sold && (
         <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">

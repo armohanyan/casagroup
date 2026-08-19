@@ -38,11 +38,21 @@ export interface BuildingFloor {
   hotspots: FloorHotspot[];
 }
 
+export type BuildingKind = "building" | "neighborhood";
+
 export interface Building {
   id: string;
   projectId: string;
   name: string;
   sortOrder: number;
+  /** `building` (default) has floor plates; `neighborhood` has houses, land, price, pictures. */
+  kind?: BuildingKind;
+  /** Neighborhood land area in m². */
+  landArea?: number;
+  /** Neighborhood listing / starting price (AMD). */
+  price?: number;
+  /** Neighborhood photos. */
+  images?: string[];
   floors: BuildingFloor[];
 }
 
@@ -55,6 +65,8 @@ export interface Apartment {
   floor: number;
   rooms: number;
   area: number;
+  /** Plot / land area in m² (houses in a neighborhood). */
+  landArea?: number;
   price: number;
   status: ApartmentStatus;
   viewType: string;

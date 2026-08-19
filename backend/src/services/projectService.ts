@@ -54,6 +54,33 @@ function normalizeHotspots(raw: unknown) {
     .filter((h): h is { apartmentId: string; points: [number, number][] } => h !== null);
 }
 
+function parseBuildingKind(raw: unknown): "building" | "neighborhood" {
+  return raw === "neighborhood" ? "neighborhood" : "building";
+}
+
+function parseStringArray(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((x): x is string => typeof x === "string" && x.trim().length > 0).map((x) => x.trim());
+}
+
+function buildingScalarData(raw: Record<string, unknown>, sortOrder: number) {
+  const kind = parseBuildingKind(raw.kind);
+  const landArea = raw.landArea !== undefined && raw.landArea !== null && raw.landArea !== ""
+    ? Number(raw.landArea)
+    : null;
+  const price = raw.price !== undefined && raw.price !== null && raw.price !== ""
+    ? Number(raw.price)
+    : null;
+  return {
+    name: String(raw.name || "").trim(),
+    sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
+    kind,
+    landArea: kind === "neighborhood" && Number.isFinite(landArea) ? landArea : null,
+    price: kind === "neighborhood" && Number.isFinite(price) ? price : null,
+    images: kind === "neighborhood" ? parseStringArray(raw.images) : [],
+  };
+}
+
 function floorCreateData(raw: Record<string, unknown>, sortOrder: number) {
   return {
     label: String(raw.label || "").trim() || String(sortOrder + 1),
@@ -69,6 +96,10 @@ function aptCreateData(a: Record<string, unknown>) {
     floor: Number(a.floor || 1),
     rooms: Number(a.rooms || 1),
     area: Number(a.area || 0),
+    landArea:
+      a.landArea !== undefined && a.landArea !== null && a.landArea !== ""
+        ? Number(a.landArea)
+        : null,
     price: Number(a.price || 0),
     status: String(a.status || "Available"),
     viewType: String(a.viewType || ""),
@@ -134,10 +165,7 @@ async function syncBuildings(projectId: string, incoming: Record<string, unknown
     const name = String(raw.name || "").trim();
     if (!name) continue;
 
-    const data = {
-      name,
-      sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : i,
-    };
+    const data = buildingScalarData(raw, i);
 
     let buildingId: string;
     if (typeof raw.id === "string" && existing.some((e) => e.id === raw.id)) {
@@ -159,9 +187,13 @@ async function syncBuildings(projectId: string, incoming: Record<string, unknown
       idMap.set(created.id, created.id);
     }
 
-    if (Array.isArray(raw.floors)) {
-      await syncBuildingFloors(buildingId, raw.floors as Record<string, unknown>[]);
-    }
+    const floors =
+      data.kind === "neighborhood"
+        ? []
+        : Array.isArray(raw.floors)
+          ? (raw.floors as Record<string, unknown>[])
+          : [];
+    await syncBuildingFloors(buildingId, floors);
   }
 
   return idMap;
@@ -275,11 +307,16 @@ export async function createProject(input: Record<string, unknown>) {
           .map((raw, i) => {
             const name = String(raw.name || "").trim();
             if (!name) return null;
-            const floors = Array.isArray(raw.floors) ? (raw.floors as Record<string, unknown>[]) : [];
+            const scalars = buildingScalarData(raw, i);
+            const floors =
+              scalars.kind === "neighborhood"
+                ? []
+                : Array.isArray(raw.floors)
+                  ? (raw.floors as Record<string, unknown>[])
+                  : [];
             return {
               ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
-              name,
-              sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : i,
+              ...scalars,
               floors: {
                 create: floors.map((f, fi) => ({
                   ...(typeof f.id === "string" && f.id ? { id: f.id } : {}),
@@ -474,6 +511,10 @@ export async function updateApartment(projectId: string, aptId: string, input: R
   if (input.floor !== undefined) data.floor = Number(input.floor);
   if (input.rooms !== undefined) data.rooms = Number(input.rooms);
   if (input.area !== undefined) data.area = Number(input.area);
+  if (input.landArea !== undefined) {
+    data.landArea =
+      input.landArea !== null && input.landArea !== "" ? Number(input.landArea) : null;
+  }
   if (input.price !== undefined) data.price = Number(input.price);
   if (input.status !== undefined) data.status = String(input.status);
   if (input.viewType !== undefined) data.viewType = String(input.viewType);

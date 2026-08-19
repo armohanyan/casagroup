@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react";
 import { CalendarDays, Home, Landmark, Layers, Search } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n, type Lang } from "@/lib/i18n";
+import { isNeighborhood } from "@/lib/building-kind";
 import { getProjectCompletionDate, getProjectConstructionStart } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
@@ -70,6 +71,18 @@ export function ProjectKeyFacts({
       icon: Layers,
       label: t.projectDetail.factFloors,
       value: String(project.floors),
+    });
+  }
+
+  const neighborhoodLand = (project.buildings ?? [])
+    .filter(isNeighborhood)
+    .reduce((sum, b) => sum + (b.landArea && b.landArea > 0 ? b.landArea : 0), 0);
+  if (neighborhoodLand > 0) {
+    facts.push({
+      id: "land",
+      icon: Landmark,
+      label: t.projectDetail.factLand,
+      value: `${neighborhoodLand} m²`,
     });
   }
 

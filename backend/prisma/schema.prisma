@@ -64,12 +64,17 @@ model Project {
   @@index([featured])
 }
 
-/** Named building / block within a project (e.g. 4A, 2B/2G). */
+/** Named building / block or neighborhood within a project (e.g. 4A, or a cottage community). */
 model Building {
   id         String         @id @default(cuid())
   projectId  String
   name       String
   sortOrder  Int            @default(0)
+  /** "building" (floor plates) or "neighborhood" (houses + land/price/pictures). */
+  kind       String         @default("building")
+  landArea   Float?
+  price      Int?
+  images     Json           @default("[]")
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
   project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -116,6 +121,7 @@ model Apartment {
   floor           Int
   rooms           Int
   area            Float
+  landArea        Float?
   price           Int
   status          String
   viewType        String    @default("")
