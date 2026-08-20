@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, MapPin, X } from "lucide-react";
-import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
 import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
@@ -196,11 +195,6 @@ export function ProjectMediaShowcase({ project, items }: Props) {
               <p className="text-sm md:text-base font-semibold tabular-nums">
                 {t.home.startingFrom} {formatPrice(project.startingPrice)}
               </p>
-              <ProjectViewCount
-                projectId={project.id}
-                count={project.viewCount}
-                className="bg-white/15 text-white"
-              />
             </div>
             {active && (
               <p className="mt-3 text-xs text-white/55 tabular-nums">

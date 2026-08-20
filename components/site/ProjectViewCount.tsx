@@ -3,17 +3,27 @@
 import { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 import { fetchProjectViewCount } from "@/lib/project-views";
-import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface Props {
   projectId: string;
+  /** Fallback while the live API count loads. */
   count?: number;
+  /** Accessible / tooltip label (e.g. "Դիտումներ"). */
+  label?: string;
   className?: string;
 }
 
-export function ProjectViewCount({ projectId, count: initialCount, className }: Props) {
-  const { t } = useI18n();
+/**
+ * Live project view count (unique browser sessions).
+ * Used in the admin panel — not shown on the public site.
+ */
+export function ProjectViewCount({
+  projectId,
+  count: initialCount,
+  label = "Դիտումներ",
+  className,
+}: Props) {
   const [count, setCount] = useState<number | null>(
     typeof initialCount === "number" ? initialCount : null,
   );
@@ -23,6 +33,7 @@ export function ProjectViewCount({ projectId, count: initialCount, className }: 
   }, [initialCount]);
 
   useEffect(() => {
+    if (!projectId) return;
     let cancelled = false;
     fetchProjectViewCount(projectId).then((views) => {
       if (!cancelled && views != null) setCount(views);
@@ -32,19 +43,32 @@ export function ProjectViewCount({ projectId, count: initialCount, className }: 
     };
   }, [projectId]);
 
-  if (count === null) return null;
+  if (count === null) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 text-sm tabular-nums text-[#9CA3AF]",
+          className,
+        )}
+        aria-hidden
+      >
+        <Eye size={14} strokeWidth={2} className="shrink-0 opacity-70" />
+        —
+      </span>
+    );
+  }
 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded bg-black/55 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-white backdrop-blur-sm",
+        "inline-flex items-center gap-1.5 text-sm font-medium tabular-nums text-[#0c1428]",
         className,
       )}
-      title={t.projects.viewCountLabel}
-      aria-label={`${count} ${t.projects.viewCountLabel}`}
+      title={label}
+      aria-label={`${count.toLocaleString("hy-AM")} ${label}`}
     >
-      <Eye size={12} strokeWidth={2.25} className="shrink-0 opacity-90" />
-      {count}
+      <Eye size={14} strokeWidth={2} className="shrink-0 text-[#c9a96e]" />
+      {count.toLocaleString("hy-AM")}
     </span>
   );
 }

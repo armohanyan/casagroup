@@ -16,6 +16,7 @@ import {
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
 import { ADMIN_BASE, adminBtnPrimary, adminCardCls } from "@/components/admin/admin-config";
+import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel } from "@/lib/i18n";
 import { getProjectTitle } from "@/lib/project-i18n";
@@ -190,8 +191,14 @@ export function AdminDashboard() {
                 </div>
                 <div className="hidden text-right sm:block">
                   <p className="text-sm font-semibold tabular-nums text-[#0c1428]">{formatPrice(p.startingPrice)}</p>
-                  <p className="text-[11px] text-[#9CA3AF]">
-                    {p.availableApartmentsCount} հասանելի · {(p.viewCount ?? 0).toLocaleString("hy-AM")} դիտում
+                  <p className="mt-0.5 flex items-center justify-end gap-2 text-[11px] text-[#9CA3AF]">
+                    <span>{p.availableApartmentsCount} հասանելի</span>
+                    <ProjectViewCount
+                      projectId={p.id}
+                      count={p.viewCount}
+                      label="Դիտումներ"
+                      className="text-[11px] text-[#9CA3AF] font-normal"
+                    />
                   </p>
                 </div>
               </Link>

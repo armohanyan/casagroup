@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
-import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getProjectGallery } from "@/lib/project-gallery";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
@@ -206,10 +205,6 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
 
       <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
         <CardImageSlider images={images} title={title} />
-
-        <div className="absolute top-3 left-3 z-20 pointer-events-none">
-          <ProjectViewCount projectId={project.id} count={project.viewCount} />
-        </div>
 
         <div className="absolute top-3 right-3 z-20 flex flex-wrap justify-end gap-1.5 max-w-[70%] pointer-events-none">
           {badges.map((badge) => (

@@ -395,9 +395,24 @@ export async function createProject(input: Record<string, unknown>) {
       apartments: {
         create: apartments.map((raw) => {
           const a = raw as Record<string, unknown>;
+          const aptData = aptCreateData(a);
+          if (kind === "neighborhood") aptData.buildingId = null;
+          if (kind === "building") aptData.landPlotId = null;
+          const buildingId =
+            typeof aptData.buildingId === "string" &&
+            buildings.some((b) => typeof b.id === "string" && b.id === aptData.buildingId)
+              ? aptData.buildingId
+              : null;
+          const landPlotId =
+            typeof aptData.landPlotId === "string" &&
+            landPlots.some((p) => typeof p.id === "string" && p.id === aptData.landPlotId)
+              ? aptData.landPlotId
+              : null;
           return {
             ...(typeof a.id === "string" && a.id ? { id: a.id } : {}),
-            ...aptCreateData(a),
+            ...aptData,
+            buildingId,
+            landPlotId,
           };
         }),
       },
@@ -491,6 +506,18 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
     const keepIds = new Set(
       incoming.map((a) => a.id).filter((x): x is string => typeof x === "string" && x.length > 0)
     );
+    const validBuildingIds = new Set(
+      (await prisma.building.findMany({ where: { projectId: id }, select: { id: true } })).map(
+        (b) => b.id,
+      ),
+    );
+    const validPlotIds = new Set(
+      (await prisma.landPlot.findMany({ where: { projectId: id }, select: { id: true } })).map(
+        (p) => p.id,
+      ),
+    );
+    const projectKindValue =
+      input.kind !== undefined ? parseProjectKind(input.kind) : parseProjectKind(existing.kind);
 
     for (const old of existingApts) {
       if (!keepIds.has(old.id)) {
@@ -500,6 +527,12 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
 
     for (const raw of incoming) {
       const aptData = aptCreateData(raw);
+      if (projectKindValue === "neighborhood" || !aptData.buildingId || !validBuildingIds.has(aptData.buildingId)) {
+        aptData.buildingId = null;
+      }
+      if (projectKindValue === "building" || !aptData.landPlotId || !validPlotIds.has(aptData.landPlotId)) {
+        aptData.landPlotId = null;
+      }
 
       if (typeof raw.id === "string" && existingApts.some((e) => e.id === raw.id)) {
         await prisma.apartment.update({ where: { id: raw.id }, data: aptData });

@@ -97,17 +97,10 @@ export default function ProjectDetailPage() {
   const project = slug ? getBySlug(slug) : undefined;
 
   const galleryItems = useMemo(() => (project ? getProjectGallery(project) : []), [project]);
-  const [recordedViews, setRecordedViews] = useState<number | null>(null);
 
   useEffect(() => {
     if (!project?.id) return;
-    let cancelled = false;
-    void recordProjectView(project.id).then((views) => {
-      if (!cancelled && views != null) setRecordedViews(views);
-    });
-    return () => {
-      cancelled = true;
-    };
+    void recordProjectView(project.id);
   }, [project?.id]);
 
   if (loading) {
@@ -138,8 +131,6 @@ export default function ProjectDetailPage() {
   const longDescription = getProjectLongDescription(project, lang).trim();
   const overviewText = (longDescription || description).trim();
   const hasDroneVideos = (project.droneVideos?.length ?? 0) > 0;
-  const projectWithViews =
-    recordedViews != null ? { ...project, viewCount: recordedViews } : project;
 
   const overviewSection = overviewText ? (
     <section className={cn(hasDroneVideos ? "max-w-3xl" : "mb-8 max-w-3xl")}>
@@ -196,7 +187,7 @@ export default function ProjectDetailPage() {
         ])}
       />
 
-      <ProjectMediaShowcase project={projectWithViews} items={galleryItems} />
+      <ProjectMediaShowcase project={project} items={galleryItems} />
 
       {hasDroneVideos ? (
         <section className="border-t border-[#E5E7EB] bg-[#F9FAFB] py-8 md:py-11">

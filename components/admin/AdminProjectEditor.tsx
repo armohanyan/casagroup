@@ -33,6 +33,7 @@ import {
 import { FloorHotspotEditor } from "@/components/admin/FloorHotspotEditor";
 import { AdminNeighborhoodSection } from "@/components/admin/AdminNeighborhoodSection";
 import { AdminImageGrid, AdminImageThumb } from "@/components/admin/AdminImageThumb";
+import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import {
   cloneApartmentPlan,
   emptyApartment,
@@ -808,15 +809,16 @@ export function AdminProjectEditor({ projectId }: Props) {
     }
     setSaving(true);
     try {
+      const kind = projectKind(form);
       const cleanedBuildings = (form.buildings ?? [])
         .map((b, i) => {
-          const kind = buildingKind(b);
-          const neighborhood = kind === "neighborhood";
+          const bKind = buildingKind(b);
+          const neighborhood = bKind === "neighborhood";
           return {
             ...b,
             name: b.name.trim(),
             sortOrder: i,
-            kind,
+            kind: bKind,
             landArea: neighborhood ? Number(b.landArea || 0) : undefined,
             price: neighborhood ? Number(b.price || 0) : undefined,
             images: neighborhood ? (b.images ?? []).filter((url) => url.trim()) : [],
@@ -832,8 +834,8 @@ export function AdminProjectEditor({ projectId }: Props) {
           };
         })
         .filter((b) => b.name.length > 0);
-      const buildingIds = new Set(cleanedBuildings.map((b) => b.id));
-      const kind = projectKind(form);
+      const savedBuildings = kind === "neighborhood" ? [] : cleanedBuildings;
+      const buildingIds = new Set(savedBuildings.map((b) => b.id));
       const cleanedPlots = (form.landPlots ?? [])
         .map((p, i) => ({
           ...p,
@@ -842,18 +844,29 @@ export function AdminProjectEditor({ projectId }: Props) {
           points: p.points ?? [],
         }))
         .filter((p) => p.label.length > 0);
-      const plotIds = new Set(cleanedPlots.map((p) => p.id));
+      const savedPlots = kind === "neighborhood" ? cleanedPlots : [];
+      const plotIds = new Set(savedPlots.map((p) => p.id));
       const cleanedApartments = form.apartments.map((apt) => ({
         ...apt,
-        buildingId: apt.buildingId && buildingIds.has(apt.buildingId) ? apt.buildingId : undefined,
-        landPlotId: apt.landPlotId && plotIds.has(apt.landPlotId) ? apt.landPlotId : undefined,
+        buildingId:
+          kind === "neighborhood"
+            ? undefined
+            : apt.buildingId && buildingIds.has(apt.buildingId)
+              ? apt.buildingId
+              : undefined,
+        landPlotId:
+          kind === "building"
+            ? undefined
+            : apt.landPlotId && plotIds.has(apt.landPlotId)
+              ? apt.landPlotId
+              : undefined,
       }));
       const payload = {
         ...form,
         kind,
         sitePlanImage: form.sitePlanImage ?? "",
-        landPlots: kind === "neighborhood" ? cleanedPlots : [],
-        buildings: kind === "neighborhood" ? [] : cleanedBuildings,
+        landPlots: savedPlots,
+        buildings: savedBuildings,
         apartments: cleanedApartments,
         featured: asDraft ? false : form.featured,
         droneVideos: (form.droneVideos ?? []).filter((v) => v.url.trim()),
@@ -1049,7 +1062,15 @@ export function AdminProjectEditor({ projectId }: Props) {
           { label: isNew ? "Նոր" : "Խմբագրել" },
         ]}
         actions={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {!isNew && form.id ? (
+              <ProjectViewCount
+                projectId={form.id}
+                count={existing?.viewCount}
+                label="Դիտումներ"
+                className="mr-1 rounded-[5px] border border-[#E5E7EB] bg-white px-2.5 py-1.5"
+              />
+            ) : null}
             <button type="button" className={adminBtnSecondary} onClick={() => router.push(`${ADMIN_BASE}/projects`)}>
               <X size={15} /> {a.cancel}
             </button>

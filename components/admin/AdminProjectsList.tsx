@@ -23,6 +23,7 @@ import {
   adminInputCls,
   adminSelectCls,
 } from "@/components/admin/admin-config";
+import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel } from "@/lib/i18n";
 import { getProjectCity, getProjectLocation, getProjectTitle, projectMatchesQuery } from "@/lib/project-i18n";
@@ -180,8 +181,12 @@ export function AdminProjectsList() {
                   <td className="px-4 py-3 tabular-nums font-medium text-[#0c1428]">
                     {p.availableApartmentsCount}
                   </td>
-                  <td className="px-4 py-3 tabular-nums font-medium text-[#0c1428]">
-                    {(p.viewCount ?? 0).toLocaleString("hy-AM")}
+                  <td className="px-4 py-3">
+                    <ProjectViewCount
+                      projectId={p.id}
+                      count={p.viewCount}
+                      label={hy ? "Դիտումներ" : "Views"}
+                    />
                   </td>
                   <td className="px-4 py-3 tabular-nums font-medium text-[#0c1428]">
                     {formatPrice(p.startingPrice)}

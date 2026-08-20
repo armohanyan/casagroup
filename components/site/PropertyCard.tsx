@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
-import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
@@ -34,11 +33,6 @@ export function PropertyCard({ project }: { project: Project }) {
         <span className="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-semibold bg-white/95 rounded-[5px] text-[#0c1428]">
           {getStatusLabel(t, project.status)}
         </span>
-        <ProjectViewCount
-          projectId={project.id}
-          count={project.viewCount}
-          className="absolute top-2 right-2"
-        />
       </div>
       <div className="flex flex-col flex-1 p-4">
         <h3 className="font-display text-base text-[#0c1428] line-clamp-1 group-hover:text-[#c9a96e] transition-colors">
