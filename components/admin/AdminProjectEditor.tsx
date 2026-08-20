@@ -320,7 +320,6 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [openFloorIds, setOpenFloorIds] = useState<string[]>([]);
   const [buildingModalOpen, setBuildingModalOpen] = useState(false);
   const [buildingNameDraft, setBuildingNameDraft] = useState("");
-  const [buildingKindDraft, setBuildingKindDraft] = useState<BuildingKind>("building");
   const [neighborhoodUrlDrafts, setNeighborhoodUrlDrafts] = useState<Record<string, string>>({});
   const [aptModalMode, setAptModalMode] = useState<"apartment" | "house">("apartment");
   const [floorModalBuildingId, setFloorModalBuildingId] = useState<string | null>(null);
@@ -548,7 +547,6 @@ export function AdminProjectEditor({ projectId }: Props) {
 
   function openCreateBuildingModal() {
     setBuildingNameDraft("");
-    setBuildingKindDraft("building");
     setBuildingModalOpen(true);
   }
 
@@ -559,7 +557,6 @@ export function AdminProjectEditor({ projectId }: Props) {
     setOpenBuildingIds((ids) => [...ids, building.id]);
     setBuildingModalOpen(false);
     setBuildingNameDraft("");
-    setBuildingKindDraft("building");
   }
 
   function aptPlanLabel(apt: Apartment) {
