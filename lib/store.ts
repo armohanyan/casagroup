@@ -1,4 +1,4 @@
-import type { Project, Apartment, Building, BuildingFloor } from "@/types";
+import type { Project, Apartment, Building, BuildingFloor, LandPlot } from "@/types";
 
 export function generateId(): string {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -45,6 +45,9 @@ export function emptyProject(): Omit<Project, "id" | "slug"> {
     amenities: [],
     nearbyPlaces: [],
     paymentOptions: [],
+    kind: "building",
+    sitePlanImage: "",
+    landPlots: [],
     buildings: [],
     apartments: [],
     developer: "CasaGroup",
@@ -84,13 +87,27 @@ export function emptyBuildingFloor(buildingId: string, sortOrder = 0): BuildingF
   };
 }
 
-export function emptyApartment(projectId: string, buildingId?: string): Apartment {
+export function emptyLandPlot(projectId: string, sortOrder = 0): LandPlot {
+  return {
+    id: generateId(),
+    projectId,
+    label: String(sortOrder + 1),
+    sortOrder,
+    area: 0,
+    price: 0,
+    status: "Available",
+    points: [],
+  };
+}
+
+export function emptyApartment(projectId: string, buildingId?: string, landPlotId?: string): Apartment {
   return {
     id: generateId(),
     projectId,
     buildingId,
+    landPlotId,
     apartmentNumber: "",
-    floor: 1,
+    floor: landPlotId ? 0 : 1,
     rooms: 2,
     area: 80,
     landArea: 0,

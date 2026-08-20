@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Phone, MessageCircle, BadgeCheck } from "lucide-react";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
+import { NeighborhoodSalesSection } from "@/components/sales/NeighborhoodSalesSection";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { ProjectMediaShowcase } from "@/components/site/ProjectMediaShowcase";
@@ -18,6 +19,7 @@ import { getAmenityLabel, getProjectCity, getProjectDescription, getProjectLongD
 import { recordProjectView } from "@/lib/project-views";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
+import { isNeighborhoodProject } from "@/lib/project-kind";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { cn } from "@/lib/utils";
 import { ProjectKeyFacts } from "@/components/site/ProjectKeyFacts";
@@ -215,13 +217,18 @@ export default function ProjectDetailPage() {
         </Container>
       )}
 
-      <section id="apartments" className="border-t border-[#E5E7EB]">
-        <Container className="py-10 md:py-14">
-          <DeveloperFloorPlanSection project={project} />
-        </Container>
-      </section>
-
-      <BuildingFloorMapSection project={project} />
+      {isNeighborhoodProject(project) ? (
+        <NeighborhoodSalesSection project={project} />
+      ) : (
+        <>
+          <section id="apartments" className="border-t border-[#E5E7EB]">
+            <Container className="py-10 md:py-14">
+              <DeveloperFloorPlanSection project={project} />
+            </Container>
+          </section>
+          <BuildingFloorMapSection project={project} />
+        </>
+      )}
 
       <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
         <Container className="py-10 md:py-14">

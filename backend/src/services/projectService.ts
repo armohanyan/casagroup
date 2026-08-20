@@ -14,6 +14,7 @@ export interface ProjectFilters {
 
 const projectInclude = {
   apartments: true,
+  landPlots: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
   buildings: {
     orderBy: [{ sortOrder: "asc" as const }, { name: "asc" as const }],
     include: {
@@ -81,6 +82,59 @@ function buildingScalarData(raw: Record<string, unknown>, sortOrder: number) {
   };
 }
 
+function normalizePlotPoints(raw: unknown): [number, number][] {
+  if (!Array.isArray(raw)) return [];
+  const points = raw
+    .filter((p): p is [number, number] => Array.isArray(p) && p.length >= 2)
+    .map((p) => [Number(p[0]), Number(p[1])] as [number, number])
+    .filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+  return points.length >= 3 ? points : [];
+}
+
+function landPlotCreateData(raw: Record<string, unknown>, sortOrder: number) {
+  return {
+    label: String(raw.label || "").trim() || String(sortOrder + 1),
+    sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
+    area: raw.area !== undefined && raw.area !== null && raw.area !== "" ? Number(raw.area) : null,
+    price: raw.price !== undefined && raw.price !== null && raw.price !== "" ? Number(raw.price) : null,
+    status: String(raw.status || "Available"),
+    points: normalizePlotPoints(raw.points),
+  };
+}
+
+async function syncLandPlots(projectId: string, incoming: Record<string, unknown>[]) {
+  const existing = await prisma.landPlot.findMany({ where: { projectId } });
+  const keepIds = new Set(
+    incoming.map((p) => p.id).filter((x): x is string => typeof x === "string" && x.length > 0),
+  );
+
+  for (const old of existing) {
+    if (!keepIds.has(old.id)) {
+      await prisma.landPlot.delete({ where: { id: old.id } });
+    }
+  }
+
+  for (let i = 0; i < incoming.length; i++) {
+    const raw = incoming[i];
+    const data = landPlotCreateData(raw, i);
+    if (typeof raw.id === "string" && existing.some((e) => e.id === raw.id)) {
+      await prisma.landPlot.update({ where: { id: raw.id }, data });
+    } else {
+      await prisma.landPlot.create({
+        data: {
+          projectId,
+          ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
+          ...data,
+        },
+      });
+    }
+  }
+}
+
+function parseProjectKind(raw: unknown): "building" | "neighborhood" {
+  return raw === "neighborhood" ? "neighborhood" : "building";
+}
+
 function floorCreateData(raw: Record<string, unknown>, sortOrder: number) {
   return {
     label: String(raw.label || "").trim() || String(sortOrder + 1),
@@ -113,6 +167,7 @@ function aptCreateData(a: Record<string, unknown>) {
     gallery: parseJsonField(a.gallery, []),
     balcony: Boolean(a.balcony),
     buildingId: typeof a.buildingId === "string" && a.buildingId ? a.buildingId : null,
+    landPlotId: typeof a.landPlotId === "string" && a.landPlotId ? a.landPlotId : null,
   };
 }
 
@@ -255,7 +310,9 @@ export async function createProject(input: Record<string, unknown>) {
   const slug = await uniqueSlug(String(input.slug || title));
   const coords = (input.coordinates as { lat?: number; lng?: number }) || {};
   const buildings = Array.isArray(input.buildings) ? (input.buildings as Record<string, unknown>[]) : [];
+  const landPlots = Array.isArray(input.landPlots) ? (input.landPlots as Record<string, unknown>[]) : [];
   const apartments = Array.isArray(input.apartments) ? (input.apartments as Record<string, unknown>[]) : [];
+  const kind = parseProjectKind(input.kind);
 
   const project = await prisma.project.create({
     data: {
@@ -302,6 +359,14 @@ export async function createProject(input: Record<string, unknown>) {
       lng: Number(coords.lng ?? 44.5152),
       tags: parseJsonField(input.tags, []),
       featured: Boolean(input.featured),
+      kind,
+      sitePlanImage: String(input.sitePlanImage || ""),
+      landPlots: {
+        create: landPlots.map((raw, i) => ({
+          ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
+          ...landPlotCreateData(raw, i),
+        })),
+      },
       buildings: {
         create: buildings
           .map((raw, i) => {
@@ -404,11 +469,17 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
   assign("lng", input.coordinates !== undefined ? Number(coords.lng ?? existing.lng) : undefined);
   assign("tags", input.tags !== undefined ? parseJsonField(input.tags, []) : undefined);
   assign("featured", input.featured !== undefined ? Boolean(input.featured) : undefined);
+  assign("kind", input.kind !== undefined ? parseProjectKind(input.kind) : undefined);
+  assign("sitePlanImage", input.sitePlanImage !== undefined ? String(input.sitePlanImage || "") : undefined);
 
   await prisma.project.update({
     where: { id },
     data,
   });
+
+  if (Array.isArray(input.landPlots)) {
+    await syncLandPlots(id, input.landPlots as Record<string, unknown>[]);
+  }
 
   if (Array.isArray(input.buildings)) {
     await syncBuildings(id, input.buildings as Record<string, unknown>[]);
@@ -529,6 +600,9 @@ export async function updateApartment(projectId: string, aptId: string, input: R
   if (input.balcony !== undefined) data.balcony = Boolean(input.balcony);
   if (input.buildingId !== undefined) {
     data.buildingId = typeof input.buildingId === "string" && input.buildingId ? input.buildingId : null;
+  }
+  if (input.landPlotId !== undefined) {
+    data.landPlotId = typeof input.landPlotId === "string" && input.landPlotId ? input.landPlotId : null;
   }
 
   const apt = await prisma.apartment.update({ where: { id: aptId }, data });

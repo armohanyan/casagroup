@@ -1,10 +1,11 @@
-import type { Apartment, Building, BuildingFloor, Project } from "@prisma/client";
+import type { Apartment, Building, BuildingFloor, LandPlot, Project } from "@prisma/client";
 
 type BuildingWithFloors = Building & { floors?: BuildingFloor[] };
 
 type ProjectWithRelations = Project & {
   apartments?: Apartment[];
   buildings?: BuildingWithFloors[];
+  landPlots?: LandPlot[];
   _count?: { views?: number };
 };
 
@@ -42,12 +43,34 @@ export function mapBuilding(building: BuildingWithFloors) {
   };
 }
 
+function parsePoints(raw: unknown): [number, number][] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((p): p is [number, number] => Array.isArray(p) && p.length >= 2)
+    .map((p) => [Number(p[0]), Number(p[1])] as [number, number])
+    .filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+}
+
+export function mapLandPlot(plot: LandPlot) {
+  return {
+    id: plot.id,
+    projectId: plot.projectId,
+    label: plot.label,
+    sortOrder: plot.sortOrder,
+    area: plot.area ?? undefined,
+    price: plot.price ?? undefined,
+    status: plot.status,
+    points: parsePoints(plot.points),
+  };
+}
+
 export function mapApartment(apt: Apartment) {
   const apartmentNumber = apt.apartmentNumber?.trim() || undefined;
   return {
     id: apt.id,
     projectId: apt.projectId,
     buildingId: apt.buildingId ?? undefined,
+    landPlotId: apt.landPlotId ?? undefined,
     apartmentNumber,
     floor: apt.floor,
     rooms: apt.rooms,
@@ -70,8 +93,14 @@ export function mapApartment(apt: Apartment) {
 
 export function mapProject(project: ProjectWithRelations) {
   const buildings = [...(project.buildings ?? [])].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+  const landPlots = [...(project.landPlots ?? [])].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true }),
+  );
   return {
     id: project.id,
+    kind: project.kind === "neighborhood" ? "neighborhood" : "building",
+    sitePlanImage: project.sitePlanImage || undefined,
+    landPlots: landPlots.map(mapLandPlot),
     title: project.title,
     titleHy: project.titleHy ?? undefined,
     titleRu: project.titleRu ?? undefined,

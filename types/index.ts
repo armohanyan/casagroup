@@ -1,5 +1,6 @@
 export type ProjectStatus = "Under Construction" | "Ready" | "Sold Out";
 export type ApartmentStatus = "Available" | "Reserved" | "Sold";
+export type ProjectKind = "building" | "neighborhood";
 
 export interface NearbyPlace {
   name: string;
@@ -56,10 +57,25 @@ export interface Building {
   floors: BuildingFloor[];
 }
 
+/** Sellable land plot marked as a polygon on the neighborhood 3D/site image. */
+export interface LandPlot {
+  id: string;
+  projectId: string;
+  label: string;
+  sortOrder: number;
+  area?: number;
+  price?: number;
+  status: ApartmentStatus;
+  /** Polygon points as % of image width/height (0–100). */
+  points: [number, number][];
+}
+
 export interface Apartment {
   id: string;
   projectId: string;
   buildingId?: string;
+  /** Neighborhood land plot this house plan belongs to. */
+  landPlotId?: string;
   /** Human-facing unit number set in admin (e.g. "12A", "405"). */
   apartmentNumber?: string;
   floor: number;
@@ -100,6 +116,11 @@ export interface ProjectGalleryItem {
 
 export interface Project {
   id: string;
+  /** Building complex (floor plates) or neighborhood (site plan + land plots). */
+  kind?: ProjectKind;
+  /** Neighborhood 3D / master-plan image where land plots are drawn. */
+  sitePlanImage?: string;
+  landPlots?: LandPlot[];
   title: string;
   /** Armenian project title; falls back to `title` when missing. */
   titleHy?: string;

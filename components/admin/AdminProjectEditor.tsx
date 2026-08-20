@@ -31,6 +31,7 @@ import {
   adminSelectCls,
 } from "@/components/admin/admin-config";
 import { FloorHotspotEditor } from "@/components/admin/FloorHotspotEditor";
+import { AdminNeighborhoodSection } from "@/components/admin/AdminNeighborhoodSection";
 import { AdminImageGrid, AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import {
   cloneApartmentPlan,
@@ -44,10 +45,11 @@ import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
 import { buildingKind, isNeighborhood } from "@/lib/building-kind";
+import { isNeighborhoodProject, projectKind } from "@/lib/project-kind";
 import { en } from "@/lib/translations-en";
 import { ru } from "@/lib/translations-ru";
 import { hyTranslations } from "@/content/hy";
-import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, BuildingKind, Project, ProjectStatus } from "@/types";
+import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, BuildingKind, Project, ProjectKind, ProjectStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
@@ -230,8 +232,8 @@ function PlanTypeToggle({
   buildingLabel,
   neighborhoodLabel,
 }: {
-  value: BuildingKind;
-  onChange: (kind: BuildingKind) => void;
+  value: BuildingKind | ProjectKind;
+  onChange: (kind: BuildingKind | ProjectKind) => void;
   buildingLabel: string;
   neighborhoodLabel: string;
 }) {
@@ -347,6 +349,9 @@ export function AdminProjectEditor({ projectId }: Props) {
     if (existing) {
       setForm({
         ...existing,
+        kind: existing.kind === "neighborhood" ? "neighborhood" : "building",
+        sitePlanImage: existing.sitePlanImage ?? "",
+        landPlots: existing.landPlots ?? [],
         buildings: (existing.buildings ?? []).map((b) => ({
           ...b,
           kind: buildingKind(b),
@@ -548,7 +553,7 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   function createBuildingFromModal() {
-    const building = emptyBuilding(apartmentProjectId, buildings.length, buildingKindDraft);
+    const building = emptyBuilding(apartmentProjectId, buildings.length, "building");
     building.name = buildingNameDraft.trim();
     set("buildings", [...buildings, building]);
     setOpenBuildingIds((ids) => [...ids, building.id]);
@@ -831,13 +836,27 @@ export function AdminProjectEditor({ projectId }: Props) {
         })
         .filter((b) => b.name.length > 0);
       const buildingIds = new Set(cleanedBuildings.map((b) => b.id));
+      const kind = projectKind(form);
+      const cleanedPlots = (form.landPlots ?? [])
+        .map((p, i) => ({
+          ...p,
+          label: p.label.trim(),
+          sortOrder: i,
+          points: p.points ?? [],
+        }))
+        .filter((p) => p.label.length > 0);
+      const plotIds = new Set(cleanedPlots.map((p) => p.id));
       const cleanedApartments = form.apartments.map((apt) => ({
         ...apt,
         buildingId: apt.buildingId && buildingIds.has(apt.buildingId) ? apt.buildingId : undefined,
+        landPlotId: apt.landPlotId && plotIds.has(apt.landPlotId) ? apt.landPlotId : undefined,
       }));
       const payload = {
         ...form,
-        buildings: cleanedBuildings,
+        kind,
+        sitePlanImage: form.sitePlanImage ?? "",
+        landPlots: kind === "neighborhood" ? cleanedPlots : [],
+        buildings: kind === "neighborhood" ? [] : cleanedBuildings,
         apartments: cleanedApartments,
         featured: asDraft ? false : form.featured,
         droneVideos: (form.droneVideos ?? []).filter((v) => v.url.trim()),
@@ -1071,6 +1090,15 @@ export function AdminProjectEditor({ projectId }: Props) {
 
         <Section title={a.sectionCore} icon={Building2}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Field label={a.projectKind}>
+              <PlanTypeToggle
+                value={projectKind(form)}
+                onChange={(kind) => set("kind", kind)}
+                buildingLabel={a.projectKindBuilding}
+                neighborhoodLabel={a.projectKindNeighborhood}
+              />
+            </Field>
+            <div className="hidden md:block" />
             <BilingualField
               label={a.projectTitle}
               hy={form.titleHy ?? ""}
@@ -1585,6 +1613,21 @@ export function AdminProjectEditor({ projectId }: Props) {
           </div>
         </Section>
 
+        {isNeighborhoodProject(form) ? (
+          <Section title={a.sectionNeighborhood} icon={Home}>
+            <AdminNeighborhoodSection
+              projectId={form.id}
+              sitePlanImage={form.sitePlanImage ?? ""}
+              landPlots={form.landPlots ?? []}
+              apartments={form.apartments}
+              onSitePlanImage={(url) => set("sitePlanImage", url)}
+              onLandPlots={(plots) => set("landPlots", plots)}
+              onApartments={(apts) => set("apartments", apts)}
+              onToast={toast}
+            />
+          </Section>
+        ) : (
+        <>
         <Section
           title={a.sectionBuildings}
           icon={Building2}
@@ -2341,6 +2384,8 @@ export function AdminProjectEditor({ projectId }: Props) {
             ) : null}
           </div>
         </Section>
+        </>
+        )}
       </div>
 
       <AdminModal
@@ -2358,23 +2403,11 @@ export function AdminProjectEditor({ projectId }: Props) {
           </>
         }
       >
-        <Field label={a.planType}>
-          <PlanTypeToggle
-            value={buildingKindDraft}
-            onChange={setBuildingKindDraft}
-            buildingLabel={a.planTypeBuilding}
-            neighborhoodLabel={a.planTypeNeighborhood}
-          />
-        </Field>
-        <Field label={buildingKindDraft === "neighborhood" ? a.neighborhoodName : a.buildingName}>
+        <Field label={a.buildingName}>
           <input
             className={adminInputCls}
             value={buildingNameDraft}
-            placeholder={
-              buildingKindDraft === "neighborhood"
-                ? a.neighborhoodNamePlaceholder
-                : a.buildingNamePlaceholder
-            }
+            placeholder={a.buildingNamePlaceholder}
             autoFocus
             onChange={(e) => setBuildingNameDraft(e.target.value)}
             onKeyDown={(e) => {

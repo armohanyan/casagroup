@@ -5,6 +5,7 @@ import { CalendarDays, Home, Landmark, Layers, Search } from "lucide-react";
 import { formatPrice } from "@/lib/format-price";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { isNeighborhood } from "@/lib/building-kind";
+import { isNeighborhoodProject } from "@/lib/project-kind";
 import { getProjectCompletionDate, getProjectConstructionStart } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
@@ -65,7 +66,7 @@ export function ProjectKeyFacts({
     });
   }
 
-  if (project.floors > 0) {
+  if (!isNeighborhoodProject(project) && project.floors > 0) {
     facts.push({
       id: "floors",
       icon: Layers,
@@ -74,9 +75,11 @@ export function ProjectKeyFacts({
     });
   }
 
-  const neighborhoodLand = (project.buildings ?? [])
-    .filter(isNeighborhood)
-    .reduce((sum, b) => sum + (b.landArea && b.landArea > 0 ? b.landArea : 0), 0);
+  const neighborhoodLand =
+    (project.landPlots ?? []).reduce((sum, p) => sum + (p.area && p.area > 0 ? p.area : 0), 0) ||
+    (project.buildings ?? [])
+      .filter(isNeighborhood)
+      .reduce((sum, b) => sum + (b.landArea && b.landArea > 0 ? b.landArea : 0), 0);
   if (neighborhoodLand > 0) {
     facts.push({
       id: "land",
@@ -86,7 +89,7 @@ export function ProjectKeyFacts({
     });
   }
 
-  if (total > 0) {
+  if (!isNeighborhoodProject(project) && total > 0) {
     facts.push({
       id: "available",
       icon: Home,

@@ -13,6 +13,10 @@ export function findBuilding(buildings: Building[] | undefined, id?: string | nu
   return buildings?.find((b) => b.id === id);
 }
 
-export function isHouseUnit(apt: Pick<Apartment, "buildingId">, buildings?: Building[]): boolean {
+export function isHouseUnit(
+  apt: Pick<Apartment, "buildingId" | "landPlotId">,
+  buildings?: Building[],
+): boolean {
+  if (apt.landPlotId) return true;
   return isNeighborhood(findBuilding(buildings, apt.buildingId));
 }
