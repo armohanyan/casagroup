@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
+import { getInternalBackendUrl } from "./lib/backend-url";
 
-const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
+// Rewrites must target the local Express process — never the public site origin
+// (that creates nginx↔Next loops → "400 Request Header Or Cookie Too Large").
+const API_ORIGIN = getInternalBackendUrl();
 const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");
+const PUBLIC_API = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
 
 function originToRemotePattern(origin: string): {
   protocol: "http" | "https";
@@ -23,7 +27,7 @@ function originToRemotePattern(origin: string): {
   }
 }
 
-const uploadRemotePatterns = [API_ORIGIN, SITE_ORIGIN]
+const uploadRemotePatterns = [API_ORIGIN, SITE_ORIGIN, PUBLIC_API]
   .map(originToRemotePattern)
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 

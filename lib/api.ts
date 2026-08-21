@@ -39,6 +39,9 @@ export async function apiFetch<T>(
   try {
     const res = await fetch(getApiUrl(path), {
       ...rest,
+      // Auth is Bearer (localStorage), not cookies. Omitting cookies avoids nginx
+      // "Request Header Or Cookie Too Large" when third-party cookies bloat the domain.
+      credentials: "omit",
       signal: controller.signal,
       headers: {
         ...(rest.body ? { "Content-Type": "application/json" } : {}),

@@ -280,6 +280,7 @@ export async function adminUploadFile(file: File, projectId?: string) {
   if (projectId) form.append("projectId", projectId);
   const res = await fetch(getApiUrl("/api/admin/uploads"), {
     method: "POST",
+    credentials: "omit",
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
