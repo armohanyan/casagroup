@@ -55,30 +55,19 @@ function normalizeHotspots(raw: unknown) {
     .filter((h): h is { apartmentId: string; points: [number, number][] } => h !== null);
 }
 
-function parseBuildingKind(raw: unknown): "building" | "neighborhood" {
+function parseProjectKind(raw: unknown): "building" | "neighborhood" {
   return raw === "neighborhood" ? "neighborhood" : "building";
 }
 
-function parseStringArray(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((x): x is string => typeof x === "string" && x.trim().length > 0).map((x) => x.trim());
-}
-
 function buildingScalarData(raw: Record<string, unknown>, sortOrder: number) {
-  const kind = parseBuildingKind(raw.kind);
-  const landArea = raw.landArea !== undefined && raw.landArea !== null && raw.landArea !== ""
-    ? Number(raw.landArea)
-    : null;
-  const price = raw.price !== undefined && raw.price !== null && raw.price !== ""
-    ? Number(raw.price)
-    : null;
   return {
     name: String(raw.name || "").trim(),
     sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
-    kind,
-    landArea: kind === "neighborhood" && Number.isFinite(landArea) ? landArea : null,
-    price: kind === "neighborhood" && Number.isFinite(price) ? price : null,
-    images: kind === "neighborhood" ? parseStringArray(raw.images) : [],
+    /** Neighborhood is project-level; buildings always keep floor plates. */
+    kind: "building",
+    landArea: null,
+    price: null,
+    images: [],
   };
 }
 
@@ -129,10 +118,6 @@ async function syncLandPlots(projectId: string, incoming: Record<string, unknown
       });
     }
   }
-}
-
-function parseProjectKind(raw: unknown): "building" | "neighborhood" {
-  return raw === "neighborhood" ? "neighborhood" : "building";
 }
 
 function floorCreateData(raw: Record<string, unknown>, sortOrder: number) {
@@ -242,12 +227,7 @@ async function syncBuildings(projectId: string, incoming: Record<string, unknown
       idMap.set(created.id, created.id);
     }
 
-    const floors =
-      data.kind === "neighborhood"
-        ? []
-        : Array.isArray(raw.floors)
-          ? (raw.floors as Record<string, unknown>[])
-          : [];
+    const floors = Array.isArray(raw.floors) ? (raw.floors as Record<string, unknown>[]) : [];
     await syncBuildingFloors(buildingId, floors);
   }
 
@@ -373,12 +353,7 @@ export async function createProject(input: Record<string, unknown>) {
             const name = String(raw.name || "").trim();
             if (!name) return null;
             const scalars = buildingScalarData(raw, i);
-            const floors =
-              scalars.kind === "neighborhood"
-                ? []
-                : Array.isArray(raw.floors)
-                  ? (raw.floors as Record<string, unknown>[])
-                  : [];
+            const floors = Array.isArray(raw.floors) ? (raw.floors as Record<string, unknown>[]) : [];
             return {
               ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
               ...scalars,

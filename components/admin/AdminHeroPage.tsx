@@ -13,6 +13,7 @@ import {
   adminUploadFile,
   type HeroSlide,
 } from "@/lib/api-client";
+import { toBrowserMediaUrl } from "@/lib/media-url";
 import { cn } from "@/lib/utils";
 
 export function AdminHeroPage() {
@@ -47,7 +48,7 @@ export function AdminHeroPage() {
     try {
       for (const file of list) {
         const result = await adminUploadFile(file);
-        const url = result.jpegUrl || result.url;
+        const url = toBrowserMediaUrl(result.jpegUrl || result.url || "");
         if (url) await adminCreateHeroSlide(url);
       }
       await load();
@@ -131,7 +132,11 @@ export function AdminHeroPage() {
             <div key={slide.id} className={`${adminCardCls} overflow-hidden`}>
               <div className="relative aspect-[16/10] bg-[#F3F4F6]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={slide.imageUrl} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={toBrowserMediaUrl(slide.imageUrl)}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
                 <span className="absolute left-2 top-2 rounded bg-[#0c1428]/90 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white">
                   {String(i + 1).padStart(2, "0")}
                 </span>

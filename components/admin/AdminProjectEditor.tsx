@@ -45,12 +45,11 @@ import {
 import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
-import { buildingKind, isNeighborhood } from "@/lib/building-kind";
 import { isNeighborhoodProject, projectKind } from "@/lib/project-kind";
 import { en } from "@/lib/translations-en";
 import { ru } from "@/lib/translations-ru";
 import { hyTranslations } from "@/content/hy";
-import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, BuildingKind, Project, ProjectKind, ProjectStatus } from "@/types";
+import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, Project, ProjectKind, ProjectStatus } from "@/types";
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
@@ -233,8 +232,8 @@ function PlanTypeToggle({
   buildingLabel,
   neighborhoodLabel,
 }: {
-  value: BuildingKind | ProjectKind;
-  onChange: (kind: BuildingKind | ProjectKind) => void;
+  value: ProjectKind;
+  onChange: (kind: ProjectKind) => void;
   buildingLabel: string;
   neighborhoodLabel: string;
 }) {
@@ -309,7 +308,6 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [uploadingDrone, setUploadingDrone] = useState(false);
   const [uploadingPdfId, setUploadingPdfId] = useState<string | null>(null);
   const [uploadingFloorId, setUploadingFloorId] = useState<string | null>(null);
-  const [uploadingNeighborhoodId, setUploadingNeighborhoodId] = useState<string | null>(null);
   const [uploadingAptPlanId, setUploadingAptPlanId] = useState<string | null>(null);
   const [uploadingAptGalleryId, setUploadingAptGalleryId] = useState<string | null>(null);
   const [amenityDraftHy, setAmenityDraftHy] = useState("");
@@ -321,8 +319,6 @@ export function AdminProjectEditor({ projectId }: Props) {
   const [openFloorIds, setOpenFloorIds] = useState<string[]>([]);
   const [buildingModalOpen, setBuildingModalOpen] = useState(false);
   const [buildingNameDraft, setBuildingNameDraft] = useState("");
-  const [neighborhoodUrlDrafts, setNeighborhoodUrlDrafts] = useState<Record<string, string>>({});
-  const [aptModalMode, setAptModalMode] = useState<"apartment" | "house">("apartment");
   const [floorModalBuildingId, setFloorModalBuildingId] = useState<string | null>(null);
   const [floorModalMode, setFloorModalMode] = useState<"create" | "duplicate">("create");
   const [floorLabelDraft, setFloorLabelDraft] = useState("");
@@ -336,25 +332,27 @@ export function AdminProjectEditor({ projectId }: Props) {
   const droneFileRef = useRef<HTMLInputElement>(null);
   const pdfFileRef = useRef<HTMLInputElement>(null);
   const floorImageRef = useRef<HTMLInputElement>(null);
-  const neighborhoodImageRef = useRef<HTMLInputElement>(null);
   const aptPlanFileRef = useRef<HTMLInputElement>(null);
   const aptGalleryFileRef = useRef<HTMLInputElement>(null);
   const pdfTargetAptId = useRef<string | null>(null);
   const aptPlanTargetAptId = useRef<string | null>(null);
   const aptGalleryTargetAptId = useRef<string | null>(null);
   const floorImageTarget = useRef<{ buildingId: string; floorId: string } | null>(null);
-  const neighborhoodImageTarget = useRef<string | null>(null);
 
   useEffect(() => {
     if (existing) {
       setForm({
         ...existing,
-        kind: existing.kind === "neighborhood" ? "neighborhood" : "building",
+        kind:
+          existing.kind === "neighborhood" &&
+          (Boolean(existing.sitePlanImage?.trim()) || (existing.landPlots?.length ?? 0) > 0)
+            ? "neighborhood"
+            : "building",
         sitePlanImage: existing.sitePlanImage ?? "",
         landPlots: existing.landPlots ?? [],
         buildings: (existing.buildings ?? []).map((b) => ({
           ...b,
-          kind: buildingKind(b),
+          kind: "building" as const,
           floors: b.floors ?? [],
           images: b.images ?? [],
         })),
@@ -562,9 +560,12 @@ export function AdminProjectEditor({ projectId }: Props) {
 
   function aptPlanLabel(apt: Apartment) {
     const num = apt.apartmentNumber?.trim();
-    const parent = buildings.find((b) => b.id === apt.buildingId);
-    const house = isNeighborhood(parent);
-    const title = num ? `${house ? a.houseNumber : a.apartmentNumber} ${num}` : house ? a.unnamedHouse : a.unnamedUnit;
+    const house = Boolean(apt.landPlotId);
+    const title = num
+      ? `${house ? a.houseNumber : a.apartmentNumber} ${num}`
+      : house
+        ? a.unnamedHouse
+        : a.unnamedUnit;
     if (house) {
       const land = apt.landArea && apt.landArea > 0 ? ` · ${a.landAreaSqm} ${apt.landArea}` : "";
       return `${title} · ${apt.rooms} ${a.roomsShort} · ${apt.area} մ²${land}`;
@@ -705,24 +706,17 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   function openCreateAptModal() {
-    setAptModalMode("apartment");
-    setAptCreateDraft(emptyAptCreateDraft(buildings.filter((b) => !isNeighborhood(b))[0]?.id ?? ""));
-    setAptModalOpen(true);
-  }
-
-  function openCreateHouseModal(buildingId: string) {
-    setAptModalMode("house");
-    setAptCreateDraft({ ...emptyAptCreateDraft(buildingId), floor: 0, landArea: 0 });
+    setAptCreateDraft(emptyAptCreateDraft(buildings[0]?.id ?? ""));
     setAptModalOpen(true);
   }
 
   function createAptFromModal() {
     const apt = emptyApartment(apartmentProjectId, aptCreateDraft.buildingId || undefined);
     apt.apartmentNumber = aptCreateDraft.apartmentNumber.trim();
-    apt.floor = aptModalMode === "house" ? 0 : aptCreateDraft.floor;
+    apt.floor = aptCreateDraft.floor;
     apt.rooms = aptCreateDraft.rooms;
     apt.area = aptCreateDraft.area;
-    apt.landArea = aptModalMode === "house" ? aptCreateDraft.landArea : undefined;
+    apt.landArea = undefined;
     apt.price = aptCreateDraft.price;
     apt.status = aptCreateDraft.status;
     set("apartments", [...form.apartments, apt]);
@@ -732,7 +726,6 @@ export function AdminProjectEditor({ projectId }: Props) {
     }
     setAptModalOpen(false);
     setAptCreateDraft(emptyAptCreateDraft());
-    setAptModalMode("apartment");
   }
 
   async function handleFloorImageUpload(file: File, buildingId: string, floorId: string) {
@@ -746,45 +739,6 @@ export function AdminProjectEditor({ projectId }: Props) {
     } finally {
       setUploadingFloorId(null);
     }
-  }
-
-  async function handleNeighborhoodImageUpload(files: FileList | File[], buildingId: string) {
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (list.length === 0) {
-      toast("Միայն նկար ֆայլ", "error");
-      return;
-    }
-    setUploadingNeighborhoodId(buildingId);
-    try {
-      const urls: string[] = [];
-      for (const file of list) {
-        const res = await adminUploadFile(file, form.id);
-        const url = res.jpegUrl || res.url;
-        if (url) urls.push(url);
-      }
-      if (urls.length) {
-        const current = buildings.find((b) => b.id === buildingId);
-        updateBuilding(buildingId, { images: [...(current?.images ?? []), ...urls] });
-        toast(urls.length === 1 ? "Նկարը վերբեռնվեց" : `${urls.length} նկար վերբեռնվեց`);
-      }
-    } catch (err) {
-      toast(err instanceof Error ? err.message : "Upload failed", "error");
-    } finally {
-      setUploadingNeighborhoodId(null);
-    }
-  }
-
-  function addNeighborhoodImageByUrl(buildingId: string) {
-    const url = (neighborhoodUrlDrafts[buildingId] ?? "").trim();
-    if (!url) return;
-    const current = buildings.find((b) => b.id === buildingId);
-    const images = current?.images ?? [];
-    if (images.includes(url)) {
-      setNeighborhoodUrlDrafts((d) => ({ ...d, [buildingId]: "" }));
-      return;
-    }
-    updateBuilding(buildingId, { images: [...images, url] });
-    setNeighborhoodUrlDrafts((d) => ({ ...d, [buildingId]: "" }));
   }
 
   if (!isNew && !loading && !existing) {
@@ -811,28 +765,22 @@ export function AdminProjectEditor({ projectId }: Props) {
     try {
       const kind = projectKind(form);
       const cleanedBuildings = (form.buildings ?? [])
-        .map((b, i) => {
-          const bKind = buildingKind(b);
-          const neighborhood = bKind === "neighborhood";
-          return {
-            ...b,
-            name: b.name.trim(),
-            sortOrder: i,
-            kind: bKind,
-            landArea: neighborhood ? Number(b.landArea || 0) : undefined,
-            price: neighborhood ? Number(b.price || 0) : undefined,
-            images: neighborhood ? (b.images ?? []).filter((url) => url.trim()) : [],
-            floors: neighborhood
-              ? []
-              : (b.floors ?? []).map((f, fi) => ({
-                  ...f,
-                  label: f.label.trim() || String(fi + 1),
-                  sortOrder: fi,
-                  imageUrl: f.imageUrl.trim(),
-                  hotspots: f.hotspots ?? [],
-                })),
-          };
-        })
+        .map((b, i) => ({
+          ...b,
+          name: b.name.trim(),
+          sortOrder: i,
+          kind: "building" as const,
+          landArea: undefined,
+          price: undefined,
+          images: [],
+          floors: (b.floors ?? []).map((f, fi) => ({
+            ...f,
+            label: f.label.trim() || String(fi + 1),
+            sortOrder: fi,
+            imageUrl: f.imageUrl.trim(),
+            hotspots: f.hotspots ?? [],
+          })),
+        }))
         .filter((b) => b.name.length > 0);
       const savedBuildings = kind === "neighborhood" ? [] : cleanedBuildings;
       const buildingIds = new Set(savedBuildings.map((b) => b.id));
@@ -1683,56 +1631,28 @@ export function AdminProjectEditor({ projectId }: Props) {
             {buildings.map((building, index) => {
               const buildingApts = form.apartments.filter((apt) => apt.buildingId === building.id);
               const floors = building.floors ?? [];
-              const neighborhood = isNeighborhood(building);
               const isOpen = openBuildingIds.includes(building.id);
               return (
                 <AccordionItem
                   key={building.id}
                   open={isOpen}
                   onToggle={() => setOpenBuildingIds((ids) => toggleId(ids, building.id))}
-                  title={
-                    building.name.trim() ||
-                    (neighborhood ? a.unnamedNeighborhood : a.unnamedBuilding)
-                  }
+                  title={building.name.trim() || a.unnamedBuilding}
                   meta={
-                    neighborhood ? (
-                      <>
-                        {a.housesCount.replace("{count}", String(buildingApts.length))}
-                        {building.landArea ? ` · ${building.landArea} մ²` : ""}
-                      </>
-                    ) : (
-                      <>
-                        {a.floorsCount.replace("{count}", String(floors.length))}
-                        {" · "}
-                        {buildingApts.length} {a.plansAttached}
-                      </>
-                    )
+                    <>
+                      {a.floorsCount.replace("{count}", String(floors.length))}
+                      {" · "}
+                      {buildingApts.length} {a.plansAttached}
+                    </>
                   }
                 >
-                  <Field label={a.planType}>
-                    <PlanTypeToggle
-                      value={buildingKind(building)}
-                      onChange={(kind) =>
-                        updateBuilding(building.id, {
-                          kind,
-                          landArea: kind === "neighborhood" ? building.landArea ?? 0 : undefined,
-                          price: kind === "neighborhood" ? building.price ?? 0 : undefined,
-                          images: kind === "neighborhood" ? building.images ?? [] : [],
-                        })
-                      }
-                      buildingLabel={a.planTypeBuilding}
-                      neighborhoodLabel={a.planTypeNeighborhood}
-                    />
-                  </Field>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <div className="min-w-0 flex-1">
-                      <Field label={neighborhood ? a.neighborhoodName : a.buildingName}>
+                      <Field label={a.buildingName}>
                         <input
                           className={adminInputCls}
                           value={building.name}
-                          placeholder={
-                            neighborhood ? a.neighborhoodNamePlaceholder : a.buildingNamePlaceholder
-                          }
+                          placeholder={a.buildingNamePlaceholder}
                           onChange={(e) =>
                             updateBuilding(building.id, { name: e.target.value, sortOrder: index })
                           }
@@ -1748,139 +1668,6 @@ export function AdminProjectEditor({ projectId }: Props) {
                     </button>
                   </div>
 
-                  {neighborhood ? (
-                    <div className="space-y-4 border-t border-[#E8EAED] pt-3">
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <Field label={a.landAreaSqm}>
-                          <input
-                            type="number"
-                            className={adminInputCls}
-                            value={building.landArea ?? 0}
-                            onChange={(e) =>
-                              updateBuilding(building.id, { landArea: +e.target.value })
-                            }
-                          />
-                        </Field>
-                        <Field label={a.neighborhoodPrice}>
-                          <input
-                            type="number"
-                            className={adminInputCls}
-                            value={building.price ?? 0}
-                            onChange={(e) =>
-                              updateBuilding(building.id, { price: +e.target.value })
-                            }
-                          />
-                        </Field>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
-                          {a.neighborhoodImages}
-                        </p>
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                          <input
-                            className={cn(adminInputCls, "flex-1")}
-                            value={neighborhoodUrlDrafts[building.id] ?? ""}
-                            placeholder={a.addImageUrlPlaceholder}
-                            onChange={(e) =>
-                              setNeighborhoodUrlDrafts((d) => ({
-                                ...d,
-                                [building.id]: e.target.value,
-                              }))
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                addNeighborhoodImageByUrl(building.id);
-                              }
-                            }}
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              type="button"
-                              className={adminBtnSecondary}
-                              onClick={() => addNeighborhoodImageByUrl(building.id)}
-                            >
-                              {a.addImageUrl}
-                            </button>
-                            <button
-                              type="button"
-                              disabled={uploadingNeighborhoodId === building.id}
-                              className={adminBtnSecondary}
-                              onClick={() => {
-                                neighborhoodImageTarget.current = building.id;
-                                neighborhoodImageRef.current?.click();
-                              }}
-                            >
-                              {uploadingNeighborhoodId === building.id ? "…" : a.uploadImages}
-                            </button>
-                          </div>
-                        </div>
-                        <AdminImageGrid
-                          urls={building.images ?? []}
-                          onRemove={(imageIndex) =>
-                            updateBuilding(building.id, {
-                              images: (building.images ?? []).filter((_, i) => i !== imageIndex),
-                            })
-                          }
-                          coverBadge={a.coverBadge}
-                          emptyLabel={a.neighborhoodImagesEmpty}
-                          removeLabel={a.removeImage}
-                          className="sm:grid-cols-3 md:grid-cols-4"
-                        />
-                      </div>
-                      <div className="space-y-2 border-t border-[#E8EAED] pt-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
-                            {a.housesTitle}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => openCreateHouseModal(building.id)}
-                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]"
-                          >
-                            <Plus size={15} /> {a.addHouse}
-                          </button>
-                        </div>
-                        {buildingApts.length === 0 ? (
-                          <p className="text-xs text-[#9CA3AF]">{a.noHouses}</p>
-                        ) : (
-                          <div className="space-y-1.5">
-                            {buildingApts.map((apt) => (
-                              <div
-                                key={apt.id}
-                                className="flex items-center justify-between gap-2 rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2"
-                              >
-                                <p className="min-w-0 truncate text-sm text-[#0c1428]">
-                                  {apt.apartmentNumber?.trim()
-                                    ? `${a.houseNumber} ${apt.apartmentNumber}`
-                                    : a.unnamedHouse}
-                                  <span className="text-[#9CA3AF]">
-                                    {" · "}
-                                    {apt.rooms} {a.roomsShort} · {apt.area} մ²
-                                    {apt.landArea ? ` · ${apt.landArea} մ² հող` : ""}
-                                  </span>
-                                </p>
-                                <button
-                                  type="button"
-                                  className="shrink-0 text-xs font-semibold text-[#c9a96e] hover:text-[#a88a52]"
-                                  onClick={() => {
-                                    setOpenAptIds((ids) =>
-                                      ids.includes(apt.id) ? ids : [...ids, apt.id],
-                                    );
-                                    document
-                                      .getElementById(`admin-unit-${apt.id}`)
-                                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                  }}
-                                >
-                                  →
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
                   <div className="space-y-2 border-t border-[#E8EAED] pt-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
@@ -2002,7 +1789,6 @@ export function AdminProjectEditor({ projectId }: Props) {
                       );
                     })}
                   </div>
-                  )}
                 </AccordionItem>
               );
             })}
@@ -2023,22 +1809,6 @@ export function AdminProjectEditor({ projectId }: Props) {
               }
               e.target.value = "";
               floorImageTarget.current = null;
-            }}
-          />
-          <input
-            ref={neighborhoodImageRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              const files = e.target.files;
-              const buildingId = neighborhoodImageTarget.current;
-              if (files?.length && buildingId) {
-                void handleNeighborhoodImageUpload(files, buildingId);
-              }
-              e.target.value = "";
-              neighborhoodImageTarget.current = null;
             }}
           />
         </Section>
@@ -2079,7 +1849,7 @@ export function AdminProjectEditor({ projectId }: Props) {
           <div className="space-y-2">
             {form.apartments.map((apt) => {
               const parentBuilding = buildings.find((b) => b.id === apt.buildingId);
-              const house = isNeighborhood(parentBuilding);
+              const house = Boolean(apt.landPlotId);
               const buildingName = parentBuilding?.name.trim() || a.noBuildingAssigned;
               const isOpen = openAptIds.includes(apt.id);
               return (
@@ -2134,7 +1904,6 @@ export function AdminProjectEditor({ projectId }: Props) {
                           .map((b) => (
                             <option key={b.id} value={b.id}>
                               {b.name}
-                              {isNeighborhood(b) ? ` · ${a.planTypeNeighborhood}` : ""}
                             </option>
                           ))}
                       </select>
@@ -2505,7 +2274,7 @@ export function AdminProjectEditor({ projectId }: Props) {
 
       <AdminModal
         open={aptModalOpen}
-        title={aptModalMode === "house" ? a.newHouseTitle : a.newUnitTitle}
+        title={a.newUnitTitle}
         onClose={() => setAptModalOpen(false)}
         footer={
           <>
@@ -2519,13 +2288,11 @@ export function AdminProjectEditor({ projectId }: Props) {
         }
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={aptModalMode === "house" ? a.houseNumber : a.apartmentNumber}>
+          <Field label={a.apartmentNumber}>
             <input
               className={adminInputCls}
               value={aptCreateDraft.apartmentNumber}
-              placeholder={
-                aptModalMode === "house" ? a.houseNumberPlaceholder : a.apartmentNumberPlaceholder
-              }
+              placeholder={a.apartmentNumberPlaceholder}
               autoFocus
               onChange={(e) => setAptCreateDraft((d) => ({ ...d, apartmentNumber: e.target.value }))}
             />
@@ -2539,7 +2306,6 @@ export function AdminProjectEditor({ projectId }: Props) {
               <option value="">{a.noBuildingAssigned}</option>
               {buildings
                 .filter((b) => b.name.trim())
-                .filter((b) => (aptModalMode === "house" ? isNeighborhood(b) : !isNeighborhood(b)))
                 .map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.name}
@@ -2547,25 +2313,14 @@ export function AdminProjectEditor({ projectId }: Props) {
                 ))}
             </select>
           </Field>
-          {aptModalMode === "house" ? (
-            <Field label={a.landAreaSqm}>
-              <input
-                type="number"
-                className={adminInputCls}
-                value={aptCreateDraft.landArea}
-                onChange={(e) => setAptCreateDraft((d) => ({ ...d, landArea: +e.target.value }))}
-              />
-            </Field>
-          ) : (
-            <Field label={a.floorLabel}>
-              <input
-                type="number"
-                className={adminInputCls}
-                value={aptCreateDraft.floor}
-                onChange={(e) => setAptCreateDraft((d) => ({ ...d, floor: +e.target.value }))}
-              />
-            </Field>
-          )}
+          <Field label={a.floorLabel}>
+            <input
+              type="number"
+              className={adminInputCls}
+              value={aptCreateDraft.floor}
+              onChange={(e) => setAptCreateDraft((d) => ({ ...d, floor: +e.target.value }))}
+            />
+          </Field>
           <Field label={a.roomsShort}>
             <input
               type="number"

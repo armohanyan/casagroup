@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import { DEFAULT_HERO_SLIDES } from "@/lib/site-images";
 import { fetchHeroSlides } from "@/lib/api-client";
+import { toBrowserMediaUrl } from "@/lib/media-url";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { Container } from "@/components/site/Container";
@@ -15,7 +15,7 @@ export function HomeHero() {
   const { t } = useI18n();
   const { projects } = useProjects();
   const cities = [...new Set(projects.map((p) => p.city))];
-  const [slides, setSlides] = useState<string[]>([...DEFAULT_HERO_SLIDES]);
+  const [slides, setSlides] = useState<string[]>(() => DEFAULT_HERO_SLIDES.map(toBrowserMediaUrl));
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -23,7 +23,9 @@ export function HomeHero() {
     fetchHeroSlides()
       .then((rows) => {
         if (cancelled) return;
-        const urls = rows.map((s) => s.imageUrl).filter(Boolean);
+        const urls = rows
+          .map((s) => toBrowserMediaUrl(s.imageUrl))
+          .filter(Boolean);
         if (urls.length) {
           setSlides(urls);
           setIndex(0);
@@ -54,15 +56,16 @@ export function HomeHero() {
     <section className="relative flex h-[100dvh] min-h-[640px] flex-col bg-[#0c1428]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {slides.map((src, i) => (
-          <Image
+          // User-uploaded slides may use hosts outside next/image remotePatterns;
+          // plain img + /uploads rewrite is reliable for admin media.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             key={src}
             src={src}
             alt=""
-            fill
-            priority={i === 0}
-            unoptimized
-            sizes="100vw"
-            className={`object-cover transition-opacity duration-1000 ease-out ${
+            decoding={i === 0 ? "sync" : "async"}
+            fetchPriority={i === 0 ? "high" : "low"}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out ${
               i === index ? "opacity-100" : "opacity-0"
             }`}
           />

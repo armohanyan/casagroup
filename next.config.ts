@@ -1,6 +1,31 @@
 import type { NextConfig } from "next";
 
 const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
+const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");
+
+function originToRemotePattern(origin: string): {
+  protocol: "http" | "https";
+  hostname: string;
+  port?: string;
+  pathname: string;
+} | null {
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return {
+      protocol: url.protocol.replace(":", "") as "http" | "https",
+      hostname: url.hostname,
+      ...(url.port ? { port: url.port } : {}),
+      pathname: "/uploads/**",
+    };
+  } catch {
+    return null;
+  }
+}
+
+const uploadRemotePatterns = [API_ORIGIN, SITE_ORIGIN]
+  .map(originToRemotePattern)
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -8,6 +33,7 @@ const nextConfig: NextConfig = {
   eslint: { ignoreDuringBuilds: true },
   async rewrites() {
     return [
+      { source: "/uploads/:path*", destination: `${API_ORIGIN}/uploads/:path*` },
       { source: "/api/views", destination: `${API_ORIGIN}/api/views` },
       { source: "/api/views/:path*", destination: `${API_ORIGIN}/api/views/:path*` },
       { source: "/api/projects", destination: `${API_ORIGIN}/api/projects` },
@@ -52,6 +78,7 @@ const nextConfig: NextConfig = {
         port: "4000",
         pathname: "/uploads/**",
       },
+      ...uploadRemotePatterns,
     ],
   },
 };

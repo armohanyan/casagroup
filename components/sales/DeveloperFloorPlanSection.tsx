@@ -7,8 +7,6 @@ import { BrandMultiSelect } from "@/components/ui/BrandMultiSelect";
 import { BrandSelect } from "@/components/ui/BrandSelect";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { useI18n } from "@/lib/i18n";
-import { formatPrice } from "@/lib/format-price";
-import { isNeighborhood } from "@/lib/building-kind";
 import type { Apartment, Building, Project } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -71,9 +69,6 @@ export function DeveloperFloorPlanSection({ project }: Props) {
     }
   }, [buildings, hasBuildings, selectedBuildingId]);
 
-  const selectedBuilding = buildings.find((b) => b.id === selectedBuildingId);
-  const selectedIsNeighborhood = isNeighborhood(selectedBuilding);
-
   const buildingApartments = useMemo(() => {
     if (!hasBuildings || !selectedBuildingId) return project.apartments;
     return project.apartments.filter((a) => a.buildingId === selectedBuildingId);
@@ -99,10 +94,6 @@ export function DeveloperFloorPlanSection({ project }: Props) {
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    if (selectedIsNeighborhood && sort === "floor-asc") setSort("price-asc");
-  }, [selectedIsNeighborhood, sort]);
-
-  useEffect(() => {
     const rooms = uniqueSorted(marketApartments.map((a) => a.rooms));
     const floors = uniqueSorted(marketApartments.map((a) => a.floor));
     const bounds = areaRange(marketApartments);
@@ -126,12 +117,10 @@ export function DeveloperFloorPlanSection({ project }: Props) {
       list = [];
     }
 
-    if (!selectedIsNeighborhood) {
-      if (list.length && selectedFloors.length > 0) {
-        list = list.filter((a) => selectedFloors.includes(a.floor));
-      } else if (selectedFloors.length === 0) {
-        list = [];
-      }
+    if (list.length && selectedFloors.length > 0) {
+      list = list.filter((a) => selectedFloors.includes(a.floor));
+    } else if (selectedFloors.length === 0) {
+      list = [];
     }
 
     list = list.filter((a) => a.area >= areaMin && a.area <= areaMax);
@@ -155,7 +144,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
       }
     });
     return list;
-  }, [marketApartments, selectedRooms, selectedFloors, areaMin, areaMax, payments, sort, selectedIsNeighborhood]);
+  }, [marketApartments, selectedRooms, selectedFloors, areaMin, areaMax, payments, sort]);
 
   const paymentOptions = [
     { value: "mortgage", label: t.developerDetail.paymentMortgage },
@@ -225,46 +214,14 @@ export function DeveloperFloorPlanSection({ project }: Props) {
       <div className="mb-6">
         <div>
           <h2 className="text-xl font-bold text-[#1C1917] sm:text-2xl">
-            {selectedIsNeighborhood ? t.developerDetail.housesTitle : t.developerDetail.floorPlansTitle}
+            {t.developerDetail.floorPlansTitle}
           </h2>
           <p className="mt-1 text-sm text-[#57534E]">
-            {selectedIsNeighborhood ? t.developerDetail.housesTotal : t.developerDetail.floorPlansTotal}{" "}
+            {t.developerDetail.floorPlansTotal}{" "}
             <span className="font-semibold text-[#1C1917]">{marketApartments.length}</span>
           </p>
         </div>
       </div>
-
-      {selectedIsNeighborhood && selectedBuilding ? (
-        <div className="mb-6 space-y-4">
-          {(selectedBuilding.landArea && selectedBuilding.landArea > 0) ||
-          (selectedBuilding.price && selectedBuilding.price > 0) ? (
-            <div className="flex flex-wrap gap-3 text-sm">
-              {selectedBuilding.landArea && selectedBuilding.landArea > 0 ? (
-                <span className="rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2 text-[#4B5563]">
-                  {t.developerDetail.neighborhoodLand}:{" "}
-                  <span className="font-semibold text-[#0c1428]">{selectedBuilding.landArea} m²</span>
-                </span>
-              ) : null}
-              {selectedBuilding.price && selectedBuilding.price > 0 ? (
-                <span className="rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2 text-[#4B5563]">
-                  {t.developerDetail.neighborhoodPriceFrom}:{" "}
-                  <span className="font-semibold text-[#0c1428]">{formatPrice(selectedBuilding.price)}</span>
-                </span>
-              ) : null}
-            </div>
-          ) : null}
-          {(selectedBuilding.images ?? []).length > 0 ? (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {(selectedBuilding.images ?? []).slice(0, 4).map((url) => (
-                <div key={url} className="relative aspect-[4/3] overflow-hidden rounded-[5px] bg-[#F3F4F6]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" className="h-full w-full object-cover" />
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
 
       <div className="mb-6 rounded-xl bg-white p-4 shadow-sm sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-4">
@@ -298,7 +255,6 @@ export function DeveloperFloorPlanSection({ project }: Props) {
             triggerClassName="!h-9"
           />
 
-          {!selectedIsNeighborhood ? (
           <BrandMultiSelect
             className="min-w-0 flex-1 lg:max-w-[140px]"
             label={t.developerDetail.filterFloor}
@@ -309,7 +265,6 @@ export function DeveloperFloorPlanSection({ project }: Props) {
             emptyLabel={t.developerDetail.filterNone}
             triggerClassName="!h-9"
           />
-          ) : null}
 
           <BrandMultiSelect
             className="min-w-0 flex-1 lg:max-w-[180px]"
@@ -332,9 +287,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
                 { value: "price-asc", label: t.developerDetail.sortPriceAsc },
                 { value: "price-desc", label: t.developerDetail.sortPriceDesc },
                 { value: "area-asc", label: t.developerDetail.sortAreaAsc },
-                ...(selectedIsNeighborhood
-                  ? []
-                  : [{ value: "floor-asc", label: t.developerDetail.sortFloorAsc }]),
+                { value: "floor-asc", label: t.developerDetail.sortFloorAsc },
               ]}
             />
           </div>
@@ -353,7 +306,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
                 key={apartment.id}
                 apartment={apartment}
                 projectSlug={project.slug}
-                isHouse={selectedIsNeighborhood}
+                isHouse={false}
               />
             ))}
           </div>
