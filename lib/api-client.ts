@@ -242,7 +242,13 @@ export type HeroSlide = {
 };
 
 export async function fetchHeroSlides() {
-  return apiFetch<HeroSlide[]>("/api/hero-slides");
+  // Prefer /api/projects/_hero-slides — production nginx already proxies /api/projects to Express.
+  // /api/hero-slides often hits Next only and fails (loop / bogus admin checks).
+  try {
+    return await apiFetch<HeroSlide[]>("/api/projects/_hero-slides");
+  } catch {
+    return apiFetch<HeroSlide[]>("/api/hero-slides");
+  }
 }
 
 export async function adminListHeroSlides() {

@@ -1,7 +1,7 @@
 /**
  * Backend origin for server-side proxies/rewrites.
  * Never point this at the public site URL — that causes nginx↔Next rewrite loops
- * ("400 Request Header Or Cookie Too Large").
+ * ("400 Request Header Or Cookie Too Large") or bogus 401s.
  */
 export function getInternalBackendUrl(): string {
   const explicit = (
@@ -9,25 +9,30 @@ export function getInternalBackendUrl(): string {
     process.env.API_INTERNAL_URL ||
     ""
   ).replace(/\/$/, "");
-  if (explicit) return explicit;
+  if (explicit) {
+    try {
+      const host = new URL(explicit).hostname;
+      if (host !== "localhost" && host !== "127.0.0.1" && !host.endsWith(".internal")) {
+        console.warn(
+          `[backend-url] BACKEND_INTERNAL_URL host "${host}" is not loopback; using http://127.0.0.1:4000 to avoid proxy loops`
+        );
+        return "http://127.0.0.1:4000";
+      }
+    } catch {
+      /* use as-is below */
+    }
+    return explicit;
+  }
 
   const pub = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:4000").replace(/\/$/, "");
-  const site = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");
 
   try {
     const api = new URL(pub);
-    const isLoopback = api.hostname === "localhost" || api.hostname === "127.0.0.1";
-    if (isLoopback) return pub;
-
-    if (site) {
-      const siteHost = new URL(site).hostname;
-      if (api.hostname === siteHost || api.hostname === `www.${siteHost}` || `www.${api.hostname}` === siteHost) {
-        return "http://127.0.0.1:4000";
-      }
-    }
+    if (api.hostname === "localhost" || api.hostname === "127.0.0.1") return pub;
   } catch {
     /* fall through */
   }
 
-  return pub;
+  // Public/API hostnames must not be used for server-side proxying.
+  return "http://127.0.0.1:4000";
 }

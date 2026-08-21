@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as projectService from "../services/projectService.js";
+import * as heroSlideService from "../services/heroSlideService.js";
 
 export const projectsRouter = Router();
 
@@ -14,6 +15,16 @@ projectsRouter.get("/", async (req, res, next) => {
 
     const projects = await projectService.listProjects({ city, status, maxPrice, rooms, featured });
     res.json(projects);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** Public homepage slides — under /api/projects so existing nginx → Express proxy covers it (no auth). */
+projectsRouter.get("/_hero-slides", async (_req, res, next) => {
+  try {
+    const slides = await heroSlideService.listHeroSlides();
+    res.json(slides);
   } catch (err) {
     next(err);
   }
