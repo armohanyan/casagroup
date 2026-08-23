@@ -1,4 +1,4 @@
-import type { Project, Apartment, Building, BuildingFloor, LandPlot } from "@/types";
+import type { Project, Apartment, Building, BuildingFloor, LandPlot, ProjectMapStage } from "@/types";
 
 export function generateId(): string {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -46,6 +46,8 @@ export function emptyProject(): Omit<Project, "id" | "slug"> {
     nearbyPlaces: [],
     paymentOptions: [],
     kind: "building",
+    salesMode: "plans",
+    mapStages: [],
     sitePlanImage: "",
     landPlots: [],
     buildings: [],
@@ -69,6 +71,7 @@ export function emptyBuilding(
     name: "",
     sortOrder,
     kind,
+    exteriorImageUrl: "",
     landArea: kind === "neighborhood" ? 0 : undefined,
     price: kind === "neighborhood" ? 0 : undefined,
     images: kind === "neighborhood" ? [] : undefined,
@@ -83,6 +86,21 @@ export function emptyBuildingFloor(buildingId: string, sortOrder = 0): BuildingF
     label: String(sortOrder + 1),
     sortOrder,
     imageUrl: "",
+    hotspots: [],
+    exteriorHotspot: [],
+  };
+}
+
+export function emptyMapStage(projectId: string, parentId?: string | null, sortOrder = 0): ProjectMapStage {
+  return {
+    id: generateId(),
+    projectId,
+    parentId: parentId ?? null,
+    label: "",
+    labelHy: "",
+    labelRu: "",
+    imageUrl: "",
+    sortOrder,
     hotspots: [],
   };
 }

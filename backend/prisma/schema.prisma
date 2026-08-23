@@ -11,6 +11,11 @@ model Project {
   id                       String      @id @default(cuid())
   /** "building" (apartments + floor plates) or "neighborhood" (land plots + house plans). */
   kind                     String      @default("building")
+  /**
+   * Apartment sales journey entry depth (ignored for neighborhood):
+   * master | complex | buildings | floors | plans
+   */
+  salesMode                String      @default("plans")
   sitePlanImage            String      @default("")
   title                    String
   titleHy                  String?
@@ -60,6 +65,7 @@ model Project {
   apartments               Apartment[]
   buildings                Building[]
   landPlots                LandPlot[]
+  mapStages                ProjectMapStage[]
   media                    MediaAsset[]
   views                    ProjectView[]
 
@@ -68,22 +74,49 @@ model Project {
   @@index([featured])
 }
 
+/**
+ * Interactive map stage for apartment sales journey (steps 1–3).
+ * Roots have parentId null; hotspots target child stages or buildings.
+ */
+model ProjectMapStage {
+  id        String            @id @default(cuid())
+  projectId String
+  parentId  String?
+  label     String
+  labelHy   String?
+  labelRu   String?
+  imageUrl  String            @default("")
+  sortOrder Int               @default(0)
+  /** Array of { id, label, points, markerX?, markerY?, targetType, targetId }. */
+  hotspots  Json
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent    ProjectMapStage?  @relation("MapStageTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  ProjectMapStage[] @relation("MapStageTree")
+
+  @@index([projectId])
+  @@index([parentId])
+}
+
 /** Named building / block or neighborhood within a project (e.g. 4A, or a cottage community). */
 model Building {
-  id         String         @id @default(cuid())
-  projectId  String
-  name       String
-  sortOrder  Int            @default(0)
+  id               String         @id @default(cuid())
+  projectId        String
+  name             String
+  sortOrder        Int            @default(0)
   /** "building" (floor plates) or "neighborhood" (houses + land/price/pictures). */
-  kind       String         @default("building")
-  landArea   Float?
-  price      Int?
-  images     Json           @default("[]")
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  apartments Apartment[]
-  floors     BuildingFloor[]
+  kind             String         @default("building")
+  /** Step-4 exterior render of the building. */
+  exteriorImageUrl String         @default("")
+  landArea         Float?
+  price            Int?
+  images           Json           @default("[]")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  project          Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  apartments       Apartment[]
+  floors           BuildingFloor[]
 
   @@index([projectId])
 }
@@ -109,16 +142,18 @@ model LandPlot {
 
 /** Full-floor plate image with apartment hotspot polygons for interactive selection. */
 model BuildingFloor {
-  id         String   @id @default(cuid())
-  buildingId String
-  label      String
-  sortOrder  Int      @default(0)
-  imageUrl   String   @default("")
+  id              String   @id @default(cuid())
+  buildingId      String
+  label           String
+  sortOrder       Int      @default(0)
+  imageUrl        String   @default("")
   /** Array of { apartmentId, points: [x,y][] } with x/y as % of image (0–100). */
-  hotspots   Json
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  hotspots        Json
+  /** Floor band polygon on the building exterior image (% coords). */
+  exteriorHotspot Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  building        Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
 
   @@index([buildingId])
 }

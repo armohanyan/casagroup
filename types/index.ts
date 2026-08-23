@@ -1,6 +1,33 @@
 export type ProjectStatus = "Under Construction" | "Ready" | "Sold Out";
 export type ApartmentStatus = "Available" | "Reserved" | "Sold";
 export type ProjectKind = "building" | "neighborhood";
+/** Where the public apartment sales journey starts for a building project. */
+export type SalesMode = "master" | "complex" | "buildings" | "floors" | "plans";
+
+/** Hotspot on a sales map stage (steps 1–3). Points are % of image (0–100). */
+export interface MapStageHotspot {
+  id: string;
+  label: string;
+  points: [number, number][];
+  /** Optional circular marker position (%). Defaults to polygon centroid. */
+  markerX?: number;
+  markerY?: number;
+  targetType: "stage" | "building";
+  targetId: string;
+}
+
+/** Interactive map stage before buildings (master / complex / building cluster). */
+export interface ProjectMapStage {
+  id: string;
+  projectId: string;
+  parentId?: string | null;
+  label: string;
+  labelHy?: string;
+  labelRu?: string;
+  imageUrl: string;
+  sortOrder: number;
+  hotspots: MapStageHotspot[];
+}
 
 export interface NearbyPlace {
   name: string;
@@ -37,6 +64,8 @@ export interface BuildingFloor {
   sortOrder: number;
   imageUrl: string;
   hotspots: FloorHotspot[];
+  /** Floor band on the building exterior image (% coords). */
+  exteriorHotspot?: [number, number][];
 }
 
 export type BuildingKind = "building" | "neighborhood";
@@ -48,6 +77,8 @@ export interface Building {
   sortOrder: number;
   /** `building` (default) has floor plates; `neighborhood` has houses, land, price, pictures. */
   kind?: BuildingKind;
+  /** Step-4 exterior render of the building. */
+  exteriorImageUrl?: string;
   /** Neighborhood land area in m². */
   landArea?: number;
   /** Neighborhood listing / starting price (AMD). */
@@ -118,6 +149,13 @@ export interface Project {
   id: string;
   /** Building complex (floor plates) or neighborhood (site plan + land plots). */
   kind?: ProjectKind;
+  /**
+   * Apartment sales journey entry (building projects only).
+   * master → complex → buildings → floors → plans
+   */
+  salesMode?: SalesMode;
+  /** Nested map stages for sales journey steps 1–3. */
+  mapStages?: ProjectMapStage[];
   /** Neighborhood 3D / master-plan image where land plots are drawn. */
   sitePlanImage?: string;
   landPlots?: LandPlot[];

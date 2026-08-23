@@ -32,6 +32,8 @@ import {
 } from "@/components/admin/admin-config";
 import { FloorHotspotEditor } from "@/components/admin/FloorHotspotEditor";
 import { AdminNeighborhoodSection } from "@/components/admin/AdminNeighborhoodSection";
+import { AdminSalesMapSection } from "@/components/admin/AdminSalesMapSection";
+import { BuildingExteriorEditor } from "@/components/admin/BuildingExteriorEditor";
 import { AdminImageGrid, AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import { ProjectViewCount } from "@/components/site/ProjectViewCount";
 import {
@@ -51,10 +53,21 @@ import {
   hasNeighborhoodSite,
   isNeighborhoodProject,
 } from "@/lib/project-kind";
+import { parseSalesMode, SALES_MODES, usesBuildingExterior, usesMapStages } from "@/lib/sales-mode";
 import { en } from "@/lib/translations-en";
 import { ru } from "@/lib/translations-ru";
 import { hyTranslations } from "@/content/hy";
-import type { Amenity, Apartment, ApartmentStatus, Building, BuildingFloor, Project, ProjectKind, ProjectStatus } from "@/types";
+import type {
+  Amenity,
+  Apartment,
+  ApartmentStatus,
+  Building,
+  BuildingFloor,
+  Project,
+  ProjectKind,
+  ProjectStatus,
+  SalesMode,
+} from "@/types";
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
@@ -266,6 +279,39 @@ function PlanTypeToggle({
   );
 }
 
+function SalesModeToggle({
+  value,
+  onChange,
+  labels,
+}: {
+  value: SalesMode;
+  onChange: (mode: SalesMode) => void;
+  labels: Record<SalesMode, string>;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {SALES_MODES.map((mode) => {
+        const active = value === mode;
+        return (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => onChange(mode)}
+            className={cn(
+              "min-h-11 rounded-[5px] border px-3 py-2 text-left text-sm font-semibold transition-colors",
+              active
+                ? "border-[#c9a96e] bg-[#F8F6F1] text-[#0c1428]"
+                : "border-[#E8EAED] bg-white text-[#6B7280] hover:border-[#c9a96e]/60",
+            )}
+          >
+            {labels[mode]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 type AptCreateDraft = {
   apartmentNumber: string;
   buildingId: string;
@@ -353,12 +399,18 @@ export function AdminProjectEditor({ projectId }: Props) {
           (Boolean(existing.sitePlanImage?.trim()) || (existing.landPlots?.length ?? 0) > 0)
             ? "neighborhood"
             : "building",
+        salesMode: parseSalesMode(existing.salesMode),
+        mapStages: existing.mapStages ?? [],
         sitePlanImage: existing.sitePlanImage ?? "",
         landPlots: existing.landPlots ?? [],
         buildings: (existing.buildings ?? []).map((b) => ({
           ...b,
           kind: "building" as const,
-          floors: b.floors ?? [],
+          exteriorImageUrl: b.exteriorImageUrl ?? "",
+          floors: (b.floors ?? []).map((f) => ({
+            ...f,
+            exteriorHotspot: f.exteriorHotspot ?? [],
+          })),
           images: b.images ?? [],
         })),
         apartments: existing.apartments ?? [],
@@ -777,6 +829,7 @@ export function AdminProjectEditor({ projectId }: Props) {
           name: b.name.trim(),
           sortOrder: i,
           kind: "building" as const,
+          exteriorImageUrl: (b.exteriorImageUrl ?? "").trim(),
           landArea: undefined,
           price: undefined,
           images: [],
@@ -786,6 +839,7 @@ export function AdminProjectEditor({ projectId }: Props) {
             sortOrder: fi,
             imageUrl: f.imageUrl.trim(),
             hotspots: f.hotspots ?? [],
+            exteriorHotspot: f.exteriorHotspot ?? [],
           })),
         }))
         .filter((b) => b.name.length > 0);
@@ -801,6 +855,16 @@ export function AdminProjectEditor({ projectId }: Props) {
         .filter((p) => p.label.length > 0);
       const savedPlots = kind === "neighborhood" ? cleanedPlots : [];
       const plotIds = new Set(savedPlots.map((p) => p.id));
+      const cleanedStages = (form.mapStages ?? [])
+        .map((s, i) => ({
+          ...s,
+          label: s.label.trim() || String(i + 1),
+          sortOrder: i,
+          imageUrl: (s.imageUrl ?? "").trim(),
+          hotspots: s.hotspots ?? [],
+        }))
+        .filter((s) => s.label.length > 0 || s.imageUrl.length > 0 || (s.hotspots?.length ?? 0) > 0);
+      const salesMode = kind === "neighborhood" ? "plans" : parseSalesMode(form.salesMode);
       const cleanedApartments = form.apartments.map((apt) => ({
         ...apt,
         buildingId:
@@ -819,6 +883,8 @@ export function AdminProjectEditor({ projectId }: Props) {
       const payload = {
         ...form,
         kind,
+        salesMode,
+        mapStages: kind === "neighborhood" ? [] : cleanedStages,
         sitePlanImage: form.sitePlanImage ?? "",
         landPlots: savedPlots,
         buildings: savedBuildings,
@@ -1073,6 +1139,8 @@ export function AdminProjectEditor({ projectId }: Props) {
                       setForm((f) => ({
                         ...f,
                         kind: "neighborhood",
+                        salesMode: "plans",
+                        mapStages: [],
                         buildings: [],
                         apartments: (f.apartments ?? []).map((apt) => ({
                           ...apt,
@@ -1081,7 +1149,13 @@ export function AdminProjectEditor({ projectId }: Props) {
                       }));
                       return;
                     }
-                    setForm((f) => ({ ...f, kind: "neighborhood", buildings: [] }));
+                    setForm((f) => ({
+                      ...f,
+                      kind: "neighborhood",
+                      salesMode: "plans",
+                      mapStages: [],
+                      buildings: [],
+                    }));
                     return;
                   }
                   if (hasNeighborhoodSite(form)) {
@@ -1089,6 +1163,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                     setForm((f) => ({
                       ...f,
                       kind: "building",
+                      salesMode: f.salesMode ?? "plans",
                       sitePlanImage: "",
                       landPlots: [],
                       apartments: (f.apartments ?? []).map((apt) => ({
@@ -1098,13 +1173,30 @@ export function AdminProjectEditor({ projectId }: Props) {
                     }));
                     return;
                   }
-                  set("kind", "building");
+                  setForm((f) => ({ ...f, kind: "building" }));
                 }}
                 buildingLabel={a.projectKindBuilding}
                 neighborhoodLabel={a.projectKindNeighborhood}
               />
             </Field>
-            <div className="hidden md:block" />
+            {!isNeighborhoodProject(form) ? (
+              <div className="md:col-span-2">
+                <Field label={a.salesMode}>
+                  <SalesModeToggle
+                    value={parseSalesMode(form.salesMode)}
+                    onChange={(mode) => set("salesMode", mode)}
+                    labels={{
+                      master: a.salesModeMaster,
+                      complex: a.salesModeComplex,
+                      buildings: a.salesModeBuildings,
+                      floors: a.salesModeFloors,
+                      plans: a.salesModePlans,
+                    }}
+                  />
+                  <p className="mt-2 text-xs text-[#9CA3AF]">{a.salesModeHint}</p>
+                </Field>
+              </div>
+            ) : null}
             <BilingualField
               label={a.projectTitle}
               hy={form.titleHy ?? ""}
@@ -1634,6 +1726,45 @@ export function AdminProjectEditor({ projectId }: Props) {
           </Section>
         ) : (
         <>
+        {usesMapStages(parseSalesMode(form.salesMode)) ? (
+          <Section title={a.sectionSalesMaps} icon={Layers}>
+            <p className="mb-4 text-sm text-[#6B7280]">{a.salesMapsHint}</p>
+            <AdminSalesMapSection
+              projectId={form.id}
+              mapStages={form.mapStages ?? []}
+              buildings={buildings}
+              onChange={(stages) => set("mapStages", stages)}
+              onToast={toast}
+              labels={{
+                sectionTitle: a.salesMapsHint,
+                addRootStage: a.salesMapAddRoot,
+                addChildStage: a.salesMapAddChild,
+                stageLabel: a.salesMapStageLabel,
+                stageImage: a.salesMapStageImage,
+                uploadImage: a.salesMapUploadImage,
+                removeStage: a.salesMapRemoveStage,
+                hotspots: a.salesMapHotspots,
+                hotspotLabel: a.salesMapHotspotLabel,
+                targetType: a.salesMapTargetType,
+                targetStage: a.salesMapTargetStage,
+                targetBuilding: a.salesMapTargetBuilding,
+                selectTarget: a.salesMapSelectTarget,
+                finishPolygon: a.hotspotFinish,
+                undoPoint: a.hotspotUndo,
+                clearDraft: a.hotspotClear,
+                removeHotspot: a.hotspotRemove,
+                drawHint: a.hotspotDrawHint,
+                noStages: a.salesMapNoStages,
+                noBuildings: a.noBuildings,
+                zoomIn: a.hotspotZoomIn,
+                zoomOut: a.hotspotZoomOut,
+                zoomReset: a.hotspotZoomReset,
+                panMode: a.hotspotPanMode,
+                drawMode: a.hotspotDrawMode,
+              }}
+            />
+          </Section>
+        ) : null}
         <Section
           title={a.sectionBuildings}
           icon={Building2}
@@ -1707,6 +1838,36 @@ export function AdminProjectEditor({ projectId }: Props) {
                       <Trash2 size={14} /> {a.remove}
                     </button>
                   </div>
+
+                  {usesBuildingExterior(parseSalesMode(form.salesMode)) ? (
+                    <div className="border-t border-[#E8EAED] pt-3">
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
+                        {a.buildingExterior}
+                      </p>
+                      <BuildingExteriorEditor
+                        projectId={form.id}
+                        building={building}
+                        onChange={(patch) => updateBuilding(building.id, patch)}
+                        onToast={toast}
+                        labels={{
+                          exteriorImage: a.buildingExterior,
+                          uploadImage: a.buildingExteriorUpload,
+                          selectFloor: a.exteriorSelectFloor,
+                          drawHint: a.exteriorDrawHint,
+                          finishPolygon: a.hotspotFinish,
+                          undoPoint: a.hotspotUndo,
+                          clearDraft: a.hotspotClear,
+                          removeBand: a.exteriorRemoveBand,
+                          noFloors: a.noFloorPlates,
+                          zoomIn: a.hotspotZoomIn,
+                          zoomOut: a.hotspotZoomOut,
+                          zoomReset: a.hotspotZoomReset,
+                          panMode: a.hotspotPanMode,
+                          drawMode: a.hotspotDrawMode,
+                        }}
+                      />
+                    </div>
+                  ) : null}
 
                   <div className="space-y-2 border-t border-[#E8EAED] pt-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">

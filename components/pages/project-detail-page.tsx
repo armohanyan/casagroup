@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Phone, MessageCircle, BadgeCheck } from "lucide-react";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
+import { ApartmentSalesJourney } from "@/components/sales/ApartmentSalesJourney";
 import { NeighborhoodSalesSection } from "@/components/sales/NeighborhoodSalesSection";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
@@ -20,6 +21,7 @@ import { recordProjectView } from "@/lib/project-views";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { isNeighborhoodProject } from "@/lib/project-kind";
+import { projectSalesMode } from "@/lib/sales-mode";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { cn } from "@/lib/utils";
 import { ProjectKeyFacts } from "@/components/site/ProjectKeyFacts";
@@ -210,7 +212,7 @@ export default function ProjectDetailPage() {
 
       {isNeighborhoodProject(project) ? (
         <NeighborhoodSalesSection project={project} />
-      ) : (
+      ) : projectSalesMode(project) === "plans" ? (
         <>
           <section id="apartments" className="border-t border-[#E5E7EB]">
             <Container className="py-10 md:py-14">
@@ -219,6 +221,8 @@ export default function ProjectDetailPage() {
           </section>
           <BuildingFloorMapSection project={project} />
         </>
+      ) : (
+        <ApartmentSalesJourney project={project} />
       )}
 
       <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">

@@ -15,6 +15,7 @@ export interface ProjectFilters {
 const projectInclude = {
   apartments: true,
   landPlots: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
+  mapStages: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
   buildings: {
     orderBy: [{ sortOrder: "asc" as const }, { name: "asc" as const }],
     include: {
@@ -59,12 +60,63 @@ function parseProjectKind(raw: unknown): "building" | "neighborhood" {
   return raw === "neighborhood" ? "neighborhood" : "building";
 }
 
+function parseSalesMode(raw: unknown): "master" | "complex" | "buildings" | "floors" | "plans" {
+  if (raw === "master" || raw === "complex" || raw === "buildings" || raw === "floors" || raw === "plans") {
+    return raw;
+  }
+  return "plans";
+}
+
+function normalizeExteriorHotspot(raw: unknown): [number, number][] {
+  const points = normalizePlotPoints(raw);
+  return points;
+}
+
+function normalizeMapStageHotspots(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((h) => {
+      if (!h || typeof h !== "object") return null;
+      const item = h as Record<string, unknown>;
+      const id = typeof item.id === "string" && item.id ? item.id : "";
+      const targetId = typeof item.targetId === "string" && item.targetId ? item.targetId : "";
+      const targetType =
+        item.targetType === "building" ? "building" : item.targetType === "stage" ? "stage" : null;
+      if (!id || !targetId || !targetType) return null;
+      const points = Array.isArray(item.points)
+        ? item.points
+            .filter((p): p is [number, number] => Array.isArray(p) && p.length >= 2)
+            .map((p) => [Number(p[0]), Number(p[1])] as [number, number])
+            .filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]))
+        : [];
+      const markerX =
+        item.markerX !== undefined && item.markerX !== null && item.markerX !== ""
+          ? Number(item.markerX)
+          : undefined;
+      const markerY =
+        item.markerY !== undefined && item.markerY !== null && item.markerY !== ""
+          ? Number(item.markerY)
+          : undefined;
+      return {
+        id,
+        label: String(item.label || "").trim(),
+        points,
+        ...(Number.isFinite(markerX) ? { markerX } : {}),
+        ...(Number.isFinite(markerY) ? { markerY } : {}),
+        targetType,
+        targetId,
+      };
+    })
+    .filter((h): h is NonNullable<typeof h> => h !== null);
+}
+
 function buildingScalarData(raw: Record<string, unknown>, sortOrder: number) {
   return {
     name: String(raw.name || "").trim(),
     sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
     /** Neighborhood is project-level; buildings always keep floor plates. */
     kind: "building",
+    exteriorImageUrl: String(raw.exteriorImageUrl || ""),
     landArea: null,
     price: null,
     images: [],
@@ -121,12 +173,69 @@ async function syncLandPlots(projectId: string, incoming: Record<string, unknown
 }
 
 function floorCreateData(raw: Record<string, unknown>, sortOrder: number) {
+  const exteriorHotspot = normalizeExteriorHotspot(raw.exteriorHotspot);
   return {
     label: String(raw.label || "").trim() || String(sortOrder + 1),
     sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
     imageUrl: String(raw.imageUrl || ""),
     hotspots: normalizeHotspots(raw.hotspots),
+    exteriorHotspot: exteriorHotspot.length >= 3 ? exteriorHotspot : Prisma.JsonNull,
   };
+}
+
+function mapStageCreateData(raw: Record<string, unknown>, sortOrder: number) {
+  const parentId =
+    typeof raw.parentId === "string" && raw.parentId.trim() ? raw.parentId.trim() : null;
+  return {
+    parentId,
+    label: String(raw.label || "").trim() || String(sortOrder + 1),
+    labelHy: (raw.labelHy as string) || null,
+    labelRu: (raw.labelRu as string) || null,
+    imageUrl: String(raw.imageUrl || ""),
+    sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
+    hotspots: normalizeMapStageHotspots(raw.hotspots),
+  };
+}
+
+async function syncMapStages(projectId: string, incoming: Record<string, unknown>[]) {
+  const existing = await prisma.projectMapStage.findMany({ where: { projectId } });
+  const keepIds = new Set(
+    incoming.map((s) => s.id).filter((x): x is string => typeof x === "string" && x.length > 0),
+  );
+
+  // Delete children first by clearing parents of removed nodes via cascade: delete non-kept
+  for (const old of existing) {
+    if (!keepIds.has(old.id)) {
+      await prisma.projectMapStage.delete({ where: { id: old.id } }).catch(() => undefined);
+    }
+  }
+
+  // Two passes so parent rows exist before children reference them
+  const ordered = [...incoming].sort((a, b) => {
+    const ap = typeof a.parentId === "string" && a.parentId ? 1 : 0;
+    const bp = typeof b.parentId === "string" && b.parentId ? 1 : 0;
+    return ap - bp;
+  });
+
+  for (let i = 0; i < ordered.length; i++) {
+    const raw = ordered[i];
+    const data = mapStageCreateData(raw, typeof raw.sortOrder === "number" ? Number(raw.sortOrder) : i);
+    // Ensure parent belongs to this project (or null)
+    if (data.parentId && !keepIds.has(data.parentId) && !existing.some((e) => e.id === data.parentId)) {
+      data.parentId = null;
+    }
+    if (typeof raw.id === "string" && existing.some((e) => e.id === raw.id)) {
+      await prisma.projectMapStage.update({ where: { id: raw.id }, data });
+    } else {
+      await prisma.projectMapStage.create({
+        data: {
+          projectId,
+          ...(typeof raw.id === "string" && raw.id ? { id: raw.id } : {}),
+          ...data,
+        },
+      });
+    }
+  }
 }
 
 function aptCreateData(a: Record<string, unknown>) {
@@ -293,6 +402,13 @@ export async function createProject(input: Record<string, unknown>) {
   const landPlots = Array.isArray(input.landPlots) ? (input.landPlots as Record<string, unknown>[]) : [];
   const apartments = Array.isArray(input.apartments) ? (input.apartments as Record<string, unknown>[]) : [];
   const kind = parseProjectKind(input.kind);
+  const salesMode = kind === "neighborhood" ? "plans" : parseSalesMode(input.salesMode);
+  const mapStages =
+    kind === "neighborhood"
+      ? []
+      : Array.isArray(input.mapStages)
+        ? (input.mapStages as Record<string, unknown>[])
+        : [];
 
   const project = await prisma.project.create({
     data: {
@@ -340,6 +456,7 @@ export async function createProject(input: Record<string, unknown>) {
       tags: parseJsonField(input.tags, []),
       featured: Boolean(input.featured),
       kind,
+      salesMode,
       sitePlanImage: String(input.sitePlanImage || ""),
       landPlots: {
         create: landPlots.map((raw, i) => ({
@@ -394,6 +511,11 @@ export async function createProject(input: Record<string, unknown>) {
     },
     include: projectInclude,
   });
+
+  if (mapStages.length > 0) {
+    await syncMapStages(project.id, mapStages);
+    return getProjectById(project.id);
+  }
 
   return mapProject(project);
 }
@@ -460,6 +582,15 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
   assign("tags", input.tags !== undefined ? parseJsonField(input.tags, []) : undefined);
   assign("featured", input.featured !== undefined ? Boolean(input.featured) : undefined);
   assign("kind", input.kind !== undefined ? parseProjectKind(input.kind) : undefined);
+  assign(
+    "salesMode",
+    input.salesMode !== undefined || input.kind !== undefined
+      ? (input.kind !== undefined ? parseProjectKind(input.kind) : parseProjectKind(existing.kind)) ===
+        "neighborhood"
+        ? "plans"
+        : parseSalesMode(input.salesMode ?? existing.salesMode)
+      : undefined,
+  );
   assign("sitePlanImage", input.sitePlanImage !== undefined ? String(input.sitePlanImage || "") : undefined);
 
   await prisma.project.update({
@@ -469,6 +600,14 @@ export async function updateProject(id: string, input: Record<string, unknown>) 
 
   if (Array.isArray(input.landPlots)) {
     await syncLandPlots(id, input.landPlots as Record<string, unknown>[]);
+  }
+
+  if (Array.isArray(input.mapStages)) {
+    const kindValue =
+      input.kind !== undefined ? parseProjectKind(input.kind) : parseProjectKind(existing.kind);
+    await syncMapStages(id, kindValue === "neighborhood" ? [] : (input.mapStages as Record<string, unknown>[]));
+  } else if (input.kind !== undefined && parseProjectKind(input.kind) === "neighborhood") {
+    await syncMapStages(id, []);
   }
 
   if (Array.isArray(input.buildings)) {
