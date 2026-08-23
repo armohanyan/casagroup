@@ -97,21 +97,27 @@ build_apps() {
   log "Building frontend (Next.js)"
   npm run build
 
-  log "Installing backend deps"
-  npm --prefix backend install --no-fund --no-audit
+  (
+    cd "$ROOT/backend"
 
-  log "Prisma generate"
-  npm --prefix backend exec prisma generate
+    log "Installing backend deps"
+    npm install --no-fund --no-audit
 
-  if [[ "${SKIP_DB_PUSH:-0}" != "1" ]]; then
-    log "Prisma db push (schema sync — does not seed)"
-    npm --prefix backend exec prisma db push
-  else
-    log "Skipping prisma db push (SKIP_DB_PUSH=1)"
-  fi
+    [[ -f prisma/schema.prisma ]] || die "Missing backend/prisma/schema.prisma"
 
-  log "Building backend"
-  npm --prefix backend run build
+    log "Prisma generate"
+    npx prisma generate
+
+    if [[ "${SKIP_DB_PUSH:-0}" != "1" ]]; then
+      log "Prisma db push (schema sync — does not seed)"
+      npx prisma db push
+    else
+      log "Skipping prisma db push (SKIP_DB_PUSH=1)"
+    fi
+
+    log "Building backend"
+    npm run build
+  )
 }
 
 # ── 4. Restart ──────────────────────────────────────────────────────
