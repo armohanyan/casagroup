@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DeveloperUnitCard } from "@/components/sales/DeveloperUnitCard";
+import Image from "next/image";
+import Link from "next/link";
+import { X, BedDouble, Maximize2, Layers } from "lucide-react";
 import { Container } from "@/components/site/Container";
+import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import type { LandPlot, Project } from "@/types";
+import type { Apartment, LandPlot, Project } from "@/types";
 
 interface Props {
   project: Project;
@@ -29,29 +32,38 @@ export function NeighborhoodSalesSection({ project }: Props) {
     () =>
       [...(project.landPlots ?? [])]
         .filter((p) => p.label.trim() && p.points.length >= 3)
-        .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true })),
+        .sort(
+          (a, b) =>
+            a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true }),
+        ),
     [project.landPlots],
   );
   const imageUrl = project.sitePlanImage?.trim() ?? "";
-  const [selectedId, setSelectedId] = useState<string | null>(plots[0]?.id ?? null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [modalPlotId, setModalPlotId] = useState<string | null>(null);
+
+  const hovered = plots.find((p) => p.id === hoveredId);
+  const modalPlot = plots.find((p) => p.id === modalPlotId);
+  const modalPlans = useMemo(() => {
+    if (!modalPlotId) return [];
+    return project.apartments.filter(
+      (a) => a.landPlotId === modalPlotId && a.status !== "Reserved",
+    );
+  }, [project.apartments, modalPlotId]);
 
   useEffect(() => {
-    if (!plots.length) {
-      setSelectedId(null);
-      return;
-    }
-    if (!selectedId || !plots.some((p) => p.id === selectedId)) {
-      setSelectedId(plots[0]?.id ?? null);
-    }
-  }, [plots, selectedId]);
-
-  const selected = plots.find((p) => p.id === selectedId);
-  const plans = project.apartments.filter(
-    (a) => a.landPlotId === selectedId && a.status !== "Reserved",
-  );
-  const tooltipPlot: LandPlot | undefined =
-    plots.find((p) => p.id === hoveredId) ?? selected;
+    if (!modalPlotId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalPlotId(null);
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [modalPlotId]);
 
   if (!imageUrl && plots.length === 0 && project.apartments.every((a) => !a.landPlotId)) {
     return null;
@@ -59,17 +71,17 @@ export function NeighborhoodSalesSection({ project }: Props) {
 
   return (
     <>
-      <section id="neighborhood-map" className="scroll-mt-24 bg-[#0c1428]">
+      <section id="neighborhood-map" className="scroll-mt-24 border-t border-[#E5E7EB] bg-white">
         <Container className="py-10 md:py-14">
-          <h2 className="mb-3 text-2xl font-semibold leading-snug tracking-tight text-white sm:mb-4 sm:text-3xl">
+          <h2 className="mb-3 text-2xl font-semibold leading-snug tracking-tight text-[#0c1428] sm:mb-4 sm:text-3xl">
             {t.developerDetail.siteMapTitle}
           </h2>
-          <p className="mb-8 max-w-2xl text-sm text-white/55">{t.developerDetail.plotMapHint}</p>
+          <p className="mb-8 max-w-2xl text-sm text-[#6B7280]">{t.developerDetail.plotMapHint}</p>
 
           {!imageUrl ? (
-            <p className="text-sm text-white/40">{t.developerDetail.plotMapEmpty}</p>
+            <p className="text-sm text-[#9CA3AF]">{t.developerDetail.plotMapEmpty}</p>
           ) : (
-            <div className="relative overflow-hidden rounded-[8px] border border-white/10 bg-[#152038]">
+            <div className="relative overflow-hidden rounded-[8px] border border-[#E5E7EB] bg-[#FAFAF8]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imageUrl} alt="" className="block h-auto w-full select-none" />
               <svg
@@ -78,7 +90,7 @@ export function NeighborhoodSalesSection({ project }: Props) {
                 className="absolute inset-0 h-full w-full"
               >
                 {plots.map((plot) => {
-                  const active = plot.id === selectedId;
+                  const active = plot.id === modalPlotId;
                   const hover = plot.id === hoveredId;
                   return (
                     <polygon
@@ -87,59 +99,58 @@ export function NeighborhoodSalesSection({ project }: Props) {
                       className={cn(
                         "cursor-pointer stroke-[0.35] transition-opacity",
                         active || hover
-                          ? "fill-[#c9a96e]/45 stroke-[#c9a96e]"
-                          : "fill-[#c45c4a]/28 stroke-white/70",
+                          ? "fill-[#c9a96e]/50 stroke-[#c9a96e]"
+                          : "fill-[#c45c4a]/22 stroke-[#0c1428]/35",
                       )}
                       onMouseEnter={() => setHoveredId(plot.id)}
                       onMouseLeave={() => setHoveredId(null)}
-                      onClick={() => setSelectedId(plot.id)}
+                      onClick={() => setModalPlotId(plot.id)}
                     />
                   );
                 })}
               </svg>
-              {tooltipPlot ? (
+              {hovered && !modalPlotId ? (
                 <div
-                  className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[110%] rounded-[5px] border border-white/15 bg-[#0c1428]/95 px-3 py-2 shadow-lg"
+                  className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[110%] rounded-[5px] border border-[#E5E7EB] bg-white px-3 py-2 shadow-lg"
                   style={{
-                    left: `${centroid(tooltipPlot.points)[0]}%`,
-                    top: `${centroid(tooltipPlot.points)[1]}%`,
+                    left: `${centroid(hovered.points)[0]}%`,
+                    top: `${centroid(hovered.points)[1]}%`,
                   }}
                 >
-                  <p className="text-xs font-semibold text-white">{tooltipPlot.label}</p>
-                  {tooltipPlot.area && tooltipPlot.area > 0 ? (
-                    <p className="mt-0.5 text-[11px] text-white/70">
-                      {t.developerDetail.plotArea}: {tooltipPlot.area} m²
+                  <p className="text-xs font-semibold text-[#0c1428]">{hovered.label}</p>
+                  {hovered.area && hovered.area > 0 ? (
+                    <p className="mt-0.5 text-[11px] text-[#6B7280]">
+                      {t.developerDetail.plotArea}: {hovered.area} m²
                     </p>
                   ) : null}
-                  {tooltipPlot.price && tooltipPlot.price > 0 ? (
-                    <p className="mt-0.5 text-[11px] text-[#c9a96e]">
-                      {formatPrice(tooltipPlot.price)}
+                  {hovered.price && hovered.price > 0 ? (
+                    <p className="mt-0.5 text-[11px] font-medium text-[#c9a96e]">
+                      {formatPrice(hovered.price)}
                     </p>
                   ) : null}
-                  <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/45">
-                    {getStatusLabel(t, tooltipPlot.status)}
-                  </p>
                 </div>
               ) : null}
             </div>
           )}
 
           {plots.length > 0 ? (
-            <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label={t.developerDetail.choosePlot}>
+            <div
+              className="mt-6 flex flex-wrap gap-2"
+              role="list"
+              aria-label={t.developerDetail.choosePlot}
+            >
               {plots.map((plot) => {
-                const active = plot.id === selectedId;
+                const active = plot.id === modalPlotId;
                 return (
                   <button
                     key={plot.id}
                     type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setSelectedId(plot.id)}
+                    onClick={() => setModalPlotId(plot.id)}
                     className={cn(
-                      "rounded-[5px] px-3.5 py-2 text-sm font-semibold transition-colors",
+                      "rounded-[5px] border px-3.5 py-2 text-sm font-semibold transition-colors",
                       active
-                        ? "bg-[#c9a96e] text-[#0c1428]"
-                        : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white",
+                        ? "border-[#c9a96e] bg-[#F8F6F1] text-[#0c1428]"
+                        : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#c9a96e]/60 hover:text-[#0c1428]",
                     )}
                   >
                     {plot.label}
@@ -151,28 +162,155 @@ export function NeighborhoodSalesSection({ project }: Props) {
         </Container>
       </section>
 
-      <section id="apartments" className="border-t border-[#E5E7EB] bg-white">
-        <Container className="py-10 md:py-14">
-          <h2 className="text-xl font-bold text-[#1C1917] sm:text-2xl">
-            {t.developerDetail.plotPlansTitle}
-            {selected?.label ? ` · ${selected.label}` : ""}
-          </h2>
-          {plans.length === 0 ? (
-            <p className="mt-6 text-sm text-[#6B7280]">{t.properties.noResults}</p>
-          ) : (
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {plans.map((apartment) => (
-                <DeveloperUnitCard
-                  key={apartment.id}
-                  apartment={apartment}
-                  projectSlug={project.slug}
-                  isHouse
-                />
-              ))}
-            </div>
-          )}
-        </Container>
-      </section>
+      {modalPlot ? (
+        <PlotPlansModal
+          plot={modalPlot}
+          plans={modalPlans}
+          projectSlug={project.slug}
+          onClose={() => setModalPlotId(null)}
+        />
+      ) : null}
     </>
+  );
+}
+
+function PlotPlansModal({
+  plot,
+  plans,
+  projectSlug,
+  onClose,
+}: {
+  plot: LandPlot;
+  plans: Apartment[];
+  projectSlug: string;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+
+  return (
+    <div
+      className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label={plot.label}
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[12px] bg-white shadow-xl sm:rounded-[12px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[#E5E7EB] px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-lg font-semibold text-[#0c1428]">{plot.label}</p>
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-sm text-[#6B7280]">
+              {plot.area && plot.area > 0 ? (
+                <span>
+                  {t.developerDetail.plotArea}: {plot.area} m²
+                </span>
+              ) : null}
+              {plot.price && plot.price > 0 ? (
+                <span className="font-medium text-[#c9a96e]">{formatPrice(plot.price)}</span>
+              ) : null}
+              <span className="uppercase tracking-wide text-[11px] text-[#9CA3AF]">
+                {getStatusLabel(t, plot.status)}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#0c1428]"
+            aria-label={t.developerDetail.salesJourneyBack}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
+            {t.developerDetail.plotPlansTitle}
+          </p>
+          {plans.length === 0 ? (
+            <p className="py-8 text-center text-sm text-[#6B7280]">{t.properties.noResults}</p>
+          ) : (
+            <ul className="space-y-3">
+              {plans.map((apt) => (
+                <PlotPlanRow key={apt.id} apartment={apt} projectSlug={projectSlug} />
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlotPlanRow({
+  apartment,
+  projectSlug,
+}: {
+  apartment: Apartment;
+  projectSlug: string;
+}) {
+  const { t } = useI18n();
+  const sold = apartment.status === "Sold";
+  const href = `/projects/${projectSlug}/apartments/${apartment.id}`;
+  const cover = apartment.floorPlanImage || apartment.gallery[0];
+  const showNumber = hasApartmentNumber(apartment);
+
+  return (
+    <li className="flex flex-col gap-3 rounded-[8px] border border-[#E5E7EB] bg-[#FAFAF8] p-3 sm:flex-row sm:items-center">
+      <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-[5px] bg-white sm:h-24 sm:w-36">
+        {cover ? (
+          <Image
+            src={cover}
+            alt=""
+            fill
+            unoptimized
+            className="object-contain"
+            sizes="144px"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-[10px] uppercase tracking-wide text-[#A8A29E]">
+            {t.aptDetail.layoutTitle}
+          </div>
+        )}
+        {showNumber ? (
+          <span className="absolute left-1.5 top-1.5 rounded bg-[#0c1428]/90 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            № {apartmentDisplayNumber(apartment)}
+          </span>
+        ) : null}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-base font-bold tabular-nums text-[#0c1428]">
+          {sold ? "—" : formatPrice(apartment.price)}
+        </p>
+        <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-[#6B7280]">
+          <span className="inline-flex items-center gap-1">
+            <BedDouble size={13} className="text-[#c9a96e]" />
+            {apartment.rooms}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Maximize2 size={13} className="text-[#c9a96e]" />
+            {apartment.area} m²
+          </span>
+          {apartment.landArea && apartment.landArea > 0 ? (
+            <span className="inline-flex items-center gap-1">
+              <Layers size={13} className="text-[#c9a96e]" />
+              {apartment.landArea} m²
+            </span>
+          ) : null}
+          <span className="uppercase tracking-wide text-[10px] text-[#9CA3AF]">
+            {getStatusLabel(t, apartment.status)}
+          </span>
+        </div>
+      </div>
+      <Link
+        href={href}
+        className="inline-flex h-10 shrink-0 items-center justify-center rounded-[5px] bg-[#0c1428] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#152038]"
+      >
+        {t.developerDetail.details}
+      </Link>
+    </li>
   );
 }

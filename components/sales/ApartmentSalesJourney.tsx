@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import { Container } from "@/components/site/Container";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
@@ -87,9 +86,20 @@ function MapStageView({
 
   return (
     <div className="relative mx-auto w-full max-w-5xl overflow-hidden rounded-[5px] bg-[#0c1428]">
-      <div className="relative aspect-[16/10] w-full">
-        <Image src={stage.imageUrl} alt={stage.label} fill className="object-contain" sizes="100vw" />
-        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
+      {/* Image defines box size so % coords match admin PlanHotspotCanvas (no letterboxing). */}
+      <div className="relative w-full">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={stage.imageUrl}
+          alt={stage.label}
+          className="pointer-events-none block h-auto w-full select-none"
+          draggable={false}
+        />
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+        >
           {stage.hotspots.map((h) =>
             h.points.length >= 3 ? (
               <polygon
@@ -97,7 +107,9 @@ function MapStageView({
                 points={pointsToSvg(h.points)}
                 className={cn(
                   "cursor-pointer transition-opacity",
-                  hoveredId === h.id ? "fill-[#e85d04]/55 stroke-[#e85d04]" : "fill-transparent stroke-transparent hover:fill-[#e85d04]/35",
+                  hoveredId === h.id
+                    ? "fill-[#e85d04]/55 stroke-[#e85d04]"
+                    : "fill-transparent stroke-transparent hover:fill-[#e85d04]/35",
                 )}
                 strokeWidth={0.3}
                 onMouseEnter={() => setHoveredId(h.id)}
@@ -185,16 +197,29 @@ function BuildingExteriorView({
 
   return (
     <div className="relative mx-auto w-full max-w-3xl">
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-[5px] bg-white">
-        <Image src={exterior} alt={building.name} fill className="object-contain" sizes="(max-width:768px) 100vw, 640px" />
-        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" preserveAspectRatio="none">
+      {/* Same overlay model as admin PlanHotspotCanvas: image sizes the box, SVG matches it. */}
+      <div className="relative w-full overflow-hidden rounded-[5px] bg-white">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={exterior}
+          alt={building.name}
+          className="pointer-events-none block h-auto w-full select-none"
+          draggable={false}
+        />
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+        >
           {withBands.map((f) => (
             <polygon
               key={f.id}
               points={pointsToSvg(f.exteriorHotspot as [number, number][])}
               className={cn(
                 "cursor-pointer transition-opacity",
-                hoveredId === f.id ? "fill-[#e85d04]/55 stroke-[#e85d04]" : "fill-transparent hover:fill-[#e85d04]/35",
+                hoveredId === f.id
+                  ? "fill-[#e85d04]/55 stroke-[#e85d04]"
+                  : "fill-transparent hover:fill-[#e85d04]/35",
               )}
               strokeWidth={0.25}
               onMouseEnter={() => setHoveredId(f.id)}
@@ -245,7 +270,9 @@ function BuildingExteriorView({
             onClick={() => onSelectFloor(f)}
             className={cn(
               "flex h-9 min-w-9 items-center justify-center rounded-[5px] px-2 text-sm font-semibold",
-              hoveredId === f.id ? "bg-[#e85d04] text-white" : "bg-white/10 text-white hover:bg-white/20",
+              hoveredId === f.id
+                ? "bg-[#e85d04] text-white"
+                : "bg-white/10 text-white hover:bg-white/20",
             )}
           >
             {f.label}

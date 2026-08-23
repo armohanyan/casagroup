@@ -61,7 +61,8 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
     if (!apt) return id;
     const num = apt.apartmentNumber?.trim();
     const base = num ? `№ ${num}` : `${apt.rooms}ր · ${apt.area} մ²`;
-    return `${base} · հարկ ${apt.floor}`;
+    const unassigned = !apt.buildingId ? " · —" : "";
+    return `${base} · հարկ ${apt.floor}${unassigned}`;
   };
 
   if (!floor.imageUrl) {

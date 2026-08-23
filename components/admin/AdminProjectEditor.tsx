@@ -641,6 +641,30 @@ export function AdminProjectEditor({ projectId }: Props) {
     });
   }
 
+  /** All units that can be drawn on this building's floor plan (same building or unassigned). */
+  function apartmentsForHotspotPicker(buildingId: string, floor: BuildingFloor) {
+    const trimmed = floor.label.trim();
+    const labelNum = Number(trimmed);
+    const numeric = trimmed !== "" && Number.isFinite(labelNum);
+    const eligible = form.apartments.filter(
+      (apt) => !apt.landPlotId && (apt.buildingId === buildingId || !apt.buildingId),
+    );
+    return [...eligible].sort((a, b) => {
+      const aFloor = numeric && a.floor === labelNum ? 0 : 1;
+      const bFloor = numeric && b.floor === labelNum ? 0 : 1;
+      if (aFloor !== bFloor) return aFloor - bFloor;
+      const aB = a.buildingId === buildingId ? 0 : 1;
+      const bB = b.buildingId === buildingId ? 0 : 1;
+      if (aB !== bB) return aB - bB;
+      const aHot = (floor.hotspots ?? []).some((h) => h.apartmentId === a.id) ? 0 : 1;
+      const bHot = (floor.hotspots ?? []).some((h) => h.apartmentId === b.id) ? 0 : 1;
+      if (aHot !== bHot) return aHot - bHot;
+      return (a.apartmentNumber || "").localeCompare(b.apartmentNumber || "", undefined, {
+        numeric: true,
+      });
+    });
+  }
+
   function closeFloorModal() {
     setFloorModalBuildingId(null);
     setFloorModalMode("create");
@@ -1888,14 +1912,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                     {floors.map((floor, fi) => {
                       const floorOpen = openFloorIds.includes(floor.id);
                       const floorApts = apartmentsForFloorPlate(building.id, floor);
-                      const floorAptChoices =
-                        floorApts.length > 0
-                          ? floorApts
-                          : buildingApts.filter((apt) => {
-                              const trimmed = floor.label.trim();
-                              const n = Number(trimmed);
-                              return trimmed !== "" && Number.isFinite(n) ? apt.floor === n : true;
-                            });
+                      const hotspotPickerApts = apartmentsForHotspotPicker(building.id, floor);
                       return (
                         <AccordionItem
                           key={floor.id}
@@ -1906,7 +1923,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                             <>
                               {floor.imageUrl.trim() ? a.hasFloorImage : a.noFloorImage}
                               {" · "}
-                              {floorAptChoices.length} {a.plansAttached}
+                              {floorApts.length} {a.plansAttached}
                             </>
                           }
                         >
@@ -1988,8 +2005,21 @@ export function AdminProjectEditor({ projectId }: Props) {
                           ) : null}
                           <FloorHotspotEditor
                             floor={floor}
-                            apartments={floorAptChoices.length > 0 ? floorAptChoices : buildingApts}
-                            onChange={(patch) => updateBuildingFloor(building.id, floor.id, patch)}
+                            apartments={hotspotPickerApts}
+                            onChange={(patch) => {
+                              updateBuildingFloor(building.id, floor.id, patch);
+                              if (patch.hotspots) {
+                                const ids = new Set(patch.hotspots.map((h) => h.apartmentId));
+                                setForm((f) => ({
+                                  ...f,
+                                  apartments: f.apartments.map((apt) =>
+                                    ids.has(apt.id) && !apt.buildingId
+                                      ? { ...apt, buildingId: building.id }
+                                      : apt,
+                                  ),
+                                }));
+                              }
+                            }}
                             onAddApartment={() => {
                               const trimmed = floor.label.trim();
                               const floorNum = Number(trimmed);
