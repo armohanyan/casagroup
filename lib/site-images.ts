@@ -24,15 +24,9 @@ export const siteImages = {
   },
 } as const;
 
-/** Fallback homepage slider images when the API has not loaded yet. */
-export const DEFAULT_HERO_SLIDES = [
-  siteImages.hero.home,
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=90&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1920&q=90&auto=format&fit=crop",
-] as const;
-
 export function getHeroImage(pathname: string): string {
-  if (pathname === "/") return siteImages.hero.home;
+  // Homepage carousel uses admin-uploaded slides from the API — not stock mock images.
+  if (pathname === "/") return siteImages.hero.default;
   if (pathname.startsWith("/properties")) return siteImages.hero.properties;
   if (pathname.startsWith("/projects")) return siteImages.hero.projects;
   if (pathname === "/investment") return siteImages.hero.investment;

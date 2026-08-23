@@ -45,7 +45,12 @@ import {
 import { useProjects } from "@/lib/projects-context";
 import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
-import { isNeighborhoodProject, projectKind } from "@/lib/project-kind";
+import {
+  effectiveProjectKind,
+  hasBuildingFloorPlates,
+  hasNeighborhoodSite,
+  isNeighborhoodProject,
+} from "@/lib/project-kind";
 import { en } from "@/lib/translations-en";
 import { ru } from "@/lib/translations-ru";
 import { hyTranslations } from "@/content/hy";
@@ -763,7 +768,9 @@ export function AdminProjectEditor({ projectId }: Props) {
     }
     setSaving(true);
     try {
-      const kind = projectKind(form);
+      const kind = effectiveProjectKind(form);
+      // Persist the kind that matches the UI so building floors are never wiped
+      // while the buildings section is still shown (e.g. kind toggled to neighborhood by mistake).
       const cleanedBuildings = (form.buildings ?? [])
         .map((b, i) => ({
           ...b,
@@ -1058,8 +1065,41 @@ export function AdminProjectEditor({ projectId }: Props) {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label={a.projectKind}>
               <PlanTypeToggle
-                value={projectKind(form)}
-                onChange={(kind) => set("kind", kind)}
+                value={effectiveProjectKind(form)}
+                onChange={(kind) => {
+                  if (kind === "neighborhood") {
+                    if (hasBuildingFloorPlates(form)) {
+                      if (!window.confirm(a.switchToNeighborhoodConfirm)) return;
+                      setForm((f) => ({
+                        ...f,
+                        kind: "neighborhood",
+                        buildings: [],
+                        apartments: (f.apartments ?? []).map((apt) => ({
+                          ...apt,
+                          buildingId: undefined,
+                        })),
+                      }));
+                      return;
+                    }
+                    setForm((f) => ({ ...f, kind: "neighborhood", buildings: [] }));
+                    return;
+                  }
+                  if (hasNeighborhoodSite(form)) {
+                    if (!window.confirm(a.switchToBuildingConfirm)) return;
+                    setForm((f) => ({
+                      ...f,
+                      kind: "building",
+                      sitePlanImage: "",
+                      landPlots: [],
+                      apartments: (f.apartments ?? []).map((apt) => ({
+                        ...apt,
+                        landPlotId: undefined,
+                      })),
+                    }));
+                    return;
+                  }
+                  set("kind", "building");
+                }}
                 buildingLabel={a.projectKindBuilding}
                 neighborhoodLabel={a.projectKindNeighborhood}
               />
@@ -1686,13 +1726,28 @@ export function AdminProjectEditor({ projectId }: Props) {
                     )}
                     {floors.map((floor, fi) => {
                       const floorOpen = openFloorIds.includes(floor.id);
+                      const floorApts = apartmentsForFloorPlate(building.id, floor);
+                      const floorAptChoices =
+                        floorApts.length > 0
+                          ? floorApts
+                          : buildingApts.filter((apt) => {
+                              const trimmed = floor.label.trim();
+                              const n = Number(trimmed);
+                              return trimmed !== "" && Number.isFinite(n) ? apt.floor === n : true;
+                            });
                       return (
                         <AccordionItem
                           key={floor.id}
                           open={floorOpen}
                           onToggle={() => setOpenFloorIds((ids) => toggleId(ids, floor.id))}
                           title={`${a.floorLabelField}: ${floor.label.trim() || "—"}`}
-                          meta={floor.imageUrl.trim() ? a.hasFloorImage : a.noFloorImage}
+                          meta={
+                            <>
+                              {floor.imageUrl.trim() ? a.hasFloorImage : a.noFloorImage}
+                              {" · "}
+                              {floorAptChoices.length} {a.plansAttached}
+                            </>
+                          }
                         >
                           <div className="grid grid-cols-1 gap-3 md:grid-cols-[120px_1fr_auto] md:items-end">
                             <Field label={a.floorLabelField}>
@@ -1772,8 +1827,22 @@ export function AdminProjectEditor({ projectId }: Props) {
                           ) : null}
                           <FloorHotspotEditor
                             floor={floor}
-                            apartments={buildingApts}
+                            apartments={floorAptChoices.length > 0 ? floorAptChoices : buildingApts}
                             onChange={(patch) => updateBuildingFloor(building.id, floor.id, patch)}
+                            onAddApartment={() => {
+                              const trimmed = floor.label.trim();
+                              const floorNum = Number(trimmed);
+                              const apt = emptyApartment(apartmentProjectId, building.id);
+                              apt.floor = Number.isFinite(floorNum) ? floorNum : 1;
+                              set("apartments", [...form.apartments, apt]);
+                              setOpenAptIds((ids) => [...ids, apt.id]);
+                              setOpenBuildingIds((ids) =>
+                                ids.includes(building.id) ? ids : [...ids, building.id],
+                              );
+                              setOpenFloorIds((ids) =>
+                                ids.includes(floor.id) ? ids : [...ids, floor.id],
+                              );
+                            }}
                             labels={{
                               selectApartment: a.hotspotSelectApartment,
                               drawHint: a.hotspotDrawHint,
@@ -1783,6 +1852,12 @@ export function AdminProjectEditor({ projectId }: Props) {
                               removeHotspot: a.hotspotRemove,
                               noApartments: a.hotspotNoApartments,
                               hotspotCount: a.hotspotCount,
+                              zoomIn: a.hotspotZoomIn,
+                              zoomOut: a.hotspotZoomOut,
+                              zoomReset: a.hotspotZoomReset,
+                              panMode: a.hotspotPanMode,
+                              drawMode: a.hotspotDrawMode,
+                              addApartmentOnFloor: a.addApartmentOnFloor,
                             }}
                           />
                         </AccordionItem>

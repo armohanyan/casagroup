@@ -1,14 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Apartment, BuildingFloor, FloorHotspot } from "@/types";
-import { cn } from "@/lib/utils";
 import { adminSelectCls } from "@/components/admin/admin-config";
+import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
 
 interface Props {
   floor: BuildingFloor;
   apartments: Apartment[];
   onChange: (patch: Partial<BuildingFloor>) => void;
+  onAddApartment?: () => void;
   labels: {
     selectApartment: string;
     drawHint: string;
@@ -18,35 +19,29 @@ interface Props {
     removeHotspot: string;
     noApartments: string;
     hotspotCount: string;
+    zoomIn: string;
+    zoomOut: string;
+    zoomReset: string;
+    panMode: string;
+    drawMode: string;
+    addApartmentOnFloor?: string;
   };
 }
 
-function pointsToSvg(points: [number, number][]) {
-  return points.map(([x, y]) => `${x},${y}`).join(" ");
-}
-
-export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Props) {
-  const svgRef = useRef<SVGSVGElement>(null);
+export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment, labels }: Props) {
   const [selectedAptId, setSelectedAptId] = useState(apartments[0]?.id ?? "");
   const [draft, setDraft] = useState<[number, number][]>([]);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  function pointerToPercent(e: React.MouseEvent<SVGSVGElement>): [number, number] | null {
-    const svg = svgRef.current;
-    if (!svg) return null;
-    const rect = svg.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return null;
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    return [Math.min(100, Math.max(0, x)), Math.min(100, Math.max(0, y))];
-  }
-
-  function addPoint(e: React.MouseEvent<SVGSVGElement>) {
-    if (!selectedAptId || !floor.imageUrl) return;
-    const pt = pointerToPercent(e);
-    if (!pt) return;
-    setDraft((d) => [...d, pt]);
-  }
+  useEffect(() => {
+    if (apartments.length === 0) {
+      if (selectedAptId) setSelectedAptId("");
+      return;
+    }
+    if (!apartments.some((a) => a.id === selectedAptId)) {
+      setSelectedAptId(apartments[0].id);
+      setDraft([]);
+    }
+  }, [apartments, selectedAptId]);
 
   function finishPolygon() {
     if (!selectedAptId || draft.length < 3) return;
@@ -77,6 +72,8 @@ export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Prop
     );
   }
 
+  const drawing = Boolean(selectedAptId);
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -99,12 +96,22 @@ export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Prop
               apartments.map((apt) => (
                 <option key={apt.id} value={apt.id}>
                   {aptLabel(apt.id)} ({apt.status})
+                  {floor.hotspots.some((h) => h.apartmentId === apt.id) ? " ✓" : ""}
                 </option>
               ))
             )}
           </select>
         </div>
         <div className="flex flex-wrap gap-2">
+          {onAddApartment && labels.addApartmentOnFloor ? (
+            <button
+              type="button"
+              onClick={onAddApartment}
+              className="h-11 rounded-[5px] border border-[#c9a96e] bg-[#F8F6F1] px-3 text-xs font-semibold text-[#0c1428]"
+            >
+              {labels.addApartmentOnFloor}
+            </button>
+          ) : null}
           <button
             type="button"
             disabled={draft.length < 3}
@@ -134,52 +141,35 @@ export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Prop
 
       <p className="text-xs text-[#6B7280]">{labels.drawHint}</p>
 
-      <div className="relative overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={floor.imageUrl} alt="" className="block h-auto w-full select-none" draggable={false} />
-        <svg
-          ref={svgRef}
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full cursor-crosshair"
-          onClick={addPoint}
-        >
-          {floor.hotspots.map((h) => (
-            <polygon
-              key={h.apartmentId}
-              points={pointsToSvg(h.points)}
-              className={cn(
-                "stroke-[#0c1428] stroke-[0.3] transition-opacity",
-                hoveredId === h.apartmentId || selectedAptId === h.apartmentId
-                  ? "fill-[#c45c4a]/55"
-                  : "fill-[#c45c4a]/30",
-              )}
-              onMouseEnter={() => setHoveredId(h.apartmentId)}
-              onMouseLeave={() => setHoveredId(null)}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedAptId(h.apartmentId);
-              }}
-            />
-          ))}
-          {draft.length > 0 && (
-            <>
-              <polyline
-                points={pointsToSvg(draft)}
-                fill="none"
-                stroke="#c9a96e"
-                strokeWidth="0.4"
-                strokeDasharray="1 1"
-              />
-              {draft.map(([x, y], i) => (
-                <circle key={i} cx={x} cy={y} r="0.7" fill="#c9a96e" />
-              ))}
-            </>
-          )}
-        </svg>
-      </div>
+      <PlanHotspotCanvas
+        imageUrl={floor.imageUrl}
+        drawing={drawing}
+        draft={draft}
+        onAddPoint={(pt) => {
+          if (!selectedAptId) return;
+          setDraft((d) => [...d, pt]);
+        }}
+        onFinishDraft={finishPolygon}
+        onSelectPolygon={(id) => {
+          setSelectedAptId(id);
+          setDraft([]);
+        }}
+        polygons={floor.hotspots.map((h) => ({
+          id: h.apartmentId,
+          points: h.points,
+          active: h.apartmentId === selectedAptId,
+          dimmed: Boolean(selectedAptId) && h.apartmentId !== selectedAptId,
+        }))}
+        labels={{
+          zoomIn: labels.zoomIn,
+          zoomOut: labels.zoomOut,
+          zoomReset: labels.zoomReset,
+          panMode: labels.panMode,
+          drawMode: labels.drawMode,
+        }}
+      />
 
-      {floor.hotspots.length > 0 && (
+      {floor.hotspots.length > 0 ? (
         <ul className="space-y-1.5">
           <li className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
             {labels.hotspotCount.replace("{count}", String(floor.hotspots.length))}
@@ -189,7 +179,16 @@ export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Prop
               key={h.apartmentId}
               className="flex items-center justify-between gap-2 rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2 text-xs"
             >
-              <span className="min-w-0 truncate text-[#0c1428]">{aptLabel(h.apartmentId)}</span>
+              <button
+                type="button"
+                className="min-w-0 truncate text-left text-[#0c1428] hover:underline"
+                onClick={() => {
+                  setSelectedAptId(h.apartmentId);
+                  setDraft([]);
+                }}
+              >
+                {aptLabel(h.apartmentId)}
+              </button>
               <button
                 type="button"
                 className="shrink-0 text-red-500 hover:underline"
@@ -200,7 +199,7 @@ export function FloorHotspotEditor({ floor, apartments, onChange, labels }: Prop
             </li>
           ))}
         </ul>
-      )}
+      ) : null}
     </div>
   );
 }

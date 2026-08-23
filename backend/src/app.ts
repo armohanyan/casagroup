@@ -12,7 +12,7 @@ import { adminRouter } from "./routes/admin.js";
 import { viewsRouter } from "./routes/views.js";
 import { heroRouter } from "./routes/hero.js";
 import { ensureDefaultLeadStatuses } from "./services/leadStatusService.js";
-import { ensureDefaultHeroSlides } from "./services/heroSlideService.js";
+import { cleanupLegacyHeroSlides } from "./services/heroSlideService.js";
 
 fs.mkdirSync(config.uploadsDir, { recursive: true });
 
@@ -38,8 +38,8 @@ export function createApp() {
   void ensureDefaultLeadStatuses().catch((err) => {
     console.error("[lead-statuses] ensure defaults failed", err);
   });
-  void ensureDefaultHeroSlides().catch((err) => {
-    console.error("[hero-slides] ensure defaults failed", err);
+  void cleanupLegacyHeroSlides().catch((err) => {
+    console.error("[hero-slides] cleanup legacy mocks failed", err);
   });
 
   app.use("/api/auth", authRouter);

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { DEFAULT_HERO_SLIDES } from "@/lib/site-images";
 import { fetchHeroSlides } from "@/lib/api-client";
 import { toBrowserMediaUrl } from "@/lib/media-url";
 import { useI18n } from "@/lib/i18n";
@@ -11,28 +10,50 @@ import { PropertySearchBar } from "@/components/site/PropertySearchBar";
 
 const SLIDE_MS = 6500;
 
+function preloadImage(src: string) {
+  return new Promise<void>((resolve) => {
+    const img = new window.Image();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+    img.src = src;
+  });
+}
+
 export function HomeHero() {
   const { t } = useI18n();
   const { projects } = useProjects();
   const cities = [...new Set(projects.map((p) => p.city))];
-  const [slides, setSlides] = useState<string[]>(() => DEFAULT_HERO_SLIDES.map(toBrowserMediaUrl));
+  const [slides, setSlides] = useState<string[]>([]);
+  const [ready, setReady] = useState(false);
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     fetchHeroSlides()
-      .then((rows) => {
+      .then(async (rows) => {
         if (cancelled) return;
         const urls = rows
           .map((s) => toBrowserMediaUrl(s.imageUrl))
-          .filter(Boolean);
-        if (urls.length) {
-          setSlides(urls);
-          setIndex(0);
+          .filter((url) => Boolean(url) && !/images\.unsplash\.com/i.test(url));
+        if (!urls.length) {
+          setSlides([]);
+          setReady(true);
+          return;
         }
+        // Warm cache for the first slide before paint so the hero doesn't flash empty.
+        await preloadImage(urls[0]);
+        if (cancelled) return;
+        setSlides(urls);
+        setIndex(0);
+        setReady(true);
+        // Prefetch the rest in the background.
+        void Promise.all(urls.slice(1).map(preloadImage));
       })
       .catch(() => {
-        /* keep defaults */
+        if (!cancelled) {
+          setSlides([]);
+          setReady(true);
+        }
       });
     return () => {
       cancelled = true;
@@ -66,10 +87,16 @@ export function HomeHero() {
             decoding={i === 0 ? "sync" : "async"}
             fetchPriority={i === 0 ? "high" : "low"}
             className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out ${
-              i === index ? "opacity-100" : "opacity-0"
+              ready && i === index ? "opacity-100" : "opacity-0"
             }`}
           />
         ))}
+        <div
+          className={`absolute inset-0 bg-[#0c1428] transition-opacity duration-700 ${
+            ready && slides.length > 0 ? "opacity-0" : "opacity-100"
+          }`}
+          aria-hidden
+        />
         <div className="absolute inset-0 bg-black/45" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
       </div>

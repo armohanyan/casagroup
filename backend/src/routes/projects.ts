@@ -20,19 +20,32 @@ projectsRouter.get("/", async (req, res, next) => {
   }
 });
 
-/** Public homepage slides — under /api/projects so existing nginx → Express proxy covers it (no auth). */
-projectsRouter.get("/_hero-slides", async (_req, res, next) => {
+/**
+ * Public homepage slides — no auth.
+ * Mounted under /api/projects so production nginx → Express covers it
+ * (unlike /api/hero-slides which often hits Next only).
+ * Must stay before /:slug or Express treats the path as a project slug → 404.
+ */
+async function sendPublicHeroSlides(_req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) {
   try {
     const slides = await heroSlideService.listHeroSlides();
+    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
     res.json(slides);
   } catch (err) {
     next(err);
   }
-});
+}
+
+projectsRouter.get("/_hero-slides", sendPublicHeroSlides);
+projectsRouter.get("/hero-slides", sendPublicHeroSlides);
 
 projectsRouter.get("/:slug", async (req, res, next) => {
   try {
-    const project = await projectService.getProjectBySlug(req.params.slug);
+    const slug = String(req.params.slug || "");
+    if (slug === "_hero-slides" || slug === "hero-slides") {
+      return sendPublicHeroSlides(req, res, next);
+    }
+    const project = await projectService.getProjectBySlug(slug);
     res.json(project);
   } catch (err) {
     next(err);

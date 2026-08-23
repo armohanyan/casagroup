@@ -225,6 +225,11 @@ export function AdminNeighborhoodSection({
           noPlots: a.noLandPlots,
           hotspotCount: a.hotspotCount,
           emptyImage: a.sitePlanEmpty,
+          zoomIn: a.hotspotZoomIn,
+          zoomOut: a.hotspotZoomOut,
+          zoomReset: a.hotspotZoomReset,
+          panMode: a.hotspotPanMode,
+          drawMode: a.hotspotDrawMode,
         }}
       />
 
