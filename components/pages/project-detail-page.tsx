@@ -23,6 +23,7 @@ import { useProjects } from "@/lib/projects-context";
 import { isNeighborhoodProject } from "@/lib/project-kind";
 import { projectSalesMode } from "@/lib/sales-mode";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
+import { prepareRichTextForDisplay } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import { ProjectKeyFacts } from "@/components/site/ProjectKeyFacts";
 
@@ -38,9 +39,10 @@ function ExpandableDescription({
   expandLabel: string;
   collapseLabel: string;
 }) {
-  const ref = useRef<HTMLParagraphElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [overflows, setOverflows] = useState(false);
+  const prepared = useMemo(() => prepareRichTextForDisplay(text), [text]);
 
   useEffect(() => {
     setExpanded(false);
@@ -64,19 +66,30 @@ function ExpandableDescription({
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [text, expanded]);
+  }, [text, expanded, prepared]);
 
   return (
     <div className="mt-3">
-      <p
-        ref={ref}
-        className={cn(
-          "whitespace-pre-line text-sm leading-relaxed text-[#4B5563] sm:text-base",
-          !expanded && "line-clamp-[10]",
-        )}
-      >
-        {text}
-      </p>
+      {prepared.mode === "html" ? (
+        <div
+          ref={ref}
+          className={cn(
+            "project-rich-text text-sm leading-relaxed text-[#4B5563] sm:text-base",
+            !expanded && "line-clamp-[10]",
+          )}
+          dangerouslySetInnerHTML={{ __html: prepared.content }}
+        />
+      ) : (
+        <div
+          ref={ref}
+          className={cn(
+            "whitespace-pre-line text-sm leading-relaxed text-[#4B5563] sm:text-base",
+            !expanded && "line-clamp-[10]",
+          )}
+        >
+          {prepared.content}
+        </div>
+      )}
       {overflows ? (
         <button
           type="button"

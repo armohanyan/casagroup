@@ -108,14 +108,14 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   }, [next, prev]);
 
   if (items.length === 0) {
-    return <div className="h-[50vh] bg-[#F3F4F6] pt-header" />;
+    return <div className="h-[100dvh] bg-[#F3F4F6]" />;
   }
 
   return (
-    <section className="bg-[#0B1220]" aria-label={title}>
+    <section className="flex h-[100dvh] flex-col bg-[#0B1220]" aria-label={title}>
       <div
         ref={heroRef}
-        className="relative h-[68vh] min-h-[440px] max-h-[720px] group touch-pan-y sm:h-[72vh] sm:min-h-[500px] sm:max-h-[820px] xl:h-[78vh] xl:max-h-[960px] 2xl:max-h-[1040px]"
+        className="relative min-h-0 flex-1 group touch-pan-y"
       >
         <AnimatePresence mode="wait" initial={false}>
           {active && (
@@ -177,7 +177,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
         <button
           type="button"
           onClick={() => setLightbox(true)}
-          className="absolute top-[calc(var(--header-h)+0.75rem)] right-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-black/45 text-white backdrop-blur-sm hover:bg-black/60"
+          className="absolute top-4 right-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-black/45 text-white backdrop-blur-sm hover:bg-black/60"
           aria-label="Fullscreen"
         >
           <Expand size={18} />
@@ -206,7 +206,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
       </div>
 
       {items.length > 1 && (
-        <div className="border-t border-white/10 bg-[#0B1220] px-4 py-3 sm:px-6 lg:px-8">
+        <div className="shrink-0 border-t border-white/10 bg-[#0B1220] px-4 py-3 sm:px-6 lg:px-8">
           <div className="mx-auto flex max-w-[1600px] gap-2 overflow-x-auto 2xl:max-w-[1760px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {items.map((item, i) => (
               <button

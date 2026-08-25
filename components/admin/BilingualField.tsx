@@ -2,6 +2,8 @@
 
 import { Copy } from "lucide-react";
 import { adminInputCls, adminTextareaCls } from "@/components/admin/admin-config";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { isRichTextEmpty } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 
 function LangColumn({
@@ -10,6 +12,7 @@ function LangColumn({
   onChange,
   placeholder,
   multiline,
+  richText,
   otherValue,
   copyLabel,
 }: {
@@ -18,11 +21,12 @@ function LangColumn({
   onChange: (v: string) => void;
   placeholder?: string;
   multiline?: boolean;
+  richText?: boolean;
   otherValue: string;
   copyLabel: string;
 }) {
-  const empty = !value.trim();
-  const canCopy = empty && otherValue.trim().length > 0;
+  const empty = richText ? isRichTextEmpty(value) : !value.trim();
+  const canCopy = empty && (richText ? !isRichTextEmpty(otherValue) : otherValue.trim().length > 0);
 
   return (
     <div className="min-w-0">
@@ -46,7 +50,9 @@ function LangColumn({
           </button>
         ) : null}
       </div>
-      {multiline ? (
+      {richText ? (
+        <RichTextEditor value={value} onChange={onChange} placeholder={placeholder} />
+      ) : multiline ? (
         <textarea
           className={cn(adminTextareaCls, empty && "border-dashed")}
           value={value}
@@ -77,6 +83,7 @@ export function BilingualField({
   placeholderEn,
   placeholderRu,
   multiline,
+  richText,
   copyHyLabel,
   copyEnLabel,
   copyRuLabel,
@@ -93,23 +100,27 @@ export function BilingualField({
   placeholderEn?: string;
   placeholderRu?: string;
   multiline?: boolean;
+  /** HTML editor; legacy plain text still loads and displays correctly. */
+  richText?: boolean;
   copyHyLabel: string;
   copyEnLabel: string;
   copyRuLabel: string;
   className?: string;
 }) {
-  const copySource = [hy, ru, en].find((v) => v.trim()) ?? "";
+  const copySource =
+    [hy, ru, en].find((v) => (richText ? !isRichTextEmpty(v) : v.trim())) ?? "";
 
   return (
-    <div className={cn(multiline && "md:col-span-2", className)}>
+    <div className={cn((multiline || richText) && "md:col-span-2", className)}>
       <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">{label}</p>
-      <div className={cn("grid grid-cols-1 gap-3", !multiline && "md:grid-cols-3")}>
+      <div className={cn("grid grid-cols-1 gap-3", !(multiline || richText) && "md:grid-cols-3")}>
         <LangColumn
           code="ՀՅ"
           value={hy}
           onChange={onHy}
           placeholder={placeholderHy}
           multiline={multiline}
+          richText={richText}
           otherValue={copySource}
           copyLabel={copyHyLabel}
         />
@@ -119,6 +130,7 @@ export function BilingualField({
           onChange={onRu}
           placeholder={placeholderRu}
           multiline={multiline}
+          richText={richText}
           otherValue={copySource}
           copyLabel={copyRuLabel}
         />
@@ -128,6 +140,7 @@ export function BilingualField({
           onChange={onEn}
           placeholder={placeholderEn}
           multiline={multiline}
+          richText={richText}
           otherValue={copySource}
           copyLabel={copyEnLabel}
         />

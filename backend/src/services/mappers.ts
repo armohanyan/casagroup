@@ -29,10 +29,10 @@ function parsePoints(raw: unknown): [number, number][] {
     .filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]));
 }
 
-function parseSalesMode(raw: unknown): "master" | "complex" | "buildings" | "floors" | "plans" {
-  if (raw === "master" || raw === "complex" || raw === "buildings" || raw === "floors" || raw === "plans") {
-    return raw;
-  }
+function parseSalesMode(raw: unknown): "buildings" | "floors" | "plans" {
+  if (raw === "master" || raw === "complex" || raw === "buildings") return "buildings";
+  if (raw === "floors") return "floors";
+  if (raw === "plans") return "plans";
   return "plans";
 }
 

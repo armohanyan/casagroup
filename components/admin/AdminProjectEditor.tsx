@@ -289,7 +289,7 @@ function SalesModeToggle({
   labels: Record<SalesMode, string>;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
       {SALES_MODES.map((mode) => {
         const active = value === mode;
         return (
@@ -1214,8 +1214,6 @@ export function AdminProjectEditor({ projectId }: Props) {
                     value={parseSalesMode(form.salesMode)}
                     onChange={(mode) => set("salesMode", mode)}
                     labels={{
-                      master: a.salesModeMaster,
-                      complex: a.salesModeComplex,
                       buildings: a.salesModeBuildings,
                       floors: a.salesModeFloors,
                       plans: a.salesModePlans,
@@ -1315,7 +1313,7 @@ export function AdminProjectEditor({ projectId }: Props) {
               copyHyLabel={a.copyFromOther}
               copyRuLabel={a.copyFromOther}
               copyEnLabel={a.copyFromOther}
-              multiline
+              richText
             />
           </div>
         </Section>

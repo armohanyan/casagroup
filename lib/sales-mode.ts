@@ -1,12 +1,17 @@
 import type { Project, SalesMode } from "@/types";
 import { hasBuildingFloorPlates, projectKind } from "@/lib/project-kind";
 
-export const SALES_MODES: SalesMode[] = ["master", "complex", "buildings", "floors", "plans"];
+/** The three supported public sales flows. */
+export const SALES_MODES: SalesMode[] = ["plans", "floors", "buildings"];
 
+/**
+ * Normalize stored / legacy values.
+ * `master` and `complex` map to `buildings` (multi-building map entry).
+ */
 export function parseSalesMode(raw: unknown): SalesMode {
-  if (raw === "master" || raw === "complex" || raw === "buildings" || raw === "floors" || raw === "plans") {
-    return raw;
-  }
+  if (raw === "master" || raw === "complex" || raw === "buildings") return "buildings";
+  if (raw === "floors") return "floors";
+  if (raw === "plans") return "plans";
   return "plans";
 }
 
@@ -19,12 +24,14 @@ export function projectSalesMode(
   return hasBuildingFloorPlates(project) ? "floors" : "plans";
 }
 
+/** Multi-building site map (case 3). */
 export function usesMapStages(mode: SalesMode): boolean {
-  return mode === "master" || mode === "complex" || mode === "buildings";
+  return mode === "buildings";
 }
 
+/** Building exterior with floor bands (cases 2–3). */
 export function usesBuildingExterior(mode: SalesMode): boolean {
-  return mode === "master" || mode === "complex" || mode === "buildings" || mode === "floors";
+  return mode === "buildings" || mode === "floors";
 }
 
 export function usesFloorJourney(mode: SalesMode): boolean {

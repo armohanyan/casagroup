@@ -1,10 +1,17 @@
 export type ProjectStatus = "Under Construction" | "Ready" | "Sold Out";
 export type ApartmentStatus = "Available" | "Reserved" | "Sold";
 export type ProjectKind = "building" | "neighborhood";
-/** Where the public apartment sales journey starts for a building project. */
-export type SalesMode = "master" | "complex" | "buildings" | "floors" | "plans";
+/**
+ * Public apartment sales flow for a building project:
+ * - `plans` — apartment plans only
+ * - `floors` — single building: exterior → floors → apartments
+ * - `buildings` — several buildings on a site map, then the floors flow
+ *
+ * Legacy DB values `master` / `complex` are normalized to `buildings`.
+ */
+export type SalesMode = "buildings" | "floors" | "plans";
 
-/** Hotspot on a sales map stage (steps 1–3). Points are % of image (0–100). */
+/** Hotspot on a sales map stage. Points are % of image (0–100). */
 export interface MapStageHotspot {
   id: string;
   label: string;
@@ -16,7 +23,7 @@ export interface MapStageHotspot {
   targetId: string;
 }
 
-/** Interactive map stage before buildings (master / complex / building cluster). */
+/** Interactive site / cluster map before selecting a building. */
 export interface ProjectMapStage {
   id: string;
   projectId: string;
@@ -149,12 +156,9 @@ export interface Project {
   id: string;
   /** Building complex (floor plates) or neighborhood (site plan + land plots). */
   kind?: ProjectKind;
-  /**
-   * Apartment sales journey entry (building projects only).
-   * master → complex → buildings → floors → plans
-   */
+  /** Apartment sales flow (building projects only): plans | floors | buildings. */
   salesMode?: SalesMode;
-  /** Nested map stages for sales journey steps 1–3. */
+  /** Site map stage(s) for multi-building selection. */
   mapStages?: ProjectMapStage[];
   /** Neighborhood 3D / master-plan image where land plots are drawn. */
   sitePlanImage?: string;

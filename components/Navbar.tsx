@@ -95,15 +95,18 @@ export function Navbar() {
   const address = lang === "hy" ? "Սայաթ-Նովա 40" : lang === "ru" ? "Саят-Нова 40" : "Sayat-Nova 40";
 
   const isHome = pathname === "/";
+  const isProjectDetail = /^\/projects\/[^/]+$/.test(pathname);
   const transparent = isHome && !scrolled;
   const headerDark = transparent || mobileOpen;
+  const hideAtTop = isProjectDetail && !scrolled && !mobileOpen;
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 24);
+    const threshold = isProjectDetail ? 0 : 24;
+    const handler = () => setScrolled(window.scrollY > threshold);
     window.addEventListener("scroll", handler, { passive: true });
     handler();
     return () => window.removeEventListener("scroll", handler);
-  }, []);
+  }, [isProjectDetail]);
 
   useEffect(() => {
     queueMicrotask(() => setMobileOpen(false));
@@ -137,7 +140,8 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 inset-x-0 z-[1100] transition-colors",
+        "fixed top-0 inset-x-0 z-[1100] transition-all duration-300 ease-out",
+        hideAtTop && "-translate-y-full opacity-0 pointer-events-none",
         mobileOpen
           ? "bg-[#0F172A]"
           : transparent
