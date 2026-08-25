@@ -41,6 +41,29 @@ function markerPos(h: MapStageHotspot): { x: number; y: number } {
   return { x: sx / h.points.length, y: sy / h.points.length };
 }
 
+function JourneyHeader({
+  crumbs,
+  title,
+  onBack,
+  backLabel,
+}: {
+  crumbs: Crumb[];
+  title: string;
+  onBack?: () => void;
+  backLabel?: string;
+}) {
+  return (
+    <div className="px-4 py-6 sm:px-6 md:py-8 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        {crumbs.length > 1 && onBack && backLabel ? (
+          <JourneyBreadcrumbs crumbs={crumbs} onBack={onBack} backLabel={backLabel} />
+        ) : null}
+        <h2 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h2>
+      </div>
+    </div>
+  );
+}
+
 function MapStageView({
   stage,
   stagesById,
@@ -85,7 +108,7 @@ function MapStageView({
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-5xl overflow-hidden rounded-[5px] bg-[#0c1428]">
+    <div className="relative w-full overflow-hidden bg-[#0c1428]">
       {/* Image defines box size so % coords match admin PlanHotspotCanvas (no letterboxing). */}
       <div className="relative w-full">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -106,10 +129,10 @@ function MapStageView({
                 key={h.id}
                 points={pointsToSvg(h.points)}
                 className={cn(
-                  "cursor-pointer transition-opacity",
+                  "cursor-pointer transition-opacity duration-200",
                   hoveredId === h.id
-                    ? "fill-[#e85d04]/55 stroke-[#e85d04]"
-                    : "fill-transparent stroke-transparent hover:fill-[#e85d04]/35",
+                    ? "fill-[#e85d04]/50 stroke-[#e85d04]"
+                    : "fill-transparent stroke-transparent hover:fill-[#e85d04]/30",
                 )}
                 strokeWidth={0.3}
                 onMouseEnter={() => setHoveredId(h.id)}
@@ -125,7 +148,10 @@ function MapStageView({
             <button
               key={`m-${h.id}`}
               type="button"
-              className="absolute z-10 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow"
+              className={cn(
+                "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
+                hoveredId === h.id ? "scale-110" : "hover:scale-105",
+              )}
               style={{ left: `${m.x}%`, top: `${m.y}%` }}
               onMouseEnter={() => setHoveredId(h.id)}
               onMouseLeave={() => setHoveredId(null)}
@@ -137,13 +163,13 @@ function MapStageView({
         })}
         {hovered && tip ? (
           <div
-            className="pointer-events-auto absolute z-20 -translate-x-1/2 -translate-y-[110%] rounded-[5px] bg-white px-3 py-2 shadow-lg"
+            className="pointer-events-auto absolute z-20 min-w-[9.5rem] -translate-x-1/2 -translate-y-[110%] rounded-[5px] bg-white px-3.5 py-2.5 shadow-xl"
             style={{ left: `${tip.x}%`, top: `${tip.y}%` }}
           >
             <p className="mb-2 text-sm font-semibold text-[#0c1428]">{tipTitle || hovered.label}</p>
             <button
               type="button"
-              className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white"
+              className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#d45303]"
               onClick={() => activate(hovered)}
             >
               {moreLabel}
@@ -177,15 +203,15 @@ function BuildingExteriorView({
 
   if (!exterior) {
     return (
-      <div className="space-y-4">
-        <p className="text-center text-sm text-white/50">{emptyLabel}</p>
+      <div className="space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+        <p className="text-center text-sm text-white/55">{emptyLabel}</p>
         <div className="flex flex-wrap justify-center gap-2">
           {floors.map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={() => onSelectFloor(f)}
-              className="rounded-[5px] bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-[#e85d04]"
+              className="rounded-[5px] bg-white/10 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#e85d04]"
             >
               {floorLabelTemplate.replace("{n}", f.label)}
             </button>
@@ -196,9 +222,9 @@ function BuildingExteriorView({
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-3xl">
+    <div className="w-full">
       {/* Same overlay model as admin PlanHotspotCanvas: image sizes the box, SVG matches it. */}
-      <div className="relative w-full overflow-hidden rounded-[5px] bg-white">
+      <div className="relative w-full overflow-hidden bg-[#0c1428]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={exterior}
@@ -216,10 +242,10 @@ function BuildingExteriorView({
               key={f.id}
               points={pointsToSvg(f.exteriorHotspot as [number, number][])}
               className={cn(
-                "cursor-pointer transition-opacity",
+                "cursor-pointer transition-opacity duration-200",
                 hoveredId === f.id
-                  ? "fill-[#e85d04]/55 stroke-[#e85d04]"
-                  : "fill-transparent hover:fill-[#e85d04]/35",
+                  ? "fill-[#e85d04]/50 stroke-[#e85d04]"
+                  : "fill-transparent hover:fill-[#e85d04]/30",
               )}
               strokeWidth={0.25}
               onMouseEnter={() => setHoveredId(f.id)}
@@ -237,7 +263,10 @@ function BuildingExteriorView({
             <button
               key={`lbl-${f.id}`}
               type="button"
-              className="absolute z-10 flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white"
+              className={cn(
+                "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
+                hoveredId === f.id ? "scale-110" : "hover:scale-105",
+              )}
               style={{ left: `${x}%`, top: `${y}%` }}
               onMouseEnter={() => setHoveredId(f.id)}
               onMouseLeave={() => setHoveredId(null)}
@@ -248,13 +277,13 @@ function BuildingExteriorView({
           );
         })}
         {hovered ? (
-          <div className="absolute left-1/2 top-6 z-20 w-44 -translate-x-1/2 rounded-[5px] bg-white px-3 py-2 shadow-lg">
+          <div className="absolute left-1/2 top-6 z-20 w-44 -translate-x-1/2 rounded-[5px] bg-white px-3.5 py-2.5 shadow-xl">
             <p className="mb-2 text-sm font-semibold text-[#0c1428]">
               {floorLabelTemplate.replace("{n}", hovered.label)}
             </p>
             <button
               type="button"
-              className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white"
+              className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#d45303]"
               onClick={() => onSelectFloor(hovered)}
             >
               {moreLabel}
@@ -262,17 +291,17 @@ function BuildingExteriorView({
           </div>
         ) : null}
       </div>
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap justify-center gap-2 px-4 py-5 sm:px-6 lg:px-8">
         {floors.map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => onSelectFloor(f)}
             className={cn(
-              "flex h-9 min-w-9 items-center justify-center rounded-[5px] px-2 text-sm font-semibold",
+              "flex h-10 min-w-10 items-center justify-center rounded-full px-2.5 text-sm font-semibold transition-colors",
               hoveredId === f.id
                 ? "bg-[#e85d04] text-white"
-                : "bg-white/10 text-white hover:bg-white/20",
+                : "bg-white/10 text-white/85 hover:bg-white/20 hover:text-white",
             )}
           >
             {f.label}
@@ -387,42 +416,40 @@ export function ApartmentSalesJourney({ project }: Props) {
 
   if (mode === "floors" && !building && exteriorBuildings.some((b) => b.exteriorImageUrl?.trim())) {
     return (
-      <section id="sales-journey" className="scroll-mt-24 border-t border-[#E5E7EB] bg-[#0c1428]">
-        <Container className="py-10 md:py-14">
-          <h2 className="mb-6 text-2xl font-semibold text-white sm:text-3xl">
-            {t.developerDetail.salesJourneyTitle}
-          </h2>
-          {exteriorBuildings.length > 1 ? (
-            <div className="mb-6 flex flex-wrap gap-2">
+      <section id="sales-journey" className="bg-[#0c1428]">
+        <JourneyHeader title={t.developerDetail.salesJourneyTitle} crumbs={crumbs} />
+        {exteriorBuildings.length > 1 ? (
+          <div className="flex flex-wrap gap-2 px-4 pb-6 sm:px-6 lg:px-8">
+            <div className="mx-auto flex w-full max-w-6xl flex-wrap gap-2">
               {exteriorBuildings.map((b) => (
                 <button
                   key={b.id}
                   type="button"
                   onClick={() => selectBuilding(b)}
-                  className="rounded-[5px] bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-[#e85d04]"
+                  className="rounded-[5px] bg-white/10 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#e85d04]"
                 >
                   {b.name}
                 </button>
               ))}
             </div>
-          ) : (
-            <BuildingExteriorView
-              building={exteriorBuildings[0]}
-              floors={[...(exteriorBuildings[0].floors ?? [])].sort(
-                (a, b) =>
-                  a.sortOrder - b.sortOrder ||
-                  a.label.localeCompare(b.label, undefined, { numeric: true }),
-              )}
-              onSelectFloor={(f) => {
-                selectBuilding(exteriorBuildings[0]);
-                selectFloor(f);
-              }}
-              moreLabel={t.developerDetail.salesJourneyMore}
-              floorLabelTemplate={t.developerDetail.salesJourneyFloor}
-              emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
-            />
-          )}
-        </Container>
+          </div>
+        ) : (
+          <BuildingExteriorView
+            building={exteriorBuildings[0]}
+            floors={[...(exteriorBuildings[0].floors ?? [])].sort(
+              (a, b) =>
+                a.sortOrder - b.sortOrder ||
+                a.label.localeCompare(b.label, undefined, { numeric: true }),
+            )}
+            onSelectFloor={(f) => {
+              selectBuilding(exteriorBuildings[0]);
+              selectFloor(f);
+            }}
+            moreLabel={t.developerDetail.salesJourneyMore}
+            floorLabelTemplate={t.developerDetail.salesJourneyFloor}
+            emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
+          />
+        )}
       </section>
     );
   }
@@ -430,10 +457,13 @@ export function ApartmentSalesJourney({ project }: Props) {
   // After floor picked in floors-only quick path — show plate via filtered section
   if (mode === "floors" && building && floor) {
     return (
-      <section id="sales-journey" className="scroll-mt-24 bg-[#0c1428]">
-        <Container className="py-6">
-          <JourneyBreadcrumbs crumbs={crumbs} onBack={goBack} backLabel={t.developerDetail.salesJourneyBack} />
-        </Container>
+      <section id="sales-journey" className="bg-[#0c1428]">
+        <JourneyHeader
+          crumbs={crumbs}
+          title={building.name}
+          onBack={goBack}
+          backLabel={t.developerDetail.salesJourneyBack}
+        />
         <BuildingFloorMapSection
           project={{
             ...project,
@@ -454,19 +484,21 @@ export function ApartmentSalesJourney({ project }: Props) {
       (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true }),
     );
     return (
-      <section id="sales-journey" className="scroll-mt-24 border-t border-[#E5E7EB] bg-[#0c1428]">
-        <Container className="py-10 md:py-14">
-          <JourneyBreadcrumbs crumbs={crumbs} onBack={goBack} backLabel={t.developerDetail.salesJourneyBack} />
-          <h2 className="mb-6 text-2xl font-semibold text-white">{building.name}</h2>
-          <BuildingExteriorView
-            building={building}
-            floors={floors}
-            onSelectFloor={selectFloor}
-            moreLabel={t.developerDetail.salesJourneyMore}
-            floorLabelTemplate={t.developerDetail.salesJourneyFloor}
-            emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
-          />
-        </Container>
+      <section id="sales-journey" className="bg-[#0c1428]">
+        <JourneyHeader
+          crumbs={crumbs}
+          title={building.name}
+          onBack={goBack}
+          backLabel={t.developerDetail.salesJourneyBack}
+        />
+        <BuildingExteriorView
+          building={building}
+          floors={floors}
+          onSelectFloor={selectFloor}
+          moreLabel={t.developerDetail.salesJourneyMore}
+          floorLabelTemplate={t.developerDetail.salesJourneyFloor}
+          emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
+        />
       </section>
     );
   }
@@ -492,10 +524,13 @@ export function ApartmentSalesJourney({ project }: Props) {
 
   if (showFloorPlate && building && floor) {
     return (
-      <section id="sales-journey" className="scroll-mt-24 bg-[#0c1428]">
-        <Container className="py-6">
-          <JourneyBreadcrumbs crumbs={crumbs} onBack={goBack} backLabel={t.developerDetail.salesJourneyBack} />
-        </Container>
+      <section id="sales-journey" className="bg-[#0c1428]">
+        <JourneyHeader
+          crumbs={crumbs}
+          title={building.name}
+          onBack={goBack}
+          backLabel={t.developerDetail.salesJourneyBack}
+        />
         <BuildingFloorMapSection
           project={{
             ...project,
@@ -506,49 +541,51 @@ export function ApartmentSalesJourney({ project }: Props) {
     );
   }
 
+  const heading = building
+    ? building.name
+    : currentStage
+      ? stageLabel(currentStage, lang)
+      : t.developerDetail.salesJourneyTitle;
+
   return (
-    <section id="sales-journey" className="scroll-mt-24 border-t border-[#E5E7EB] bg-[#0c1428]">
-      <Container className="py-10 md:py-14">
-        <JourneyBreadcrumbs crumbs={crumbs} onBack={goBack} backLabel={t.developerDetail.salesJourneyBack} />
-        <h2 className="mb-6 text-2xl font-semibold text-white sm:text-3xl">
-          {building
-            ? building.name
-            : currentStage
-              ? stageLabel(currentStage, lang)
-              : t.developerDetail.salesJourneyTitle}
-        </h2>
+    <section id="sales-journey" className="bg-[#0c1428]">
+      <JourneyHeader
+        crumbs={crumbs}
+        title={heading}
+        onBack={crumbs.length > 1 ? goBack : undefined}
+        backLabel={t.developerDetail.salesJourneyBack}
+      />
 
-        {showMap && currentStage ? (
-          <MapStageView
-            stage={currentStage}
-            stagesById={stagesById}
-            buildingsById={buildingsById}
-            lang={lang}
-            onSelectStage={(s) => {
-              setStageStack((prev) => [...prev, s]);
-              setBuilding(null);
-              setFloor(null);
-            }}
-            onSelectBuilding={selectBuilding}
-            moreLabel={t.developerDetail.salesJourneyMore}
-          />
-        ) : null}
+      {showMap && currentStage ? (
+        <MapStageView
+          stage={currentStage}
+          stagesById={stagesById}
+          buildingsById={buildingsById}
+          lang={lang}
+          onSelectStage={(s) => {
+            setStageStack((prev) => [...prev, s]);
+            setBuilding(null);
+            setFloor(null);
+          }}
+          onSelectBuilding={selectBuilding}
+          moreLabel={t.developerDetail.salesJourneyMore}
+        />
+      ) : null}
 
-        {showExterior && building ? (
-          <BuildingExteriorView
-            building={building}
-            floors={[...(building.floors ?? [])].sort(
-              (a, b) =>
-                a.sortOrder - b.sortOrder ||
-                a.label.localeCompare(b.label, undefined, { numeric: true }),
-            )}
-            onSelectFloor={selectFloor}
-            moreLabel={t.developerDetail.salesJourneyMore}
-            floorLabelTemplate={t.developerDetail.salesJourneyFloor}
-            emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
-          />
-        ) : null}
-      </Container>
+      {showExterior && building ? (
+        <BuildingExteriorView
+          building={building}
+          floors={[...(building.floors ?? [])].sort(
+            (a, b) =>
+              a.sortOrder - b.sortOrder ||
+              a.label.localeCompare(b.label, undefined, { numeric: true }),
+          )}
+          onSelectFloor={selectFloor}
+          moreLabel={t.developerDetail.salesJourneyMore}
+          floorLabelTemplate={t.developerDetail.salesJourneyFloor}
+          emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
+        />
+      ) : null}
     </section>
   );
 }
@@ -564,15 +601,19 @@ function JourneyBreadcrumbs({
 }) {
   if (crumbs.length <= 1) return null;
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-[#e85d04]">
-      <button type="button" onClick={onBack} className="font-semibold text-white/70 hover:text-white">
+    <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+      <button
+        type="button"
+        onClick={onBack}
+        className="font-semibold text-white/65 transition-colors hover:text-white"
+      >
         ← {backLabel}
       </button>
-      <span className="text-white/30">|</span>
+      <span className="text-white/25">|</span>
       {crumbs.map((c, i) => (
         <span key={c.id} className="inline-flex items-center gap-2">
-          {i > 0 ? <span className="text-white/30">/</span> : null}
-          <span className={i === crumbs.length - 1 ? "font-semibold text-[#e85d04]" : "text-white/60"}>
+          {i > 0 ? <span className="text-white/25">/</span> : null}
+          <span className={i === crumbs.length - 1 ? "font-semibold text-[#c9a96e]" : "text-white/55"}>
             {c.label}
           </span>
         </span>
