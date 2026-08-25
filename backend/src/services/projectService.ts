@@ -12,6 +12,7 @@ export interface ProjectFilters {
   featured?: boolean;
 }
 
+/** Full graph for detail / admin-by-id (floors + hotspot polygons + map stages). */
 const projectInclude = {
   apartments: true,
   landPlots: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
@@ -21,6 +22,21 @@ const projectInclude = {
     include: {
       floors: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
     },
+  },
+  _count: { select: { views: true } },
+};
+
+/**
+ * Lighter payload for portfolio list / cards / filters.
+ * Omits floor plates, hotspot polygons, and map stages — those are loaded via
+ * GET /api/projects/:slug when opening a project. Keeps nginx/upstream from
+ * timing out on the giant nested JSON that previously caused intermittent 502s.
+ */
+const listProjectInclude = {
+  apartments: true,
+  landPlots: { orderBy: [{ sortOrder: "asc" as const }, { label: "asc" as const }] },
+  buildings: {
+    orderBy: [{ sortOrder: "asc" as const }, { name: "asc" as const }],
   },
   _count: { select: { views: true } },
 };
@@ -352,7 +368,7 @@ export async function listProjects(filters: ProjectFilters = {}) {
 
   let projects = await prisma.project.findMany({
     where,
-    include: projectInclude,
+    include: listProjectInclude,
     orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
   });
 

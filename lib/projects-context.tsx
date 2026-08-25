@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import type { Project } from "@/types";
-import { MOCK_PROJECTS } from "@/data/mock";
 import {
   adminCreateProject,
   adminDeleteProject,
@@ -23,6 +22,7 @@ interface ProjectsContextValue {
   loading: boolean;
   loadError: string | null;
   refreshProjects: () => Promise<void>;
+  upsertProject: (project: Project) => void;
   addProject: (p: Omit<Project, "id" | "slug"> & { slug?: string }) => Promise<Project>;
   updateProject: (id: string, p: Partial<Project>) => Promise<Project>;
   deleteProject: (id: string) => Promise<void>;
@@ -44,8 +44,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       setLoadError(null);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : String(e));
-      // Keep the UI usable offline / when the API is slow or down.
-      setProjects(MOCK_PROJECTS);
+      // Keep whatever we already have — never swap real projects for mock seed data.
+      // Detail pages fetch by slug independently when the list fails.
     } finally {
       setLoading(false);
     }
@@ -54,6 +54,16 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refreshProjects();
   }, [refreshProjects]);
+
+  const upsertProject = useCallback((project: Project) => {
+    setProjects((prev) => {
+      const idx = prev.findIndex((p) => p.id === project.id);
+      if (idx === -1) return [project, ...prev];
+      const next = [...prev];
+      next[idx] = project;
+      return next;
+    });
+  }, []);
 
   const addProject = useCallback(
     async (data: Omit<Project, "id" | "slug"> & { slug?: string }) => {
@@ -90,6 +100,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
         loading,
         loadError,
         refreshProjects,
+        upsertProject,
         addProject,
         updateProject,
         deleteProject,

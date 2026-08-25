@@ -31,10 +31,12 @@ import { useI18n } from "@/lib/i18n";
 import { getApartmentDescription, getApartmentViewType, getProjectCity, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import { recordProjectView } from "@/lib/project-views";
 import { useProjects } from "@/lib/projects-context";
+import { fetchApartment } from "@/lib/api-client";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { isHouseUnit } from "@/lib/building-kind";
+import type { Apartment, Project } from "@/types";
 
 function SpecItem({
   icon: Icon,
@@ -75,17 +77,50 @@ export default function ApartmentDetailPage() {
   const aptId = typeof params.aptId === "string" ? params.aptId : undefined;
   const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
-  const { projects, loading } = useProjects();
+  const { projects, loading: listLoading, upsertProject, refreshProjects } = useProjects();
   const [inquiryType, setInquiryType] = useState<"info" | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [fetched, setFetched] = useState<{ project: Project; apartment: Apartment } | null>(null);
+  const [fetching, setFetching] = useState(() => Boolean(slug && aptId));
+  const [fetchFailed, setFetchFailed] = useState(false);
 
-  const result = (() => {
+  const fromList = (() => {
+    if (!aptId) return undefined;
     for (const project of projects) {
+      if (slug && project.slug !== slug) continue;
       const apartment = project.apartments.find((a) => a.id === aptId);
       if (apartment) return { apartment, project };
     }
     return undefined;
   })();
+
+  useEffect(() => {
+    if (!slug || !aptId) return;
+    let cancelled = false;
+    setFetched(null);
+    setFetchFailed(false);
+    setFetching(true);
+
+    void (async () => {
+      try {
+        const data = await fetchApartment(slug, aptId);
+        if (cancelled) return;
+        setFetched(data);
+        upsertProject(data.project);
+      } catch {
+        if (cancelled) return;
+        setFetchFailed(true);
+      } finally {
+        if (!cancelled) setFetching(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, aptId, upsertProject]);
+
+  const result = fetched ?? (fetchFailed || !fetching ? fromList : undefined);
 
   const images = useMemo(
     () =>
@@ -119,6 +154,8 @@ export default function ApartmentDetailPage() {
     };
   }, [lightboxIndex, images.length]);
 
+  const loading = Boolean(slug && aptId) && !result && (listLoading || fetching);
+
   if (loading) {
     return (
       <main className="min-h-screen pt-header flex items-center justify-center bg-white">
@@ -133,7 +170,31 @@ export default function ApartmentDetailPage() {
         <Seo title={t.aptNotFound} description={t.aptNotFound} path={`/projects/${slug ?? "_"}/apartments/${aptId ?? ""}`} lang={lang} noindex />
         <div className="text-center">
           <p className="text-lg font-medium text-[#0c1428]">{t.aptNotFound}</p>
-          <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]">{t.backProjects} →</Link>
+          {fetchFailed ? (
+            <button
+              type="button"
+              onClick={() => {
+                void refreshProjects();
+                if (!slug || !aptId) return;
+                setFetching(true);
+                setFetchFailed(false);
+                void fetchApartment(slug, aptId)
+                  .then((data) => {
+                    setFetched(data);
+                    upsertProject(data.project);
+                  })
+                  .catch(() => setFetchFailed(true))
+                  .finally(() => setFetching(false));
+              }}
+              className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]"
+            >
+              Retry →
+            </button>
+          ) : (
+            <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]">
+              {t.backProjects} →
+            </Link>
+          )}
         </div>
       </main>
     );

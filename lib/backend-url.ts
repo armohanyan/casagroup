@@ -4,7 +4,9 @@
  * ("400 Request Header Or Cookie Too Large") or bogus 401s.
  */
 export function getInternalBackendUrl(): string {
-  const port = process.env.BACKEND_PORT || process.env.PORT || "4000";
+  // Never fall back to PORT — that is often Next's own listen port (e.g. 3000),
+  // which would make /api rewrites proxy to themselves and surface as 502s.
+  const port = process.env.BACKEND_PORT || "4000";
   const loopbackDefault = `http://127.0.0.1:${port}`;
 
   const explicit = (

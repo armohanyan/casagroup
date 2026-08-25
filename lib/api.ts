@@ -60,4 +60,25 @@ export async function apiFetch<T>(
   }
 }
 
+/** Retry transient gateway / timeout failures (common under nginx when upstream is briefly busy). */
+export async function apiFetchWithRetry<T>(
+  path: string,
+  options: RequestInit & { token?: string | null; timeoutMs?: number; retries?: number } = {}
+): Promise<T> {
+  const { retries = 2, ...fetchOptions } = options;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await apiFetch<T>(path, fetchOptions);
+    } catch (err) {
+      lastError = err;
+      const status = err instanceof ApiError ? err.status : 0;
+      const retryable = status === 502 || status === 503 || status === 504 || status === 408;
+      if (!retryable || attempt === retries) break;
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
 export { API_URL };

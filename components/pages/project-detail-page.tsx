@@ -26,6 +26,8 @@ import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { prepareRichTextForDisplay } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import { ProjectKeyFacts } from "@/components/site/ProjectKeyFacts";
+import { fetchProjectBySlug } from "@/lib/api-client";
+import type { Project } from "@/types";
 
 const WHATSAPP = "https://wa.me/37496799733";
 const OVERVIEW_PREVIEW_LINES = 10;
@@ -108,15 +110,50 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const slug = typeof params.slug === "string" ? params.slug : undefined;
   const { t, lang } = useI18n();
-  const { getBySlug, loading } = useProjects();
-  const project = slug ? getBySlug(slug) : undefined;
+  const { getBySlug, loading: listLoading, upsertProject, refreshProjects } = useProjects();
+  const fromList = slug ? getBySlug(slug) : undefined;
+  const [fetched, setFetched] = useState<Project | null>(null);
+  const [fetching, setFetching] = useState(() => Boolean(slug));
+  const [fetchFailed, setFetchFailed] = useState(false);
 
+  // List payload is light (no floors/hotspots). Always load full project by slug
+  // so sales maps work, and so a list 502 does not block opening the page.
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    setFetched(null);
+    setFetchFailed(false);
+    setFetching(true);
+
+    void (async () => {
+      try {
+        const data = await fetchProjectBySlug(slug);
+        if (cancelled) return;
+        setFetched(data);
+        upsertProject(data);
+      } catch {
+        if (cancelled) return;
+        setFetchFailed(true);
+      } finally {
+        if (!cancelled) setFetching(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, upsertProject]);
+
+  // Prefer full slug response; fall back to list summary only after fetch fails/settles.
+  const project = fetched ?? (fetchFailed || !fetching ? fromList : undefined);
   const galleryItems = useMemo(() => (project ? getProjectGallery(project) : []), [project]);
 
   useEffect(() => {
     if (!project?.id) return;
     void recordProjectView(project.id);
   }, [project?.id]);
+
+  const loading = Boolean(slug) && !project && (listLoading || fetching);
 
   if (loading) {
     return (
@@ -132,7 +169,31 @@ export default function ProjectDetailPage() {
         <Seo title={t.projectNotFound} description={t.projectNotFound} path={`/projects/${slug ?? ""}`} lang={lang} noindex />
         <div className="text-center">
           <p className="text-lg font-medium text-[#0c1428]">{t.projectNotFound}</p>
-          <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]">{t.backProjects} →</Link>
+          {fetchFailed ? (
+            <button
+              type="button"
+              onClick={() => {
+                void refreshProjects();
+                if (!slug) return;
+                setFetching(true);
+                setFetchFailed(false);
+                void fetchProjectBySlug(slug)
+                  .then((data) => {
+                    setFetched(data);
+                    upsertProject(data);
+                  })
+                  .catch(() => setFetchFailed(true))
+                  .finally(() => setFetching(false));
+              }}
+              className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]"
+            >
+              Retry →
+            </button>
+          ) : (
+            <Link href="/projects" className="mt-4 inline-block text-sm font-semibold text-[#c9a96e]">
+              {t.backProjects} →
+            </Link>
+          )}
         </div>
       </main>
     );

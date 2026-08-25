@@ -1,5 +1,5 @@
 import type { Apartment, InquiryFormData, Project } from "@/types";
-import { apiFetch, getApiUrl } from "@/lib/api";
+import { apiFetch, apiFetchWithRetry, getApiUrl } from "@/lib/api";
 
 const TOKEN_KEY = "casagroup_admin_token";
 
@@ -43,16 +43,21 @@ export async function fetchProjects(params?: Record<string, string | number | bo
     }
   }
   const q = qs.toString();
-  return apiFetch<Project[]>(`/api/projects${q ? `?${q}` : ""}`);
+  return apiFetchWithRetry<Project[]>(`/api/projects${q ? `?${q}` : ""}`, {
+    timeoutMs: 20_000,
+  });
 }
 
 export async function fetchProjectBySlug(slug: string) {
-  return apiFetch<Project>(`/api/projects/${encodeURIComponent(slug)}`);
+  return apiFetchWithRetry<Project>(`/api/projects/${encodeURIComponent(slug)}`, {
+    timeoutMs: 25_000,
+  });
 }
 
 export async function fetchApartment(slug: string, id: string) {
-  return apiFetch<{ project: Project; apartment: Apartment }>(
-    `/api/projects/${encodeURIComponent(slug)}/apartments/${encodeURIComponent(id)}`
+  return apiFetchWithRetry<{ project: Project; apartment: Apartment }>(
+    `/api/projects/${encodeURIComponent(slug)}/apartments/${encodeURIComponent(id)}`,
+    { timeoutMs: 25_000 }
   );
 }
 
