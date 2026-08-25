@@ -174,7 +174,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
         <button
           type="button"
           onClick={() => setLightbox(true)}
-          className="absolute top-4 right-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-black/45 text-white backdrop-blur-sm hover:bg-black/60"
+          className="absolute top-20 right-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-black/45 text-white backdrop-blur-sm hover:bg-black/60"
           aria-label="Fullscreen"
         >
           <Expand size={18} />
