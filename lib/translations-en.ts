@@ -1341,9 +1341,11 @@ export const en = {
     salesModePlans: "Apartment plans only",
     sectionSalesMaps: "Site map (buildings)",
     salesMapsHint:
-      "Upload the site image and mark each building (A1, A2…). Clicking a building opens its floors.",
-    salesMapAddRoot: "Add map",
-    salesMapAddChild: "Add nested map",
+      "Use ONE image of the whole site. Draw a zone on each building (Branch 1, Branch 2…), set Target = that building. Do not add a second map for this — only the first map is shown on the site.",
+    salesMapAddRoot: "Add site map",
+    salesMapAddChild: "Add nested map (optional)",
+    salesMapMultiRootWarning:
+      "You have more than one site map. The public page only shows the first one. Delete the extras and mark all buildings as hotspots on a single image.",
     salesMapStageLabel: "Stage label",
     salesMapStageImage: "Stage image",
     salesMapUploadImage: "Upload",

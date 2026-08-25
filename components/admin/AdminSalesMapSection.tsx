@@ -47,6 +47,7 @@ export type SalesMapLabels = {
   drawHint: string;
   noStages: string;
   noBuildings: string;
+  multiRootWarning: string;
   zoomIn: string;
   zoomOut: string;
   zoomReset: string;
@@ -484,10 +485,17 @@ export function AdminSalesMapSection({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-[#6B7280]">{labels.sectionTitle}</p>
-        <button type="button" className={cn(adminBtnSecondary, "h-9 text-xs")} onClick={addRoot}>
-          <Plus size={14} /> {labels.addRootStage}
-        </button>
+        {roots.length === 0 ? (
+          <button type="button" className={cn(adminBtnSecondary, "h-9 text-xs")} onClick={addRoot}>
+            <Plus size={14} /> {labels.addRootStage}
+          </button>
+        ) : null}
       </div>
+      {roots.length > 1 ? (
+        <p className="rounded-[5px] border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {labels.multiRootWarning}
+        </p>
+      ) : null}
       {roots.length === 0 ? (
         <p className="text-sm text-[#9CA3AF]">{labels.noStages}</p>
       ) : (

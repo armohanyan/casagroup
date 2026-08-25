@@ -1782,6 +1782,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                 drawHint: a.hotspotDrawHint,
                 noStages: a.salesMapNoStages,
                 noBuildings: a.noBuildings,
+                multiRootWarning: a.salesMapMultiRootWarning,
                 zoomIn: a.hotspotZoomIn,
                 zoomOut: a.hotspotZoomOut,
                 zoomReset: a.hotspotZoomReset,
