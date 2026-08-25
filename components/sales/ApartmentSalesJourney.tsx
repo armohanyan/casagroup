@@ -23,9 +23,8 @@ interface Props {
 
 type Crumb = { id: string; label: string };
 
-/** Full-bleed map frame: edge-to-edge width, capped height. */
-const MAP_FRAME =
-  "relative w-full h-[min(50vh,480px)] overflow-hidden";
+/** Full-bleed map frame: edge-to-edge width, full image (no crop). */
+const MAP_FRAME = "relative w-full";
 
 function stageLabel(stage: ProjectMapStage, lang: Lang): string {
   if (lang === "hy") return stage.labelHy?.trim() || stage.label || stage.labelRu || "";
@@ -139,11 +138,12 @@ function MapStageView({
 
   return (
     <div className={MAP_FRAME}>
+      {/* Image sizes the box so % hotspots match admin (full image, no crop). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={stage.imageUrl}
         alt={stage.label}
-        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+        className="pointer-events-none block h-auto w-full select-none"
         draggable={false}
       />
       {overlay}
@@ -254,11 +254,12 @@ function BuildingExteriorView({
   return (
     <div className="w-full">
       <div className={MAP_FRAME}>
+        {/* Image sizes the box so % hotspots match admin (full image, no crop). */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={exterior}
           alt={building.name}
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+          className="pointer-events-none block h-auto w-full select-none"
           draggable={false}
         />
         {overlay}
