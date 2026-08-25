@@ -416,9 +416,17 @@ export function AdminSalesMapSection({
     };
     if (draft.length < 3 || !meta.targetId) return;
     const c = centroid(draft);
+    const buildingName =
+      meta.targetType === "building"
+        ? buildings.find((b) => b.id === meta.targetId)?.name.trim()
+        : "";
+    const stageName =
+      meta.targetType === "stage"
+        ? mapStages.find((s) => s.id === meta.targetId)?.label.trim()
+        : "";
     const hotspot: MapStageHotspot = {
       id: generateId(),
-      label: meta.label.trim() || meta.targetId.slice(0, 4),
+      label: meta.label.trim() || buildingName || stageName || meta.targetId.slice(0, 4),
       points: draft,
       markerX: c.x,
       markerY: c.y,

@@ -73,6 +73,19 @@ function tipFromEvent(e: ReactMouseEvent, el: HTMLElement): TipPos {
   return { x: e.clientX - rect.left, y: e.clientY - rect.top };
 }
 
+function hotspotDisplayLabel(
+  h: MapStageHotspot,
+  buildingsById: Map<string, Building>,
+  stagesById: Map<string, ProjectMapStage>,
+  lang: Lang,
+): string {
+  if (h.targetType === "building") {
+    return buildingsById.get(h.targetId)?.name.trim() || h.label || "·";
+  }
+  const target = stagesById.get(h.targetId);
+  return (target ? stageLabel(target, lang) : "") || h.label || "·";
+}
+
 function HoverTip({
   tip,
   title,
@@ -92,7 +105,7 @@ function HoverTip({
       <p className="mb-2 text-sm font-semibold text-[#0c1428]">{title}</p>
       <button
         type="button"
-        className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#d45303]"
+        className="w-full rounded-[5px] bg-[#0c1428] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#c9a96e] hover:text-[#0c1428]"
         onClick={onAction}
       >
         {actionLabel}
@@ -134,7 +147,7 @@ function JourneyBreadcrumbs({
               i === crumbs.length - 1
                 ? onImage
                   ? "font-semibold text-[#c9a96e]"
-                  : "font-semibold text-[#e85d04]"
+                  : "font-semibold text-[#0c1428]"
                 : onImage
                   ? "text-white/70"
                   : "text-[#6B7280]"
@@ -169,27 +182,6 @@ function JourneyOverlay({
           {title}
         </h2>
       </div>
-    </div>
-  );
-}
-
-function JourneyBar({
-  crumbs,
-  title,
-  onBack,
-  backLabel,
-}: {
-  crumbs: Crumb[];
-  title: string;
-  onBack?: () => void;
-  backLabel?: string;
-}) {
-  return (
-    <div className="border-b border-[#E5E7EB] px-4 py-3 sm:px-6 lg:px-8">
-      {crumbs.length > 1 && onBack && backLabel ? (
-        <JourneyBreadcrumbs crumbs={crumbs} onBack={onBack} backLabel={backLabel} />
-      ) : null}
-      <h2 className="text-lg font-semibold tracking-tight text-[#0c1428] sm:text-xl">{title}</h2>
     </div>
   );
 }
@@ -275,8 +267,8 @@ function MapStageView({
               className={cn(
                 "cursor-pointer transition-opacity duration-200",
                 hoveredId === h.id
-                  ? "fill-[#e85d04]/50 stroke-[#e85d04]"
-                  : "fill-transparent stroke-transparent hover:fill-[#e85d04]/30",
+                  ? "fill-[#c9a96e]/50 stroke-[#c9a96e]"
+                  : "fill-transparent stroke-transparent hover:fill-[#c9a96e]/30",
               )}
               strokeWidth={0.3}
               onMouseEnter={() => setHoveredId(h.id)}
@@ -292,13 +284,14 @@ function MapStageView({
       </svg>
       {stage.hotspots.map((h) => {
         const m = markerPos(h);
+        const pinLabel = hotspotDisplayLabel(h, buildingsById, stagesById, lang);
         return (
           <button
             key={`m-${h.id}`}
             type="button"
             className={cn(
-              "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
-              hoveredId === h.id ? "scale-110" : "hover:scale-105",
+              "absolute z-10 flex h-8 min-w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#0c1428] px-2.5 text-[11px] font-bold text-white shadow-md transition-transform duration-200",
+              hoveredId === h.id ? "scale-110 bg-[#c9a96e] text-[#0c1428]" : "hover:scale-105",
             )}
             style={{ left: `${m.x}%`, top: `${m.y}%` }}
             onMouseEnter={() => setHoveredId(h.id)}
@@ -309,14 +302,14 @@ function MapStageView({
             }}
             onClick={() => activate(h)}
           >
-            {h.label || "·"}
+            {pinLabel}
           </button>
         );
       })}
       {hovered && tip ? (
         <HoverTip
           tip={tip}
-          title={tipTitle || hovered.label}
+          title={tipTitle || hotspotDisplayLabel(hovered, buildingsById, stagesById, lang)}
           actionLabel={moreLabel}
           onAction={() => activate(hovered)}
         />
@@ -365,7 +358,7 @@ function BuildingExteriorView({
               key={f.id}
               type="button"
               onClick={() => onSelectFloor(f)}
-              className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#e85d04] hover:text-white"
+              className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#0c1428] hover:text-white"
             >
               {floorLabelTemplate.replace("{n}", f.label)}
             </button>
@@ -405,8 +398,8 @@ function BuildingExteriorView({
               className={cn(
                 "cursor-pointer transition-opacity duration-200",
                 hoveredId === f.id
-                  ? "fill-[#e85d04]/50 stroke-[#e85d04]"
-                  : "fill-transparent hover:fill-[#e85d04]/30",
+                  ? "fill-[#c9a96e]/50 stroke-[#c9a96e]"
+                  : "fill-transparent hover:fill-[#c9a96e]/30",
               )}
               strokeWidth={0.25}
               onMouseEnter={() => setHoveredId(f.id)}
@@ -429,8 +422,8 @@ function BuildingExteriorView({
               key={`lbl-${f.id}`}
               type="button"
               className={cn(
-                "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
-                hoveredId === f.id ? "scale-110" : "hover:scale-105",
+                "absolute z-10 flex h-8 min-w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#0c1428] px-2.5 text-[11px] font-bold text-white shadow-md transition-transform duration-200",
+                hoveredId === f.id ? "scale-110 bg-[#c9a96e] text-[#0c1428]" : "hover:scale-105",
               )}
               style={{ left: `${x}%`, top: `${y}%` }}
               onMouseEnter={() => setHoveredId(f.id)}
@@ -463,7 +456,7 @@ function BuildingExteriorView({
             className={cn(
               "flex h-10 min-w-10 items-center justify-center rounded-full px-2.5 text-sm font-semibold transition-colors",
               hoveredId === f.id
-                ? "bg-[#e85d04] text-white"
+                ? "bg-[#0c1428] text-white"
                 : "bg-[#F3F4F6] text-[#0c1428] hover:bg-[#E5E7EB]",
             )}
           >
@@ -493,7 +486,7 @@ function BuildingPicker({
             key={b.id}
             type="button"
             onClick={() => onSelect(b)}
-            className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#e85d04] hover:text-white"
+            className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#0c1428] hover:text-white"
           >
             {b.name}
           </button>
@@ -596,16 +589,17 @@ export function ApartmentSalesJourney({ project }: Props) {
   if (building && floor) {
     return (
       <section id="sales-journey">
-        <JourneyBar
-          crumbs={crumbs}
-          title={d.salesJourneySelectApartment}
-          onBack={canGoBack ? goBack : undefined}
-          backLabel={d.salesJourneyBack}
-        />
         <BuildingFloorMapSection
           project={{ ...project, buildings: [building] }}
           lockedFloorId={floor.id}
-          title={d.salesJourneyFloor.replace("{n}", floor.label)}
+          overlay={
+            <JourneyOverlay
+              crumbs={crumbs}
+              title={d.salesJourneySelectApartment}
+              onBack={canGoBack ? goBack : undefined}
+              backLabel={d.salesJourneyBack}
+            />
+          }
         />
       </section>
     );

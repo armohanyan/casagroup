@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -18,6 +25,8 @@ interface Props {
   lockedFloorId?: string;
   /** Override section heading when embedded in the journey. */
   title?: string;
+  /** Sales-journey header overlay (gradient + title), same as building exterior. */
+  overlay?: ReactNode;
 }
 
 function sortedBuildings(buildings: Building[] | undefined) {
@@ -190,7 +199,7 @@ function FloorPlanCanvas({
             e.stopPropagation();
             onBackgroundClick();
           }}
-          className="absolute right-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center bg-transparent text-white hover:opacity-80 sm:right-3 sm:top-3 sm:h-9 sm:w-9"
+          className="absolute right-2.5 top-2.5 z-40 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm hover:bg-black/55 sm:right-3 sm:top-3 sm:h-9 sm:w-9"
           aria-label={t.developerDetail.floorMapExpand}
         >
           <Expand size={15} aria-hidden />
@@ -200,7 +209,7 @@ function FloorPlanCanvas({
   );
 }
 
-export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props) {
+export function BuildingFloorMapSection({ project, lockedFloorId, title, overlay }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const buildings = useMemo(() => sortedBuildings(project.buildings), [project.buildings]);
@@ -287,10 +296,125 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
     router.push(`/projects/${project.slug}/apartments/${aptId}`);
   };
 
+  const floorCanvas = selectedFloor ? (
+    <div className="relative w-full">
+      {overlay}
+      <FloorPlanCanvas
+        floor={selectedFloor}
+        aptById={aptById}
+        title={t.developerDetail.floorMapTitle}
+        hoveredAptId={hoveredAptId}
+        tooltip={tooltip}
+        onHover={(aptId, x, y) => {
+          setHoveredAptId(aptId);
+          setTooltip({ aptId, x, y });
+        }}
+        onLeave={() => {
+          setHoveredAptId(null);
+          setTooltip(null);
+        }}
+        onAptClick={goToApt}
+        onBackgroundClick={() => setExpanded(true)}
+        showExpandHint
+      />
+      {!selectedFloor.hotspots.length && (
+        <p
+          className={cn(
+            "mt-3 text-center text-xs text-[#9CA3AF]",
+            !locked && "lg:text-left",
+            locked && "px-4 sm:px-6 lg:px-8",
+          )}
+        >
+          {t.developerDetail.floorMapNoHotspots}
+        </p>
+      )}
+      {!locked ? (
+        <p className="mt-2 text-center text-[11px] text-[#9CA3AF] sm:hidden">
+          {t.developerDetail.floorMapExpandHint}
+        </p>
+      ) : null}
+    </div>
+  ) : (
+    <div className="flex h-48 items-center justify-center text-sm text-[#9CA3AF] sm:h-64">
+      {t.developerDetail.floorMapEmpty}
+    </div>
+  );
+
+  // Locked journey: full-bleed floor map with gradient title overlay
+  if (locked) {
+    return (
+      <section id="building-floors" className="w-full">
+        {floorCanvas}
+
+        <AnimatePresence>
+          {expanded && selectedFloor ? (
+            <motion.div
+              className="fixed inset-0 z-[1200] flex flex-col bg-black/95"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={t.developerDetail.floorMapExpand}
+            >
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-white">
+                    {t.developerDetail.floorMapTitle}
+                    {selectedBuilding?.name ? ` · ${selectedBuilding.name}` : ""}
+                  </p>
+                  <p className="mt-0.5 text-xs text-white/50">
+                    {t.developerDetail.chooseFloor}: {selectedFloor.label}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setExpanded(false)}
+                  className="shrink-0 rounded-full p-2 text-white hover:bg-white/10"
+                  aria-label="Close"
+                >
+                  <X size={22} />
+                </button>
+              </div>
+
+              <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-3 sm:p-6">
+                <div className="w-full max-w-6xl">
+                  <FloorPlanCanvas
+                    floor={selectedFloor}
+                    aptById={aptById}
+                    title={t.developerDetail.floorMapTitle}
+                    hoveredAptId={expandedHoveredAptId}
+                    tooltip={expandedTooltip}
+                    onHover={(aptId, x, y) => {
+                      setExpandedHoveredAptId(aptId);
+                      setExpandedTooltip({ aptId, x, y });
+                    }}
+                    onLeave={() => {
+                      setExpandedHoveredAptId(null);
+                      setExpandedTooltip(null);
+                    }}
+                    onAptClick={(aptId) => {
+                      setExpanded(false);
+                      goToApt(aptId);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <p className="shrink-0 px-4 pb-4 text-center text-xs text-white/40">
+                {t.developerDetail.floorMapExpandHint}
+              </p>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+      </section>
+    );
+  }
+
   return (
     <section id="building-floors" className="scroll-mt-24 border-t border-[#E5E7EB]">
       <Container className="py-10 md:py-14">
-        {!locked && buildings.length > 1 && (
+        {buildings.length > 1 && (
           <div className="mb-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div
               className="flex min-w-max gap-2"
@@ -327,74 +451,37 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
         </h2>
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 xl:gap-10">
-          {!locked ? (
-            <div className="w-full shrink-0 lg:w-[140px] xl:w-[160px]">
-              <p className="mb-2.5 text-sm font-medium text-[#6B7280]">{t.developerDetail.chooseFloor}</p>
-              <div
-                className="flex flex-wrap gap-2.5 lg:flex-col"
-                role="listbox"
-                aria-label={t.developerDetail.chooseFloor}
-              >
-                {floors.map((floor) => {
-                  const active = floor.id === selectedFloor?.id;
-                  return (
-                    <button
-                      key={floor.id}
-                      type="button"
-                      role="option"
-                      aria-selected={active}
-                      onClick={() => setSelectedFloorId(floor.id)}
-                      className={cn(
-                        "box-border flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
-                        active
-                          ? "border-[#c9a96e] bg-transparent text-[#0c1428]"
-                          : "border-transparent bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#0c1428]",
-                      )}
-                    >
-                      {floor.label}
-                    </button>
-                  );
-                })}
-              </div>
+          <div className="w-full shrink-0 lg:w-[140px] xl:w-[160px]">
+            <p className="mb-2.5 text-sm font-medium text-[#6B7280]">{t.developerDetail.chooseFloor}</p>
+            <div
+              className="flex flex-wrap gap-2.5 lg:flex-col"
+              role="listbox"
+              aria-label={t.developerDetail.chooseFloor}
+            >
+              {floors.map((floor) => {
+                const active = floor.id === selectedFloor?.id;
+                return (
+                  <button
+                    key={floor.id}
+                    type="button"
+                    role="option"
+                    aria-selected={active}
+                    onClick={() => setSelectedFloorId(floor.id)}
+                    className={cn(
+                      "box-border flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
+                      active
+                        ? "border-[#c9a96e] bg-transparent text-[#0c1428]"
+                        : "border-transparent bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#0c1428]",
+                    )}
+                  >
+                    {floor.label}
+                  </button>
+                );
+              })}
             </div>
-          ) : null}
-
-          <div className="relative min-w-0 flex-1">
-            {selectedFloor ? (
-              <div className="relative w-full">
-                <FloorPlanCanvas
-                  floor={selectedFloor}
-                  aptById={aptById}
-                  title={t.developerDetail.floorMapTitle}
-                  hoveredAptId={hoveredAptId}
-                  tooltip={tooltip}
-                  onHover={(aptId, x, y) => {
-                    setHoveredAptId(aptId);
-                    setTooltip({ aptId, x, y });
-                  }}
-                  onLeave={() => {
-                    setHoveredAptId(null);
-                    setTooltip(null);
-                  }}
-                  onAptClick={goToApt}
-                  onBackgroundClick={() => setExpanded(true)}
-                  showExpandHint
-                />
-                {!selectedFloor.hotspots.length && (
-                  <p className="mt-3 text-center text-xs text-[#9CA3AF] lg:text-left">
-                    {t.developerDetail.floorMapNoHotspots}
-                  </p>
-                )}
-                <p className="mt-2 text-center text-[11px] text-[#9CA3AF] sm:hidden">
-                  {t.developerDetail.floorMapExpandHint}
-                </p>
-              </div>
-            ) : (
-              <div className="flex h-48 items-center justify-center text-sm text-[#9CA3AF] sm:h-64">
-                {t.developerDetail.floorMapEmpty}
-              </div>
-            )}
           </div>
+
+          <div className="relative min-w-0 flex-1">{floorCanvas}</div>
         </div>
       </Container>
 
