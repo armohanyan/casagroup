@@ -917,13 +917,14 @@ export function AdminProjectEditor({ projectId }: Props) {
         droneVideos: (form.droneVideos ?? []).filter((v) => v.url.trim()),
       };
       if (isNew) {
-        await addProject(payload as Omit<Project, "id" | "slug">);
+        const created = await addProject(payload as Omit<Project, "id" | "slug">);
         toast(a.toastPublished);
+        router.replace(`${ADMIN_BASE}/projects/${created.id}`);
       } else if (projectId) {
-        await updateProject(projectId, payload as Partial<Project>);
+        const updated = await updateProject(projectId, payload as Partial<Project>);
+        setForm(updated);
         toast(a.toastUpdated);
       }
-      router.push(`${ADMIN_BASE}/projects`);
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), "error");
     } finally {
@@ -1097,8 +1098,22 @@ export function AdminProjectEditor({ projectId }: Props) {
       ? apartmentsForFloorPlate(floorModalBuildingId, floorCloneSource)
       : [];
 
+  const actionButtons = (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      <button type="button" className={adminBtnSecondary} onClick={() => router.push(`${ADMIN_BASE}/projects`)}>
+        <X size={15} /> {a.cancel}
+      </button>
+      <button type="button" disabled={saving} className={adminBtnSecondary} onClick={() => handleSave(true)}>
+        Draft
+      </button>
+      <button type="button" disabled={saving} className={adminBtnPrimary} onClick={() => handleSave(false)}>
+        <Save size={15} /> {isNew ? a.publishProject : a.saveChanges}
+      </button>
+    </div>
+  );
+
   return (
-    <div>
+    <div className="pb-24">
       <AdminPageHeader
         title={isNew ? a.seoNew : `${a.saveChanges}: ${form.titleHy?.trim() || form.title || "…"}`}
         breadcrumbs={[
@@ -1107,25 +1122,14 @@ export function AdminProjectEditor({ projectId }: Props) {
           { label: isNew ? "Նոր" : "Խմբագրել" },
         ]}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            {!isNew && form.id ? (
-              <ProjectViewCount
-                projectId={form.id}
-                count={existing?.viewCount}
-                label="Դիտումներ"
-                className="mr-1 rounded-[5px] border border-[#E5E7EB] bg-white px-2.5 py-1.5"
-              />
-            ) : null}
-            <button type="button" className={adminBtnSecondary} onClick={() => router.push(`${ADMIN_BASE}/projects`)}>
-              <X size={15} /> {a.cancel}
-            </button>
-            <button type="button" disabled={saving} className={adminBtnSecondary} onClick={() => handleSave(true)}>
-              Draft
-            </button>
-            <button type="button" disabled={saving} className={adminBtnPrimary} onClick={() => handleSave(false)}>
-              <Save size={15} /> {isNew ? a.publishProject : a.saveChanges}
-            </button>
-          </div>
+          !isNew && form.id ? (
+            <ProjectViewCount
+              projectId={form.id}
+              count={existing?.viewCount}
+              label="Դիտումներ"
+              className="rounded-[5px] border border-[#E5E7EB] bg-white px-2.5 py-1.5"
+            />
+          ) : null
         }
       />
 
@@ -2658,6 +2662,10 @@ export function AdminProjectEditor({ projectId }: Props) {
           />
         </Field>
       </AdminModal>
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#E8EAED] bg-white/95 pl-0 backdrop-blur-md lg:pl-[var(--admin-sidebar-w,260px)]">
+        <div className="px-4 py-3 sm:px-6 lg:px-8">{actionButtons}</div>
+      </div>
     </div>
   );
 }

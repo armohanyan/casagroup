@@ -47,6 +47,7 @@ export function AdminShell({ children, title }: Props) {
             "flex min-h-screen flex-col transition-[padding] duration-300 ease-out",
             collapsed ? "lg:pl-[72px]" : "lg:pl-[260px]",
           )}
+          style={{ ["--admin-sidebar-w" as string]: collapsed ? "72px" : "260px" }}
         >
           <AdminTopbar
             onMenuClick={() => setMobileOpen(true)}
