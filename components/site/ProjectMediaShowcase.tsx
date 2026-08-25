@@ -121,24 +121,21 @@ export function ProjectMediaShowcase({ project, items }: Props) {
           {active && (
             <motion.div
               key={active.url + safeIndex}
-              className="absolute inset-0 pointer-events-none flex justify-center"
+              className="absolute inset-0 pointer-events-none"
               initial={{ opacity: 0, scale: 1.02 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
             >
-              {/* Cap width on ultrawide so object-cover does not crop the building too aggressively */}
-              <div className="relative h-full w-full max-w-[1600px] 2xl:max-w-[1760px]">
-                <Image
-                  src={active.url}
-                  alt={`${title} — ${categoryLabel(active.category)}`}
-                  fill
-                  priority
-                  unoptimized
-                  sizes="(max-width: 1600px) 100vw, 1760px"
-                  className="object-cover object-center"
-                />
-              </div>
+              <Image
+                src={active.url}
+                alt={`${title} — ${categoryLabel(active.category)}`}
+                fill
+                priority
+                unoptimized
+                sizes="100vw"
+                className="object-cover object-center"
+              />
             </motion.div>
           )}
         </AnimatePresence>
