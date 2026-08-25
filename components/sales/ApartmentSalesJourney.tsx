@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Container } from "@/components/site/Container";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
@@ -23,6 +23,10 @@ interface Props {
 
 type Crumb = { id: string; label: string };
 
+/** Full-bleed map frame: edge-to-edge width, capped height. */
+const MAP_FRAME =
+  "relative w-full h-[min(50vh,480px)] overflow-hidden";
+
 function stageLabel(stage: ProjectMapStage, lang: Lang): string {
   if (lang === "hy") return stage.labelHy?.trim() || stage.label || stage.labelRu || "";
   if (lang === "ru") return stage.labelRu?.trim() || stage.label || stage.labelHy || "";
@@ -41,7 +45,7 @@ function markerPos(h: MapStageHotspot): { x: number; y: number } {
   return { x: sx / h.points.length, y: sy / h.points.length };
 }
 
-function JourneyHeader({
+function JourneyOverlay({
   crumbs,
   title,
   onBack,
@@ -53,11 +57,37 @@ function JourneyHeader({
   backLabel?: string;
 }) {
   return (
-    <div className="px-4 py-6 sm:px-6 md:py-8 lg:px-8">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-30 bg-gradient-to-b from-black/60 via-black/30 to-transparent pb-14 pt-4 sm:pb-16 sm:pt-5">
+      <div className="pointer-events-auto px-4 sm:px-6 lg:px-8">
+        {crumbs.length > 1 && onBack && backLabel ? (
+          <JourneyBreadcrumbs crumbs={crumbs} onBack={onBack} backLabel={backLabel} onImage />
+        ) : null}
+        <h2 className="text-xl font-semibold tracking-tight text-white drop-shadow-sm sm:text-2xl">
+          {title}
+        </h2>
+      </div>
+    </div>
+  );
+}
+
+/** Compact header when there is no map image (e.g. floor plate). */
+function JourneyBar({
+  crumbs,
+  title,
+  onBack,
+  backLabel,
+}: {
+  crumbs: Crumb[];
+  title: string;
+  onBack?: () => void;
+  backLabel?: string;
+}) {
+  return (
+    <div className="border-b border-[#E5E7EB] px-4 py-3 sm:px-6 lg:px-8">
       {crumbs.length > 1 && onBack && backLabel ? (
         <JourneyBreadcrumbs crumbs={crumbs} onBack={onBack} backLabel={backLabel} />
       ) : null}
-      <h2 className="text-2xl font-semibold tracking-tight text-[#0c1428] sm:text-3xl">{title}</h2>
+      <h2 className="text-lg font-semibold tracking-tight text-[#0c1428] sm:text-xl">{title}</h2>
     </div>
   );
 }
@@ -70,6 +100,7 @@ function MapStageView({
   onSelectStage,
   onSelectBuilding,
   moreLabel,
+  overlay,
 }: {
   stage: ProjectMapStage;
   stagesById: Map<string, ProjectMapStage>;
@@ -78,6 +109,7 @@ function MapStageView({
   onSelectStage: (stage: ProjectMapStage) => void;
   onSelectBuilding: (building: Building) => void;
   moreLabel: string;
+  overlay?: ReactNode;
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const hovered = stage.hotspots.find((h) => h.id === hoveredId) ?? null;
@@ -106,75 +138,73 @@ function MapStageView({
   }
 
   return (
-    <div className="flex w-full justify-center overflow-hidden">
-      {/* Shrink-wrap to the scaled image so % hotspots stay aligned (no letterboxing). */}
-      <div className="relative inline-block max-h-[min(65vh,640px)] max-w-full">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={stage.imageUrl}
-          alt={stage.label}
-          className="pointer-events-none block h-auto max-h-[min(65vh,640px)] w-auto max-w-full select-none"
-          draggable={false}
-        />
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full"
-        >
-          {stage.hotspots.map((h) =>
-            h.points.length >= 3 ? (
-              <polygon
-                key={h.id}
-                points={pointsToSvg(h.points)}
-                className={cn(
-                  "cursor-pointer transition-opacity duration-200",
-                  hoveredId === h.id
-                    ? "fill-[#e85d04]/50 stroke-[#e85d04]"
-                    : "fill-transparent stroke-transparent hover:fill-[#e85d04]/30",
-                )}
-                strokeWidth={0.3}
-                onMouseEnter={() => setHoveredId(h.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onClick={() => activate(h)}
-              />
-            ) : null,
-          )}
-        </svg>
-        {stage.hotspots.map((h) => {
-          const m = markerPos(h);
-          return (
-            <button
-              key={`m-${h.id}`}
-              type="button"
+    <div className={MAP_FRAME}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={stage.imageUrl}
+        alt={stage.label}
+        className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+        draggable={false}
+      />
+      {overlay}
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        className="absolute inset-0 z-[5] h-full w-full"
+      >
+        {stage.hotspots.map((h) =>
+          h.points.length >= 3 ? (
+            <polygon
+              key={h.id}
+              points={pointsToSvg(h.points)}
               className={cn(
-                "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
-                hoveredId === h.id ? "scale-110" : "hover:scale-105",
+                "cursor-pointer transition-opacity duration-200",
+                hoveredId === h.id
+                  ? "fill-[#e85d04]/50 stroke-[#e85d04]"
+                  : "fill-transparent stroke-transparent hover:fill-[#e85d04]/30",
               )}
-              style={{ left: `${m.x}%`, top: `${m.y}%` }}
+              strokeWidth={0.3}
               onMouseEnter={() => setHoveredId(h.id)}
               onMouseLeave={() => setHoveredId(null)}
               onClick={() => activate(h)}
-            >
-              {h.label || "·"}
-            </button>
-          );
-        })}
-        {hovered && tip ? (
-          <div
-            className="pointer-events-auto absolute z-20 min-w-[9.5rem] -translate-x-1/2 -translate-y-[110%] rounded-[5px] bg-white px-3.5 py-2.5 shadow-xl"
-            style={{ left: `${tip.x}%`, top: `${tip.y}%` }}
+            />
+          ) : null,
+        )}
+      </svg>
+      {stage.hotspots.map((h) => {
+        const m = markerPos(h);
+        return (
+          <button
+            key={`m-${h.id}`}
+            type="button"
+            className={cn(
+              "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
+              hoveredId === h.id ? "scale-110" : "hover:scale-105",
+            )}
+            style={{ left: `${m.x}%`, top: `${m.y}%` }}
+            onMouseEnter={() => setHoveredId(h.id)}
+            onMouseLeave={() => setHoveredId(null)}
+            onClick={() => activate(h)}
           >
-            <p className="mb-2 text-sm font-semibold text-[#0c1428]">{tipTitle || hovered.label}</p>
-            <button
-              type="button"
-              className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#d45303]"
-              onClick={() => activate(hovered)}
-            >
-              {moreLabel}
-            </button>
-          </div>
-        ) : null}
-      </div>
+            {h.label || "·"}
+          </button>
+        );
+      })}
+      {hovered && tip ? (
+        <div
+          className="pointer-events-auto absolute z-20 min-w-[9.5rem] -translate-x-1/2 -translate-y-[110%] rounded-[5px] bg-white px-3.5 py-2.5 shadow-xl"
+          style={{ left: `${tip.x}%`, top: `${tip.y}%` }}
+        >
+          <p className="mb-2 text-sm font-semibold text-[#0c1428]">{tipTitle || hovered.label}</p>
+          <button
+            type="button"
+            className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#d45303]"
+            onClick={() => activate(hovered)}
+          >
+            {moreLabel}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -186,6 +216,7 @@ function BuildingExteriorView({
   moreLabel,
   floorLabelTemplate,
   emptyLabel,
+  overlay,
 }: {
   building: Building;
   floors: BuildingFloor[];
@@ -193,6 +224,7 @@ function BuildingExteriorView({
   moreLabel: string;
   floorLabelTemplate: string;
   emptyLabel: string;
+  overlay?: ReactNode;
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const exterior = building.exteriorImageUrl?.trim() ?? "";
@@ -221,77 +253,75 @@ function BuildingExteriorView({
 
   return (
     <div className="w-full">
-      {/* Same overlay model as admin PlanHotspotCanvas: image sizes the box, SVG matches it. */}
-      <div className="flex w-full justify-center overflow-hidden">
-        <div className="relative inline-block max-h-[min(65vh,640px)] max-w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={exterior}
-            alt={building.name}
-            className="pointer-events-none block h-auto max-h-[min(65vh,640px)] w-auto max-w-full select-none"
-            draggable={false}
-          />
-          <svg
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            className="absolute inset-0 h-full w-full"
-          >
-            {withBands.map((f) => (
-              <polygon
-                key={f.id}
-                points={pointsToSvg(f.exteriorHotspot as [number, number][])}
-                className={cn(
-                  "cursor-pointer transition-opacity duration-200",
-                  hoveredId === f.id
-                    ? "fill-[#e85d04]/50 stroke-[#e85d04]"
-                    : "fill-transparent hover:fill-[#e85d04]/30",
-                )}
-                strokeWidth={0.25}
-                onMouseEnter={() => setHoveredId(f.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onClick={() => onSelectFloor(f)}
-              />
-            ))}
-          </svg>
-          {floors.map((f) => {
-            const pts = f.exteriorHotspot;
-            if (!pts || pts.length < 3) return null;
-            const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
-            const y = pts.reduce((s, p) => s + p[1], 0) / pts.length;
-            return (
-              <button
-                key={`lbl-${f.id}`}
-                type="button"
-                className={cn(
-                  "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
-                  hoveredId === f.id ? "scale-110" : "hover:scale-105",
-                )}
-                style={{ left: `${x}%`, top: `${y}%` }}
-                onMouseEnter={() => setHoveredId(f.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onClick={() => onSelectFloor(f)}
-              >
-                {f.label}
-              </button>
-            );
-          })}
-          {hovered ? (
-            <div className="absolute left-1/2 top-6 z-20 w-44 -translate-x-1/2 rounded-[5px] bg-white px-3.5 py-2.5 shadow-xl">
-              <p className="mb-2 text-sm font-semibold text-[#0c1428]">
-                {floorLabelTemplate.replace("{n}", hovered.label)}
-              </p>
-              <button
-                type="button"
-                className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#d45303]"
-                onClick={() => onSelectFloor(hovered)}
-              >
-                {moreLabel}
-              </button>
-            </div>
-          ) : null}
-        </div>
+      <div className={MAP_FRAME}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={exterior}
+          alt={building.name}
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+          draggable={false}
+        />
+        {overlay}
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute inset-0 z-[5] h-full w-full"
+        >
+          {withBands.map((f) => (
+            <polygon
+              key={f.id}
+              points={pointsToSvg(f.exteriorHotspot as [number, number][])}
+              className={cn(
+                "cursor-pointer transition-opacity duration-200",
+                hoveredId === f.id
+                  ? "fill-[#e85d04]/50 stroke-[#e85d04]"
+                  : "fill-transparent hover:fill-[#e85d04]/30",
+              )}
+              strokeWidth={0.25}
+              onMouseEnter={() => setHoveredId(f.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              onClick={() => onSelectFloor(f)}
+            />
+          ))}
+        </svg>
+        {floors.map((f) => {
+          const pts = f.exteriorHotspot;
+          if (!pts || pts.length < 3) return null;
+          const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+          const y = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+          return (
+            <button
+              key={`lbl-${f.id}`}
+              type="button"
+              className={cn(
+                "absolute z-10 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#e85d04] text-[11px] font-bold text-white shadow-md transition-transform duration-200",
+                hoveredId === f.id ? "scale-110" : "hover:scale-105",
+              )}
+              style={{ left: `${x}%`, top: `${y}%` }}
+              onMouseEnter={() => setHoveredId(f.id)}
+              onMouseLeave={() => setHoveredId(null)}
+              onClick={() => onSelectFloor(f)}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+        {hovered ? (
+          <div className="absolute left-1/2 top-20 z-20 w-44 -translate-x-1/2 rounded-[5px] bg-white px-3.5 py-2.5 shadow-xl sm:top-24">
+            <p className="mb-2 text-sm font-semibold text-[#0c1428]">
+              {floorLabelTemplate.replace("{n}", hovered.label)}
+            </p>
+            <button
+              type="button"
+              className="w-full rounded-[5px] bg-[#e85d04] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#d45303]"
+              onClick={() => onSelectFloor(hovered)}
+            >
+              {moreLabel}
+            </button>
+          </div>
+        ) : null}
       </div>
-      <div className="flex flex-wrap justify-center gap-2 px-4 py-5 sm:px-6 lg:px-8">
+      <div className="flex flex-wrap justify-center gap-2 px-4 py-4 sm:px-6 lg:px-8">
         {floors.map((f) => (
           <button
             key={f.id}
@@ -407,7 +437,6 @@ export function ApartmentSalesJourney({ project }: Props) {
     setFloor(f);
   }
 
-  // floors mode starting at exterior: pick first / allow building tabs
   const exteriorBuildings = useMemo(() => {
     return [...(project.buildings ?? [])]
       .filter((b) => b.name.trim())
@@ -415,22 +444,25 @@ export function ApartmentSalesJourney({ project }: Props) {
   }, [project.buildings]);
 
   if (mode === "floors" && !building && exteriorBuildings.some((b) => b.exteriorImageUrl?.trim())) {
+    const title = t.developerDetail.salesJourneyTitle;
     return (
       <section id="sales-journey">
-        <JourneyHeader title={t.developerDetail.salesJourneyTitle} crumbs={crumbs} />
         {exteriorBuildings.length > 1 ? (
-          <div className="flex flex-wrap gap-2 px-4 pb-6 sm:px-6 lg:px-8">
-            {exteriorBuildings.map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => selectBuilding(b)}
-                className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#e85d04] hover:text-white"
-              >
-                {b.name}
-              </button>
-            ))}
-          </div>
+          <>
+            <JourneyBar title={title} crumbs={crumbs} />
+            <div className="flex flex-wrap gap-2 px-4 py-4 sm:px-6 lg:px-8">
+              {exteriorBuildings.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => selectBuilding(b)}
+                  className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#e85d04] hover:text-white"
+                >
+                  {b.name}
+                </button>
+              ))}
+            </div>
+          </>
         ) : (
           <BuildingExteriorView
             building={exteriorBuildings[0]}
@@ -446,17 +478,17 @@ export function ApartmentSalesJourney({ project }: Props) {
             moreLabel={t.developerDetail.salesJourneyMore}
             floorLabelTemplate={t.developerDetail.salesJourneyFloor}
             emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
+            overlay={<JourneyOverlay crumbs={crumbs} title={title} />}
           />
         )}
       </section>
     );
   }
 
-  // After floor picked in floors-only quick path — show plate via filtered section
   if (mode === "floors" && building && floor) {
     return (
       <section id="sales-journey">
-        <JourneyHeader
+        <JourneyBar
           crumbs={crumbs}
           title={building.name}
           onBack={goBack}
@@ -483,12 +515,6 @@ export function ApartmentSalesJourney({ project }: Props) {
     );
     return (
       <section id="sales-journey">
-        <JourneyHeader
-          crumbs={crumbs}
-          title={building.name}
-          onBack={goBack}
-          backLabel={t.developerDetail.salesJourneyBack}
-        />
         <BuildingExteriorView
           building={building}
           floors={floors}
@@ -496,12 +522,19 @@ export function ApartmentSalesJourney({ project }: Props) {
           moreLabel={t.developerDetail.salesJourneyMore}
           floorLabelTemplate={t.developerDetail.salesJourneyFloor}
           emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
+          overlay={
+            <JourneyOverlay
+              crumbs={crumbs}
+              title={building.name}
+              onBack={goBack}
+              backLabel={t.developerDetail.salesJourneyBack}
+            />
+          }
         />
       </section>
     );
   }
 
-  // master / complex / buildings journey
   if (!usesMapStages(mode)) {
     return <BuildingFloorMapSection project={project} />;
   }
@@ -523,7 +556,7 @@ export function ApartmentSalesJourney({ project }: Props) {
   if (showFloorPlate && building && floor) {
     return (
       <section id="sales-journey">
-        <JourneyHeader
+        <JourneyBar
           crumbs={crumbs}
           title={building.name}
           onBack={goBack}
@@ -545,15 +578,17 @@ export function ApartmentSalesJourney({ project }: Props) {
       ? stageLabel(currentStage, lang)
       : t.developerDetail.salesJourneyTitle;
 
+  const overlay = (
+    <JourneyOverlay
+      crumbs={crumbs}
+      title={heading}
+      onBack={crumbs.length > 1 ? goBack : undefined}
+      backLabel={t.developerDetail.salesJourneyBack}
+    />
+  );
+
   return (
     <section id="sales-journey">
-      <JourneyHeader
-        crumbs={crumbs}
-        title={heading}
-        onBack={crumbs.length > 1 ? goBack : undefined}
-        backLabel={t.developerDetail.salesJourneyBack}
-      />
-
       {showMap && currentStage ? (
         <MapStageView
           stage={currentStage}
@@ -567,6 +602,7 @@ export function ApartmentSalesJourney({ project }: Props) {
           }}
           onSelectBuilding={selectBuilding}
           moreLabel={t.developerDetail.salesJourneyMore}
+          overlay={overlay}
         />
       ) : null}
 
@@ -582,6 +618,7 @@ export function ApartmentSalesJourney({ project }: Props) {
           moreLabel={t.developerDetail.salesJourneyMore}
           floorLabelTemplate={t.developerDetail.salesJourneyFloor}
           emptyLabel={t.developerDetail.salesJourneyEmptyExterior}
+          overlay={overlay}
         />
       ) : null}
     </section>
@@ -592,26 +629,41 @@ function JourneyBreadcrumbs({
   crumbs,
   onBack,
   backLabel,
+  onImage = false,
 }: {
   crumbs: Crumb[];
   onBack: () => void;
   backLabel: string;
+  onImage?: boolean;
 }) {
   if (crumbs.length <= 1) return null;
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+    <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
       <button
         type="button"
         onClick={onBack}
-        className="font-semibold text-[#6B7280] transition-colors hover:text-[#0c1428]"
+        className={cn(
+          "font-semibold transition-colors",
+          onImage ? "text-white/80 hover:text-white" : "text-[#6B7280] hover:text-[#0c1428]",
+        )}
       >
         ← {backLabel}
       </button>
-      <span className="text-[#D1D5DB]">|</span>
+      <span className={onImage ? "text-white/35" : "text-[#D1D5DB]"}>|</span>
       {crumbs.map((c, i) => (
         <span key={c.id} className="inline-flex items-center gap-2">
-          {i > 0 ? <span className="text-[#D1D5DB]">/</span> : null}
-          <span className={i === crumbs.length - 1 ? "font-semibold text-[#e85d04]" : "text-[#6B7280]"}>
+          {i > 0 ? <span className={onImage ? "text-white/35" : "text-[#D1D5DB]"}>/</span> : null}
+          <span
+            className={
+              i === crumbs.length - 1
+                ? onImage
+                  ? "font-semibold text-[#c9a96e]"
+                  : "font-semibold text-[#e85d04]"
+                : onImage
+                  ? "text-white/70"
+                  : "text-[#6B7280]"
+            }
+          >
             {c.label}
           </span>
         </span>
