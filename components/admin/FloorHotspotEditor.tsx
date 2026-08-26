@@ -43,9 +43,22 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
     }
   }, [apartments, selectedAptId]);
 
+  function selectApartment(id: string) {
+    setSelectedAptId(id);
+    const existing = floor.hotspots.find((h) => h.apartmentId === id);
+    setDraft(
+      existing && existing.points.length >= 3
+        ? existing.points.map((p) => [p[0], p[1]] as [number, number])
+        : [],
+    );
+  }
+
   function finishPolygon() {
     if (!selectedAptId || draft.length < 3) return;
-    const next: FloorHotspot = { apartmentId: selectedAptId, points: draft };
+    const next: FloorHotspot = {
+      apartmentId: selectedAptId,
+      points: draft.map((p) => [p[0], p[1]] as [number, number]),
+    };
     onChange({
       hotspots: [...floor.hotspots.filter((h) => h.apartmentId !== selectedAptId), next],
     });
@@ -54,6 +67,7 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
 
   function removeHotspot(apartmentId: string) {
     onChange({ hotspots: floor.hotspots.filter((h) => h.apartmentId !== apartmentId) });
+    if (apartmentId === selectedAptId) setDraft([]);
   }
 
   const aptLabel = (id: string) => {
@@ -85,10 +99,7 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
           <select
             className={adminSelectCls}
             value={selectedAptId}
-            onChange={(e) => {
-              setSelectedAptId(e.target.value);
-              setDraft([]);
-            }}
+            onChange={(e) => selectApartment(e.target.value)}
             disabled={apartments.length === 0}
           >
             {apartments.length === 0 ? (
@@ -150,17 +161,17 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
           if (!selectedAptId) return;
           setDraft((d) => [...d, pt]);
         }}
+        onMovePoint={(index, pt) => setDraft((d) => d.map((p, i) => (i === index ? pt : p)))}
         onFinishDraft={finishPolygon}
-        onSelectPolygon={(id) => {
-          setSelectedAptId(id);
-          setDraft([]);
-        }}
-        polygons={floor.hotspots.map((h) => ({
-          id: h.apartmentId,
-          points: h.points,
-          active: h.apartmentId === selectedAptId,
-          dimmed: Boolean(selectedAptId) && h.apartmentId !== selectedAptId,
-        }))}
+        onSelectPolygon={(id) => selectApartment(id)}
+        polygons={floor.hotspots
+          .filter((h) => !(h.apartmentId === selectedAptId && draft.length > 0))
+          .map((h) => ({
+            id: h.apartmentId,
+            points: h.points,
+            active: h.apartmentId === selectedAptId,
+            dimmed: Boolean(selectedAptId) && h.apartmentId !== selectedAptId,
+          }))}
         labels={{
           zoomIn: labels.zoomIn,
           zoomOut: labels.zoomOut,
@@ -183,10 +194,7 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
               <button
                 type="button"
                 className="min-w-0 truncate text-left text-[#0c1428] hover:underline"
-                onClick={() => {
-                  setSelectedAptId(h.apartmentId);
-                  setDraft([]);
-                }}
+                onClick={() => selectApartment(h.apartmentId)}
               >
                 {aptLabel(h.apartmentId)}
               </button>

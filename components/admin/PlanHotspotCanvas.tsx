@@ -20,6 +20,8 @@ type Props = {
   /** When true, existing polygons ignore pointer events so shared borders don't block drawing. */
   drawing: boolean;
   onAddPoint: (pt: PlanPoint) => void;
+  /** Move an existing draft vertex (index in `draft`). */
+  onMovePoint?: (index: number, pt: PlanPoint) => void;
   onSelectPolygon?: (id: string) => void;
   onFinishDraft?: () => void;
   labels: {
@@ -38,6 +40,9 @@ function pointsToSvg(points: PlanPoint[]) {
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 6;
 const ZOOM_STEP = 0.25;
+/** Target handle radius on screen (px), independent of image aspect ratio. */
+const HANDLE_PX = 5;
+const HANDLE_HIT_PX = 12;
 
 export function PlanHotspotCanvas({
   imageUrl,
@@ -45,6 +50,7 @@ export function PlanHotspotCanvas({
   draft,
   drawing,
   onAddPoint,
+  onMovePoint,
   onSelectPolygon,
   onFinishDraft,
   labels,
@@ -56,11 +62,18 @@ export function PlanHotspotCanvas({
   const [panMode, setPanMode] = useState(false);
   const [spaceHeld, setSpaceHeld] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [svgSize, setSvgSize] = useState({ w: 1, h: 1 });
   const dragRef = useRef<{ active: boolean; x: number; y: number }>({
     active: false,
     x: 0,
     y: 0,
   });
+  const pointDragRef = useRef<{
+    index: number;
+    pointerId: number;
+    moved: boolean;
+  } | null>(null);
+  const suppressClickRef = useRef(false);
 
   const panning = panMode || spaceHeld;
 
@@ -111,6 +124,21 @@ export function PlanHotspotCanvas({
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const sync = () => {
+      const rect = svg.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setSvgSize({ w: rect.width, h: rect.height });
+      }
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(svg);
+    return () => ro.disconnect();
+  }, [imageUrl, zoom]);
+
   function resetView() {
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -147,7 +175,16 @@ export function PlanHotspotCanvas({
     return [Math.min(100, Math.max(0, x)), Math.min(100, Math.max(0, y))];
   }
 
+  /** Circular on screen despite preserveAspectRatio=none. */
+  function handleRadii(px: number) {
+    return {
+      rx: (px / Math.max(svgSize.w, 1)) * 100,
+      ry: (px / Math.max(svgSize.h, 1)) * 100,
+    };
+  }
+
   function onPointerDown(e: React.PointerEvent) {
+    if (pointDragRef.current) return;
     if (e.button === 1 || (e.button === 0 && panning)) {
       e.preventDefault();
       dragRef.current = { active: true, x: e.clientX, y: e.clientY };
@@ -156,6 +193,14 @@ export function PlanHotspotCanvas({
   }
 
   function onPointerMove(e: React.PointerEvent) {
+    const pointDrag = pointDragRef.current;
+    if (pointDrag && onMovePoint) {
+      const pt = pointerToPercent(e.clientX, e.clientY);
+      if (!pt) return;
+      pointDrag.moved = true;
+      onMovePoint(pointDrag.index, pt);
+      return;
+    }
     if (!dragRef.current.active) return;
     const dx = e.clientX - dragRef.current.x;
     const dy = e.clientY - dragRef.current.y;
@@ -165,6 +210,17 @@ export function PlanHotspotCanvas({
   }
 
   function onPointerUp(e: React.PointerEvent) {
+    const pointDrag = pointDragRef.current;
+    if (pointDrag && pointDrag.pointerId === e.pointerId) {
+      if (pointDrag.moved) suppressClickRef.current = true;
+      pointDragRef.current = null;
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
     if (dragRef.current.active) {
       dragRef.current.active = false;
       try {
@@ -176,7 +232,11 @@ export function PlanHotspotCanvas({
   }
 
   function onSvgClick(e: React.MouseEvent<SVGSVGElement>) {
-    if (panning || dragRef.current.active) return;
+    if (panning || dragRef.current.active || pointDragRef.current) return;
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
     if (e.detail > 1) return;
     const pt = pointerToPercent(e.clientX, e.clientY);
     if (!pt) return;
@@ -188,6 +248,17 @@ export function PlanHotspotCanvas({
     e.stopPropagation();
     onFinishDraft?.();
   }
+
+  function startPointDrag(index: number, e: React.PointerEvent) {
+    if (panning || !onMovePoint) return;
+    e.preventDefault();
+    e.stopPropagation();
+    pointDragRef.current = { index, pointerId: e.pointerId, moved: false };
+    (containerRef.current as HTMLElement | null)?.setPointerCapture(e.pointerId);
+  }
+
+  const visible = handleRadii(HANDLE_PX);
+  const hit = handleRadii(HANDLE_HIT_PX);
 
   return (
     <div className="space-y-2">
@@ -296,7 +367,7 @@ export function PlanHotspotCanvas({
                   points={pointsToSvg(draft)}
                   fill="none"
                   stroke="#c9a96e"
-                  strokeWidth={0.45}
+                  strokeWidth={0.35}
                   strokeDasharray="1.2 0.8"
                   pointerEvents="none"
                 />
@@ -309,7 +380,28 @@ export function PlanHotspotCanvas({
                   />
                 )}
                 {draft.map(([x, y], i) => (
-                  <circle key={i} cx={x} cy={y} r={0.85} fill="#c9a96e" pointerEvents="none" />
+                  <g key={i}>
+                    {/* Larger invisible hit target for easier dragging */}
+                    <ellipse
+                      cx={x}
+                      cy={y}
+                      rx={hit.rx}
+                      ry={hit.ry}
+                      fill="transparent"
+                      className={onMovePoint && !panning ? "cursor-move" : undefined}
+                      onPointerDown={(e) => startPointDrag(i, e)}
+                    />
+                    <ellipse
+                      cx={x}
+                      cy={y}
+                      rx={visible.rx}
+                      ry={visible.ry}
+                      fill="#c9a96e"
+                      stroke="#fff"
+                      strokeWidth={0.15}
+                      pointerEvents="none"
+                    />
+                  </g>
                 ))}
               </>
             )}

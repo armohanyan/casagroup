@@ -1368,7 +1368,8 @@ export const hyTranslations: Translations = {
     buildingExterior: "Շենքի ճակատ (հարկի ընտրություն)",
     buildingExteriorUpload: "Վերբեռնել ճակատը",
     exteriorSelectFloor: "Հարկի գոտի",
-    exteriorDrawHint: "Նշեք հարկի պոլիգոնը շենքի պատկերի վրա։",
+    exteriorDrawHint:
+      "Ընտրեք հարկը, ապա նշեք պոլիգոնը։ Կետերը կարելի է քաշել տեղափոխելու համար։ Առնվազն 3 կետ, ապա «Ավարտել գոտին»։",
     exteriorRemoveBand: "Մաքրել գոտին",
     sectionNeighborhood: "Թաղամաս",
     neighborhoodHint:
@@ -1419,7 +1420,7 @@ export const hyTranslations: Translations = {
     noFloorPlates: "Հարկեր չկան — ավելացրեք հարկ և վերբեռնեք շենքի հատակագծի նկարը։",
     hotspotSelectApartment: "Բնակարան՝ գոտի նշելու համար",
     hotspotDrawHint:
-      "Ընտրեք բնակարանը, ապա սեղմեք նկարի վրա՝ կետեր դնելու համար։ Առկա գոտիները չեն խանգարում նշմանը։ Անիվով կամ կոճակներով մեծացրեք նկարը։ Կրկնակի սեղմում՝ ավարտել։",
+      "Ընտրեք բնակարանը, ապա սեղմեք նկարի վրա՝ կետեր դնելու համար։ Կետերը կարելի է քաշել։ Առկա գոտիները չեն խանգարում։ Մեծացրեք նկարը՝ ճշգրիտ լինելու համար։ Կրկնակի սեղմում՝ ավարտել։",
     hotspotFinish: "Ավարտել գոտին",
     hotspotUndo: "Հետարկել կետ",
     hotspotClear: "Մաքրել",

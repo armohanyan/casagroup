@@ -74,8 +74,14 @@ export function SitePlanHotspotEditor({ imageUrl, plots, onChangePlot, labels }:
             className={adminSelectCls}
             value={selectedId}
             onChange={(e) => {
-              setSelectedId(e.target.value);
-              setDraft([]);
+              const id = e.target.value;
+              setSelectedId(id);
+              const plot = plots.find((p) => p.id === id);
+              setDraft(
+                plot && plot.points.length >= 3
+                  ? plot.points.map((p) => [p[0], p[1]] as [number, number])
+                  : [],
+              );
             }}
             disabled={drawable.length === 0}
           >
@@ -129,13 +135,19 @@ export function SitePlanHotspotEditor({ imageUrl, plots, onChangePlot, labels }:
           if (!selectedId) return;
           setDraft((d) => [...d, pt]);
         }}
+        onMovePoint={(index, pt) => setDraft((d) => d.map((p, i) => (i === index ? pt : p)))}
         onFinishDraft={finishPolygon}
         onSelectPolygon={(id) => {
           setSelectedId(id);
-          setDraft([]);
+          const plot = plots.find((p) => p.id === id);
+          setDraft(
+            plot && plot.points.length >= 3
+              ? plot.points.map((p) => [p[0], p[1]] as [number, number])
+              : [],
+          );
         }}
         polygons={plots
-          .filter((p) => p.points.length >= 3)
+          .filter((p) => p.points.length >= 3 && !(p.id === selectedId && draft.length > 0))
           .map((plot) => ({
             id: plot.id,
             points: plot.points,

@@ -259,6 +259,9 @@ function StageCard({
                 draft={draft}
                 drawing
                 onAddPoint={(pt) => onDraftChange([...draft, pt])}
+                onMovePoint={(index, pt) =>
+                  onDraftChange(draft.map((p, i) => (i === index ? pt : p)))
+                }
                 onSelectPolygon={onRemoveHotspot}
                 onFinishDraft={onFinishHotspot}
                 labels={{

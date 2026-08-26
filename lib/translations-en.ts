@@ -1360,7 +1360,8 @@ export const en = {
     buildingExterior: "Building exterior (floor picker)",
     buildingExteriorUpload: "Upload exterior",
     exteriorSelectFloor: "Floor band",
-    exteriorDrawHint: "Draw a polygon on the building image for the selected floor.",
+    exteriorDrawHint:
+      "Select a floor, then draw a polygon. Drag points to adjust. At least 3 points, then Finish zone.",
     exteriorRemoveBand: "Clear floor band",
     sectionNeighborhood: "Neighborhood",
     neighborhoodHint:
@@ -1411,7 +1412,7 @@ export const en = {
     noFloorPlates: "No floor plates yet — add floors and upload the building floor plan image.",
     hotspotSelectApartment: "Apartment to map",
     hotspotDrawHint:
-      "Select an apartment, then click the image to place points. Existing zones won't block drawing. Use the wheel or buttons to zoom. Double-click to finish.",
+      "Select an apartment, then click to place points. Drag points to adjust. Existing zones won't block drawing. Zoom for precision. Double-click to finish.",
     hotspotFinish: "Finish zone",
     hotspotUndo: "Undo point",
     hotspotClear: "Clear draft",

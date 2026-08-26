@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
 import { adminBtnSecondary, adminInputCls, adminSelectCls } from "@/components/admin/admin-config";
@@ -44,6 +44,11 @@ interface Props {
   labels: Labels;
 }
 
+function draftFromFloor(floor: BuildingFloor | undefined): [number, number][] {
+  const pts = floor?.exteriorHotspot;
+  return pts && pts.length >= 3 ? pts.map((p) => [p[0], p[1]] as [number, number]) : [];
+}
+
 export function BuildingExteriorEditor({
   projectId,
   building,
@@ -53,13 +58,36 @@ export function BuildingExteriorEditor({
 }: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [selectedFloorId, setSelectedFloorId] = useState(building.floors[0]?.id ?? "");
-  const [draft, setDraft] = useState<[number, number][]>([]);
-
-  const exteriorUrl = building.exteriorImageUrl ?? "";
   const floors = [...(building.floors ?? [])].sort(
     (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true }),
   );
+  const floorIdsKey = floors.map((f) => f.id).join(",");
+  const [selectedFloorId, setSelectedFloorId] = useState(floors[0]?.id ?? "");
+  const [draft, setDraft] = useState<[number, number][]>(() =>
+    draftFromFloor(floors.find((f) => f.id === (floors[0]?.id ?? ""))),
+  );
+
+  const exteriorUrl = building.exteriorImageUrl ?? "";
+
+  useEffect(() => {
+    if (floors.length === 0) {
+      if (selectedFloorId) setSelectedFloorId("");
+      setDraft([]);
+      return;
+    }
+    if (!floors.some((f) => f.id === selectedFloorId)) {
+      const nextId = floors[0].id;
+      setSelectedFloorId(nextId);
+      setDraft(draftFromFloor(floors[0]));
+    }
+    // floorIdsKey tracks membership changes without depending on a new array each render
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- floors derived from building.floors
+  }, [floorIdsKey, selectedFloorId]);
+
+  function selectFloor(floorId: string) {
+    setSelectedFloorId(floorId);
+    setDraft(draftFromFloor(floors.find((f) => f.id === floorId)));
+  }
 
   function updateFloor(floorId: string, patch: Partial<BuildingFloor>) {
     onChange({
@@ -89,7 +117,7 @@ export function BuildingExteriorEditor({
 
   function finishBand() {
     if (!selectedFloorId || draft.length < 3) return;
-    updateFloor(selectedFloorId, { exteriorHotspot: draft });
+    updateFloor(selectedFloorId, { exteriorHotspot: draft.map((p) => [p[0], p[1]] as [number, number]) });
     setDraft([]);
   }
 
@@ -160,6 +188,7 @@ export function BuildingExteriorEditor({
               exteriorImageUrl: "",
               floors: building.floors.map((f) => ({ ...f, exteriorHotspot: [] })),
             });
+            setDraft([]);
           }}
         />
       ) : null}
@@ -170,10 +199,7 @@ export function BuildingExteriorEditor({
             <select
               className={adminSelectCls}
               value={selectedFloorId}
-              onChange={(e) => {
-                setSelectedFloorId(e.target.value);
-                setDraft([]);
-              }}
+              onChange={(e) => selectFloor(e.target.value)}
               disabled={floors.length === 0}
             >
               {floors.length === 0 ? (
@@ -192,7 +218,12 @@ export function BuildingExteriorEditor({
           <PlanHotspotCanvas
             imageUrl={exteriorUrl}
             polygons={floors
-              .filter((f) => (f.exteriorHotspot?.length ?? 0) >= 3)
+              .filter((f) => {
+                if ((f.exteriorHotspot?.length ?? 0) < 3) return false;
+                // While editing this floor, show draft instead of the saved band
+                if (f.id === selectedFloorId && draft.length > 0) return false;
+                return true;
+              })
               .map((f) => ({
                 id: f.id,
                 points: f.exteriorHotspot as [number, number][],
@@ -201,10 +232,10 @@ export function BuildingExteriorEditor({
             draft={draft}
             drawing={Boolean(selectedFloorId)}
             onAddPoint={(pt) => setDraft((d) => [...d, pt])}
-            onSelectPolygon={(id) => {
-              setSelectedFloorId(id);
-              setDraft([]);
-            }}
+            onMovePoint={(index, pt) =>
+              setDraft((d) => d.map((p, i) => (i === index ? pt : p)))
+            }
+            onSelectPolygon={(id) => selectFloor(id)}
             onFinishDraft={finishBand}
             labels={{
               zoomIn: labels.zoomIn,
@@ -227,6 +258,7 @@ export function BuildingExteriorEditor({
               type="button"
               className={cn(adminBtnSecondary, "h-9 text-xs")}
               onClick={() => setDraft((d) => d.slice(0, -1))}
+              disabled={draft.length === 0}
             >
               {labels.undoPoint}
             </button>
@@ -234,6 +266,7 @@ export function BuildingExteriorEditor({
               type="button"
               className={cn(adminBtnSecondary, "h-9 text-xs")}
               onClick={() => setDraft([])}
+              disabled={draft.length === 0}
             >
               {labels.clearDraft}
             </button>
@@ -241,7 +274,10 @@ export function BuildingExteriorEditor({
               <button
                 type="button"
                 className="inline-flex h-9 items-center rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
-                onClick={() => updateFloor(selectedFloorId, { exteriorHotspot: [] })}
+                onClick={() => {
+                  updateFloor(selectedFloorId, { exteriorHotspot: [] });
+                  setDraft([]);
+                }}
               >
                 {labels.removeBand}
               </button>

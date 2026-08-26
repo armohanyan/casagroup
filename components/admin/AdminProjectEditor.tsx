@@ -45,7 +45,7 @@ import {
   generateId,
 } from "@/lib/store";
 import { useProjects } from "@/lib/projects-context";
-import { adminUploadFile } from "@/lib/api-client";
+import { adminGetProject, adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
 import {
   effectiveProjectKind,
@@ -71,6 +71,36 @@ import type {
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
+
+type EditorForm = Omit<Project, "id" | "slug"> & { id?: string; slug?: string };
+
+/** Normalize API project → editor form (floors + exterior bands always present). */
+function projectToForm(project: Project): EditorForm {
+  return {
+    ...project,
+    kind:
+      project.kind === "neighborhood" &&
+      (Boolean(project.sitePlanImage?.trim()) || (project.landPlots?.length ?? 0) > 0)
+        ? "neighborhood"
+        : "building",
+    salesMode: parseSalesMode(project.salesMode),
+    mapStages: project.mapStages ?? [],
+    sitePlanImage: project.sitePlanImage ?? "",
+    landPlots: project.landPlots ?? [],
+    buildings: (project.buildings ?? []).map((b) => ({
+      ...b,
+      kind: "building" as const,
+      exteriorImageUrl: b.exteriorImageUrl ?? "",
+      floors: (b.floors ?? []).map((f) => ({
+        ...f,
+        hotspots: f.hotspots ?? [],
+        exteriorHotspot: f.exteriorHotspot ?? [],
+      })),
+      images: b.images ?? [],
+    })),
+    apartments: project.apartments ?? [],
+  };
+}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -341,20 +371,21 @@ interface Props {
 }
 
 export function AdminProjectEditor({ projectId }: Props) {
-  const { projects, addProject, updateProject, loading } = useProjects();
+  const { projects, addProject, updateProject, upsertProject, loading } = useProjects();
   const { toast } = useAdminToast();
   const router = useRouter();
   const isNew = !projectId;
   const existing = projectId ? projects.find((p) => p.id === projectId) : undefined;
 
-  const [form, setForm] = useState<Omit<Project, "id" | "slug"> & { id?: string; slug?: string }>(() =>
-    existing ? { ...existing } : { ...emptyProject() },
+  const [form, setForm] = useState<EditorForm>(() =>
+    existing ? projectToForm(existing) : { ...emptyProject() },
   );
   const [saving, setSaving] = useState(false);
   const [priceTo, setPriceTo] = useState("");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDesc, setSeoDesc] = useState("");
   const [hydrated, setHydrated] = useState(isNew);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadingDrone, setUploadingDrone] = useState(false);
   const [uploadingPdfId, setUploadingPdfId] = useState<string | null>(null);
@@ -391,35 +422,36 @@ export function AdminProjectEditor({ projectId }: Props) {
   const floorImageTarget = useRef<{ buildingId: string; floorId: string } | null>(null);
 
   useEffect(() => {
-    if (existing) {
-      setForm({
-        ...existing,
-        kind:
-          existing.kind === "neighborhood" &&
-          (Boolean(existing.sitePlanImage?.trim()) || (existing.landPlots?.length ?? 0) > 0)
-            ? "neighborhood"
-            : "building",
-        salesMode: parseSalesMode(existing.salesMode),
-        mapStages: existing.mapStages ?? [],
-        sitePlanImage: existing.sitePlanImage ?? "",
-        landPlots: existing.landPlots ?? [],
-        buildings: (existing.buildings ?? []).map((b) => ({
-          ...b,
-          kind: "building" as const,
-          exteriorImageUrl: b.exteriorImageUrl ?? "",
-          floors: (b.floors ?? []).map((f) => ({
-            ...f,
-            exteriorHotspot: f.exteriorHotspot ?? [],
-          })),
-          images: b.images ?? [],
-        })),
-        apartments: existing.apartments ?? [],
-      });
+    if (isNew) {
       setHydrated(true);
-    } else if (!loading && isNew) {
-      setHydrated(true);
+      setLoadError(null);
+      return;
     }
-  }, [existing, loading, isNew]);
+    if (!projectId) return;
+
+    let cancelled = false;
+    setHydrated(false);
+    setLoadError(null);
+
+    void (async () => {
+      try {
+        // List endpoint omits floors / hotspots / map stages — always load full project for editing.
+        const full = await adminGetProject(projectId);
+        if (cancelled) return;
+        upsertProject(full);
+        setForm(projectToForm(full));
+        setHydrated(true);
+      } catch (e) {
+        if (cancelled) return;
+        setLoadError(e instanceof Error ? e.message : String(e));
+        setHydrated(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, isNew, upsertProject]);
 
   const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
   const apartmentProjectId = useMemo(() => form.id ?? generateId(), [form.id]);
@@ -565,24 +597,24 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   function updateBuilding(id: string, patch: Partial<Building>) {
-    set(
-      "buildings",
-      buildings.map((b) => (b.id === id ? { ...b, ...patch } : b)),
-    );
+    setForm((f) => ({
+      ...f,
+      buildings: (f.buildings ?? []).map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    }));
   }
 
   function updateBuildingFloor(buildingId: string, floorId: string, patch: Partial<BuildingFloor>) {
-    set(
-      "buildings",
-      buildings.map((b) =>
+    setForm((f) => ({
+      ...f,
+      buildings: (f.buildings ?? []).map((b) =>
         b.id === buildingId
           ? {
               ...b,
-              floors: (b.floors ?? []).map((f) => (f.id === floorId ? { ...f, ...patch } : f)),
+              floors: (b.floors ?? []).map((fl) => (fl.id === floorId ? { ...fl, ...patch } : fl)),
             }
           : b,
       ),
-    );
+    }));
   }
 
   function removeBuilding(id: string) {
@@ -822,10 +854,10 @@ export function AdminProjectEditor({ projectId }: Props) {
     }
   }
 
-  if (!isNew && !loading && !existing) {
+  if (!isNew && hydrated && (loadError || (!loading && !existing && !form.id))) {
     return (
       <div className={`${adminCardCls} p-8 text-center`}>
-        <p className="text-[#6B7280]">{hyTranslations.projectNotFound}</p>
+        <p className="text-[#6B7280]">{loadError || hyTranslations.projectNotFound}</p>
         <button type="button" className={cn(adminBtnSecondary, "mt-4")} onClick={() => router.push(`${ADMIN_BASE}/projects`)}>
           ← {a.cancel}
         </button>
@@ -833,7 +865,7 @@ export function AdminProjectEditor({ projectId }: Props) {
     );
   }
 
-  if (!hydrated || (loading && !isNew && !existing)) {
+  if (!hydrated || (loading && !isNew && !form.id && !loadError)) {
     return <p className="text-sm text-[#9CA3AF]">Բեռնվում է…</p>;
   }
 
@@ -922,7 +954,8 @@ export function AdminProjectEditor({ projectId }: Props) {
         router.replace(`${ADMIN_BASE}/projects/${created.id}`);
       } else if (projectId) {
         const updated = await updateProject(projectId, payload as Partial<Project>);
-        setForm(updated);
+        setForm(projectToForm(updated));
+        upsertProject(updated);
         toast(a.toastUpdated);
       }
     } catch (e) {
