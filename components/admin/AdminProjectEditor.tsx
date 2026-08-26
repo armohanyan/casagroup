@@ -2042,7 +2042,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                           panMode: a.hotspotPanMode,
                           drawMode: a.hotspotDrawMode,
                           editImage: a.editImage,
-                          ...imageEditorLabels,
+                          imageEditor: imageEditorLabels,
                         }}
                       />
                     </div>

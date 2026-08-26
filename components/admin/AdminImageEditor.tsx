@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
 import {
+  Check,
   FlipHorizontal2,
   FlipVertical2,
   RotateCcw,
@@ -47,6 +48,17 @@ const DEFAULT_LABELS: AdminImageEditorLabels = {
   aspect34: "3:4",
 };
 
+/** Merge overrides without letting undefined/empty wipe defaults. */
+function mergeLabels(partial?: Partial<AdminImageEditorLabels>): AdminImageEditorLabels {
+  if (!partial) return DEFAULT_LABELS;
+  const out = { ...DEFAULT_LABELS };
+  (Object.keys(DEFAULT_LABELS) as (keyof AdminImageEditorLabels)[]).forEach((key) => {
+    const value = partial[key];
+    if (typeof value === "string" && value.trim() !== "") out[key] = value;
+  });
+  return out;
+}
+
 type AspectOption = { id: string; label: string; value: number | undefined };
 
 type Props = {
@@ -68,7 +80,7 @@ export function AdminImageEditor({
   onConfirm,
   onError,
 }: Props) {
-  const labels = { ...DEFAULT_LABELS, ...labelsProp };
+  const labels = mergeLabels(labelsProp);
   const aspects: AspectOption[] = [
     { id: "free", label: labels.aspectFree, value: undefined },
     { id: "1", label: labels.aspect1, value: 1 },
@@ -258,7 +270,7 @@ export function AdminImageEditor({
               onClick={onCancel}
               disabled={busy}
             >
-              {labels.cancel}
+              <X size={15} /> {labels.cancel}
             </button>
             <button
               type="button"
@@ -266,7 +278,11 @@ export function AdminImageEditor({
               onClick={() => void handleApply()}
               disabled={busy || !croppedAreaPixels}
             >
-              {busy ? "…" : labels.apply}
+              {busy ? "…" : (
+                <>
+                  <Check size={15} /> {labels.apply}
+                </>
+              )}
             </button>
           </div>
         </div>

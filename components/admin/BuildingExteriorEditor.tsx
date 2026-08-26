@@ -35,18 +35,22 @@ type Labels = {
   panMode: string;
   drawMode: string;
   editImage?: string;
-  imageEditorTitle?: string;
-  imageEditorZoom?: string;
-  imageEditorRotate?: string;
-  imageEditorFlipH?: string;
-  imageEditorFlipV?: string;
-  imageEditorApply?: string;
-  imageEditorCancel?: string;
-  imageEditorAspectFree?: string;
-  imageEditorAspect1?: string;
-  imageEditorAspect43?: string;
-  imageEditorAspect169?: string;
-  imageEditorAspect34?: string;
+  /** Cropper UI copy — same shape as useAdminImagePicker labels. */
+  imageEditor?: {
+    title?: string;
+    zoom?: string;
+    rotate?: string;
+    flipH?: string;
+    flipV?: string;
+    apply?: string;
+    cancel?: string;
+    aspectFree?: string;
+    aspect1?: string;
+    aspect43?: string;
+    aspect169?: string;
+    aspect34?: string;
+    edit?: string;
+  };
 };
 
 interface Props {
@@ -76,19 +80,8 @@ export function BuildingExteriorEditor({
 }: Props) {
   const imagePicker = useAdminImagePicker(
     {
-      title: labels.imageEditorTitle,
-      zoom: labels.imageEditorZoom,
-      rotate: labels.imageEditorRotate,
-      flipH: labels.imageEditorFlipH,
-      flipV: labels.imageEditorFlipV,
-      apply: labels.imageEditorApply,
-      cancel: labels.imageEditorCancel,
-      aspectFree: labels.imageEditorAspectFree,
-      aspect1: labels.imageEditorAspect1,
-      aspect43: labels.imageEditorAspect43,
-      aspect169: labels.imageEditorAspect169,
-      aspect34: labels.imageEditorAspect34,
-      edit: labels.editImage,
+      ...labels.imageEditor,
+      edit: labels.imageEditor?.edit ?? labels.editImage,
     },
     (msg) => onToast(msg, "error"),
   );

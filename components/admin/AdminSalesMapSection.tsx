@@ -12,8 +12,25 @@ import {
   adminSelectCls,
 } from "@/components/admin/admin-config";
 import { emptyMapStage, generateId } from "@/lib/store";
+import { hyTranslations } from "@/content/hy";
 import type { Building, MapStageHotspot, ProjectMapStage } from "@/types";
 import { cn } from "@/lib/utils";
+
+const salesMapImageEditorLabels = {
+  title: hyTranslations.admin.imageEditorTitle,
+  zoom: hyTranslations.admin.imageEditorZoom,
+  rotate: hyTranslations.admin.imageEditorRotate,
+  flipH: hyTranslations.admin.imageEditorFlipH,
+  flipV: hyTranslations.admin.imageEditorFlipV,
+  apply: hyTranslations.admin.imageEditorApply,
+  cancel: hyTranslations.admin.imageEditorCancel,
+  aspectFree: hyTranslations.admin.imageEditorAspectFree,
+  aspect1: hyTranslations.admin.imageEditorAspect1,
+  aspect43: hyTranslations.admin.imageEditorAspect43,
+  aspect169: hyTranslations.admin.imageEditorAspect169,
+  aspect34: hyTranslations.admin.imageEditorAspect34,
+  edit: hyTranslations.admin.editImage,
+};
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -353,7 +370,7 @@ export function AdminSalesMapSection({
   onToast,
   labels,
 }: Props) {
-  const imagePicker = useAdminImagePicker(undefined, (msg) => onToast(msg, "error"));
+  const imagePicker = useAdminImagePicker(salesMapImageEditorLabels, (msg) => onToast(msg, "error"));
   const [openIds, setOpenIds] = useState<string[]>([]);
   const [draftByStage, setDraftByStage] = useState<Record<string, [number, number][]>>({});
   const [hotspotDraft, setHotspotDraft] = useState<Record<string, HotspotMeta>>({});
