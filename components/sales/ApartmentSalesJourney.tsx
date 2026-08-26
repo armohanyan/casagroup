@@ -32,10 +32,11 @@ interface Props {
 type Crumb = { id: string; label: string };
 type TipPos = { x: number; y: number };
 
-const MAP_FRAME = "relative w-full max-w-none";
-/** Full-bleed map/exterior art: width-driven, natural height, never cropped. */
+/** Defanse-style map frame: relative host for absolute SVG pins/hotspots. */
+const MAP_FRAME = "map relative w-full h-full max-w-none mb-1";
+/** Full-width map art: natural height, tall on desktop, capped to the viewport. */
 const MAP_IMG =
-  "pointer-events-none block h-auto w-full max-w-none select-none object-contain";
+  "pointer-events-none block w-full h-auto md:min-h-[80vh] max-h-screen select-none";
 
 function stageLabel(stage: ProjectMapStage, lang: Lang): string {
   if (lang === "hy") return stage.labelHy?.trim() || stage.label || stage.labelRu || "";

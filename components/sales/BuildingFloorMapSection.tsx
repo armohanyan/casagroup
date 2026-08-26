@@ -114,10 +114,10 @@ function FloorPlanCanvas({
   }
 
   return (
-    <div className="relative w-full max-w-none">
+    <div className="map relative w-full h-full max-w-none mb-1">
       <div
         ref={frameRef}
-        className={cn("relative w-full max-w-none", onBackgroundClick && "cursor-zoom-in")}
+        className={cn("relative w-full h-full", onBackgroundClick && "cursor-zoom-in")}
         onClick={onBackgroundClick}
       >
         <Image
@@ -126,7 +126,7 @@ function FloorPlanCanvas({
           width={2400}
           height={1800}
           sizes="100vw"
-          className="pointer-events-none block h-auto w-full max-w-none object-contain"
+          className="pointer-events-none block w-full h-auto md:min-h-[80vh] max-h-screen select-none object-contain"
           unoptimized
           priority={false}
         />

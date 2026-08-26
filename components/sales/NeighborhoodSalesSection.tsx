@@ -81,9 +81,14 @@ export function NeighborhoodSalesSection({ project }: Props) {
           {!imageUrl ? (
             <p className="text-sm text-[#9CA3AF]">{t.developerDetail.plotMapEmpty}</p>
           ) : (
-            <div className="relative overflow-hidden rounded-[8px] border border-[#E5E7EB] bg-[#FAFAF8]">
+            <div className="map relative w-full h-full mb-1 overflow-hidden rounded-[8px] border border-[#E5E7EB] bg-[#FAFAF8]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageUrl} alt="" className="block h-auto w-full select-none" />
+              <img
+                src={imageUrl}
+                alt=""
+                className="block w-full h-auto md:min-h-[80vh] max-h-screen select-none"
+                decoding="async"
+              />
               <svg
                 viewBox="0 0 100 100"
                 preserveAspectRatio="none"
