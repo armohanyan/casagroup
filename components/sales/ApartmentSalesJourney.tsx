@@ -1,13 +1,15 @@
 "use client";
 
 import {
-  useEffect,
+  Suspense,
+  useCallback,
   useMemo,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Container } from "@/components/site/Container";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
@@ -70,6 +72,28 @@ function rootStage(stages: ProjectMapStage[]): ProjectMapStage | null {
   const roots = stages.filter((s) => !s.parentId).sort((a, b) => a.sortOrder - b.sortOrder);
   return roots[0] ?? null;
 }
+
+/** Rebuild map drill-down stack from a stage id via parentId chain. */
+function stageAncestry(
+  stageId: string,
+  stagesById: Map<string, ProjectMapStage>,
+): ProjectMapStage[] {
+  const stack: ProjectMapStage[] = [];
+  let cur: ProjectMapStage | undefined = stagesById.get(stageId);
+  const seen = new Set<string>();
+  while (cur && !seen.has(cur.id)) {
+    seen.add(cur.id);
+    stack.unshift(cur);
+    cur = cur.parentId ? stagesById.get(cur.parentId) : undefined;
+  }
+  return stack;
+}
+
+type JourneyParams = {
+  stage?: string | null;
+  building?: string | null;
+  floor?: string | null;
+};
 
 function tipFromEvent(e: ReactMouseEvent, el: HTMLElement): TipPos {
   const rect = el.getBoundingClientRect();
@@ -506,9 +530,15 @@ function BuildingPicker({
  * 1. plans — apartment plan list (+ floor map if plates exist)
  * 2. floors — single building exterior → floor → apartments
  * 3. buildings — site map → pick building → then floors flow
+ *
+ * Building / stage / floor selection is stored in the URL (`?stage=&building=&floor=`)
+ * so refresh and browser back/forward restore the same step.
  */
-export function ApartmentSalesJourney({ project }: Props) {
+function ApartmentSalesJourneyInner({ project }: Props) {
   const { t, lang } = useI18n();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const mode = projectSalesMode(project);
   const d = t.developerDetail;
   const stages = project.mapStages ?? [];
@@ -519,22 +549,58 @@ export function ApartmentSalesJourney({ project }: Props) {
   );
   const buildings = useMemo(() => sortedBuildings(project.buildings), [project.buildings]);
 
-  const [stageStack, setStageStack] = useState<ProjectMapStage[]>(() => {
+  const urlStageId = searchParams.get("stage");
+  const urlBuildingId = searchParams.get("building");
+  const urlFloorId = searchParams.get("floor");
+
+  const setJourneyParams = useCallback(
+    (next: JourneyParams) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const apply = (key: keyof JourneyParams, value: string | null | undefined) => {
+        if (value === undefined) return;
+        if (value === null || value === "") params.delete(key);
+        else params.set(key, value);
+      };
+      apply("stage", next.stage);
+      apply("building", next.building);
+      apply("floor", next.floor);
+      const qs = params.toString();
+      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const stageStack = useMemo(() => {
     if (!usesMapStages(mode)) return [];
+    if (urlStageId && stagesById.has(urlStageId)) {
+      return stageAncestry(urlStageId, stagesById);
+    }
     const entry = rootStage(stages);
     return entry ? [entry] : [];
-  });
-  const [building, setBuilding] = useState<Building | null>(null);
-  const [floor, setFloor] = useState<BuildingFloor | null>(null);
+  }, [mode, urlStageId, stagesById, stages]);
 
-  // Case 2: auto-select the only building
-  useEffect(() => {
-    if (mode !== "floors" || building || buildings.length !== 1) return;
-    setBuilding(buildings[0]);
-  }, [mode, buildings, building]);
+  const building = useMemo(() => {
+    if (urlBuildingId) {
+      const fromUrl = buildingsById.get(urlBuildingId);
+      if (fromUrl) return fromUrl;
+    }
+    if (urlFloorId) {
+      for (const b of buildings) {
+        if ((b.floors ?? []).some((f) => f.id === urlFloorId)) return b;
+      }
+    }
+    if (mode === "floors" && buildings.length === 1) return buildings[0];
+    return null;
+  }, [urlBuildingId, urlFloorId, buildingsById, buildings, mode]);
+
+  const floor = useMemo(() => {
+    if (!building || !urlFloorId) return null;
+    return (building.floors ?? []).find((f) => f.id === urlFloorId) ?? null;
+  }, [building, urlFloorId]);
 
   const projectTitle = getProjectTitle(project, lang);
   const currentStage = stageStack[stageStack.length - 1] ?? null;
+  const root = useMemo(() => rootStage(stages), [stages]);
 
   const crumbs: Crumb[] = useMemo(() => {
     const list: Crumb[] = [{ id: "project", label: projectTitle }];
@@ -567,22 +633,51 @@ export function ApartmentSalesJourney({ project }: Props) {
 
   function goBack() {
     if (floor) {
-      setFloor(null);
+      setJourneyParams({ floor: null });
       return;
     }
     if (building) {
       if (mode === "floors" && buildings.length <= 1) return;
-      setBuilding(null);
+      setJourneyParams({ building: null, floor: null });
       return;
     }
     if (stageStack.length > 1) {
-      setStageStack((s) => s.slice(0, -1));
+      const parent = stageStack[stageStack.length - 2];
+      setJourneyParams({
+        stage: root && parent.id === root.id ? null : parent.id,
+        building: null,
+        floor: null,
+      });
     }
   }
 
   function selectBuilding(b: Building) {
-    setBuilding(b);
-    setFloor(null);
+    const keepStage =
+      currentStage && root && currentStage.id !== root.id ? currentStage.id : null;
+    setJourneyParams({
+      stage: keepStage,
+      building: b.id,
+      floor: null,
+    });
+  }
+
+  function selectStage(s: ProjectMapStage) {
+    setJourneyParams({
+      stage: root && s.id === root.id ? null : s.id,
+      building: null,
+      floor: null,
+    });
+  }
+
+  function selectFloor(f: BuildingFloor) {
+    if (!building) return;
+    const keepStage =
+      currentStage && root && currentStage.id !== root.id ? currentStage.id : null;
+    setJourneyParams({
+      stage: keepStage,
+      building: building.id,
+      floor: f.id,
+    });
   }
 
   const canGoBack =
@@ -617,7 +712,7 @@ export function ApartmentSalesJourney({ project }: Props) {
         <BuildingExteriorView
           building={building}
           floors={sortedFloors(building.floors)}
-          onSelectFloor={setFloor}
+          onSelectFloor={selectFloor}
           moreLabel={d.salesJourneyMore}
           floorLabelTemplate={d.salesJourneyFloor}
           emptyLabel={d.salesJourneyEmptyExterior}
@@ -659,11 +754,7 @@ export function ApartmentSalesJourney({ project }: Props) {
           stagesById={stagesById}
           buildingsById={buildingsById}
           lang={lang}
-          onSelectStage={(s) => {
-            setStageStack((prev) => [...prev, s]);
-            setBuilding(null);
-            setFloor(null);
-          }}
+          onSelectStage={selectStage}
           onSelectBuilding={selectBuilding}
           moreLabel={d.salesJourneyMore}
           overlay={
@@ -703,5 +794,13 @@ export function ApartmentSalesJourney({ project }: Props) {
       </section>
       <BuildingFloorMapSection project={project} />
     </>
+  );
+}
+
+export function ApartmentSalesJourney({ project }: Props) {
+  return (
+    <Suspense fallback={<div className="min-h-[12rem] w-full" aria-hidden />}>
+      <ApartmentSalesJourneyInner project={project} />
+    </Suspense>
   );
 }

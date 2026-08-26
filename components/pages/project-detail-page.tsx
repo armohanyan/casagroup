@@ -293,10 +293,25 @@ export default function ProjectDetailPage() {
               <DeveloperFloorPlanSection project={project} />
             </Container>
           </section>
-          <BuildingFloorMapSection project={project} />
+          {/* Floor/building map is desktop-only; mobile shows apartment plans above. */}
+          <div className="hidden lg:block">
+            <BuildingFloorMapSection project={project} />
+          </div>
         </>
       ) : (
-        <ApartmentSalesJourney project={project} />
+        <>
+          {/* Mobile: apartment plans only — skip building/floor journey. */}
+          <div className="lg:hidden">
+            <section id="apartments" className="border-t border-[#E5E7EB]">
+              <Container className="py-10 md:py-14">
+                <DeveloperFloorPlanSection project={project} />
+              </Container>
+            </section>
+          </div>
+          <div className="hidden lg:block">
+            <ApartmentSalesJourney project={project} />
+          </div>
+        </>
       )}
 
       <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">

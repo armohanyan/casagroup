@@ -64,7 +64,8 @@ interface Props {
   onChange: (
     stages: ProjectMapStage[] | ((prev: ProjectMapStage[]) => ProjectMapStage[]),
   ) => void;
-  onToast: (message: string, type?: "success" | "error") => void;
+  onPersistZone?: () => Promise<boolean>;
+  onToast: (message: string, type?: "success" | "error" | "info") => void;
   labels: SalesMapLabels;
 }
 
@@ -95,6 +96,7 @@ function StageCard({
   onRemoveHotspot,
   onUploadClick,
   onEditClick,
+  persisting,
 }: {
   stage: ProjectMapStage;
   depth: number;
@@ -115,6 +117,7 @@ function StageCard({
   onRemoveHotspot: (id: string) => void;
   onUploadClick: () => void;
   onEditClick?: () => void;
+  persisting?: boolean;
 }) {
   const childStages = mapStages
     .filter((s) => s.parentId === stage.id)
@@ -283,9 +286,9 @@ function StageCard({
                   type="button"
                   className={cn(adminBtnSecondary, "h-9 text-xs")}
                   onClick={onFinishHotspot}
-                  disabled={draft.length < 3 || !meta.targetId}
+                  disabled={draft.length < 3 || !meta.targetId || persisting}
                 >
-                  {labels.finishPolygon}
+                  {persisting ? "…" : labels.finishPolygon}
                 </button>
                 <button
                   type="button"
@@ -346,6 +349,7 @@ export function AdminSalesMapSection({
   mapStages,
   buildings,
   onChange,
+  onPersistZone,
   onToast,
   labels,
 }: Props) {
@@ -353,6 +357,7 @@ export function AdminSalesMapSection({
   const [openIds, setOpenIds] = useState<string[]>([]);
   const [draftByStage, setDraftByStage] = useState<Record<string, [number, number][]>>({});
   const [hotspotDraft, setHotspotDraft] = useState<Record<string, HotspotMeta>>({});
+  const [persistingStageId, setPersistingStageId] = useState<string | null>(null);
 
   const projectKey = projectId ?? "new";
   const roots = [...mapStages]
@@ -417,14 +422,21 @@ export function AdminSalesMapSection({
     });
   }
 
-  function finishHotspot(stageId: string) {
+  async function finishHotspot(stageId: string) {
     const draft = draftByStage[stageId] ?? [];
     const meta = hotspotDraft[stageId] ?? {
       label: "",
       targetType: "building" as const,
       targetId: buildings[0]?.id ?? "",
     };
-    if (draft.length < 3 || !meta.targetId) return;
+    if (draft.length < 3) {
+      onToast("Առնվազն 3 կետ է պետք գոտին ավարտելու համար", "error");
+      return;
+    }
+    if (!meta.targetId) {
+      onToast("Ընտրեք թիրախ շենքը կամ փուլը", "error");
+      return;
+    }
     const c = centroid(draft);
     const buildingName =
       meta.targetType === "building"
@@ -443,12 +455,35 @@ export function AdminSalesMapSection({
       targetType: meta.targetType,
       targetId: meta.targetId,
     };
+    // Remarking the same target replaces the previous zone instead of stacking duplicates.
     onChange((prev) =>
       prev.map((s) =>
-        s.id === stageId ? { ...s, hotspots: [...s.hotspots, hotspot] } : s,
+        s.id === stageId
+          ? {
+              ...s,
+              hotspots: [
+                ...s.hotspots.filter(
+                  (h) => !(h.targetType === meta.targetType && h.targetId === meta.targetId),
+                ),
+                hotspot,
+              ],
+            }
+          : s,
       ),
     );
     setDraftByStage((d) => ({ ...d, [stageId]: [] }));
+
+    if (!onPersistZone) {
+      onToast("Գոտին նշվեց — պահպանեք նախագիծը", "info");
+      return;
+    }
+    setPersistingStageId(stageId);
+    try {
+      const ok = await onPersistZone();
+      if (!ok) setDraftByStage((d) => ({ ...d, [stageId]: draft }));
+    } finally {
+      setPersistingStageId(null);
+    }
   }
 
   function removeHotspot(stageId: string, hotspotId: string) {
@@ -495,9 +530,10 @@ export function AdminSalesMapSection({
           onAddChild={() => addChild(stage.id)}
           onDraftChange={(d) => setDraftByStage((prev) => ({ ...prev, [stage.id]: d }))}
           onMetaChange={(m) => setHotspotDraft((prev) => ({ ...prev, [stage.id]: m }))}
-          onFinishHotspot={() => finishHotspot(stage.id)}
+          onFinishHotspot={() => void finishHotspot(stage.id)}
           onRemoveHotspot={(id) => removeHotspot(stage.id, id)}
           onUploadClick={() => uploadStageImage(stage.id)}
+          persisting={persistingStageId === stage.id}
           onEditClick={
             stage.imageUrl.trim()
               ? () => editStageImage(stage.id, stage.imageUrl)

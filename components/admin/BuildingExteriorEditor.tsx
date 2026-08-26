@@ -54,7 +54,9 @@ interface Props {
   building: Building;
   onChange: (patch: Partial<Building>) => void;
   onChangeFloor: (floorId: string, patch: Partial<BuildingFloor>) => void;
-  onToast: (message: string, type?: "success" | "error") => void;
+  /** Persist project after a zone is committed. Return true when server kept the zone. */
+  onPersistZone?: () => Promise<boolean>;
+  onToast: (message: string, type?: "success" | "error" | "info") => void;
   labels: Labels;
 }
 
@@ -68,6 +70,7 @@ export function BuildingExteriorEditor({
   building,
   onChange,
   onChangeFloor,
+  onPersistZone,
   onToast,
   labels,
 }: Props) {
@@ -98,6 +101,7 @@ export function BuildingExteriorEditor({
   const [draft, setDraft] = useState<[number, number][]>(() =>
     draftFromFloor(floors.find((f) => f.id === (floors[0]?.id ?? ""))),
   );
+  const [persisting, setPersisting] = useState(false);
 
   const exteriorUrl = building.exteriorImageUrl ?? "";
 
@@ -148,15 +152,30 @@ export function BuildingExteriorEditor({
     });
   }
 
-  function finishBand() {
+  async function finishBand() {
     if (!selectedFloorId || draft.length < 3) {
       onToast("Առնվազն 3 կետ է պետք գոտին ավարտելու համար", "error");
       return;
     }
     const points = draft.map((p) => [p[0], p[1]] as [number, number]);
     onChangeFloor(selectedFloorId, { exteriorHotspot: points });
-    setDraft(points);
-    onToast("Հարկի գոտին նշվեց — պահպանեք նախագիծը");
+    // Clear draft so the committed (red) polygon is visible immediately.
+    setDraft([]);
+
+    if (!onPersistZone) {
+      onToast("Հարկի գոտին նշվեց — պահպանեք նախագիծը", "info");
+      return;
+    }
+    setPersisting(true);
+    try {
+      const ok = await onPersistZone();
+      if (!ok) {
+        // Keep points in draft so the user can retry save without redrawing.
+        setDraft(points);
+      }
+    } finally {
+      setPersisting(false);
+    }
   }
 
   if (!exteriorUrl.trim() && floors.length === 0) {
@@ -252,6 +271,7 @@ export function BuildingExteriorEditor({
             polygons={floors
               .filter((f) => {
                 if ((f.exteriorHotspot?.length ?? 0) < 3) return false;
+                // Hide committed only while actively (re)drawing that floor.
                 if (f.id === selectedFloorId && draft.length > 0) return false;
                 return true;
               })
@@ -267,7 +287,7 @@ export function BuildingExteriorEditor({
               setDraft((d) => d.map((p, i) => (i === index ? pt : p)))
             }
             onSelectPolygon={(id) => selectFloor(id)}
-            onFinishDraft={finishBand}
+            onFinishDraft={() => void finishBand()}
             labels={{
               zoomIn: labels.zoomIn,
               zoomOut: labels.zoomOut,
@@ -280,16 +300,16 @@ export function BuildingExteriorEditor({
             <button
               type="button"
               className={cn(adminBtnSecondary, "h-9 text-xs")}
-              onClick={finishBand}
-              disabled={draft.length < 3 || !selectedFloorId}
+              onClick={() => void finishBand()}
+              disabled={draft.length < 3 || !selectedFloorId || persisting}
             >
-              {labels.finishPolygon}
+              {persisting ? "…" : labels.finishPolygon}
             </button>
             <button
               type="button"
               className={cn(adminBtnSecondary, "h-9 text-xs")}
               onClick={() => setDraft((d) => d.slice(0, -1))}
-              disabled={draft.length === 0}
+              disabled={draft.length === 0 || persisting}
             >
               {labels.undoPoint}
             </button>
@@ -297,7 +317,7 @@ export function BuildingExteriorEditor({
               type="button"
               className={cn(adminBtnSecondary, "h-9 text-xs")}
               onClick={() => setDraft([])}
-              disabled={draft.length === 0}
+              disabled={draft.length === 0 || persisting}
             >
               {labels.clearDraft}
             </button>
@@ -305,6 +325,7 @@ export function BuildingExteriorEditor({
               <button
                 type="button"
                 className="inline-flex h-9 items-center rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
+                disabled={persisting}
                 onClick={() => {
                   onChangeFloor(selectedFloorId, { exteriorHotspot: [] });
                   setDraft([]);

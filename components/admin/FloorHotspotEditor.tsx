@@ -12,6 +12,9 @@ interface Props {
     patch: Partial<BuildingFloor> | ((floor: BuildingFloor) => Partial<BuildingFloor>),
   ) => void;
   onAddApartment?: () => void;
+  /** Persist project after a zone is committed. Return true when server kept the zone. */
+  onPersistZone?: () => Promise<boolean>;
+  onToast?: (message: string, type?: "success" | "error" | "info") => void;
   labels: {
     selectApartment: string;
     drawHint: string;
@@ -30,9 +33,18 @@ interface Props {
   };
 }
 
-export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment, labels }: Props) {
+export function FloorHotspotEditor({
+  floor,
+  apartments,
+  onChange,
+  onAddApartment,
+  onPersistZone,
+  onToast,
+  labels,
+}: Props) {
   const [selectedAptId, setSelectedAptId] = useState(apartments[0]?.id ?? "");
   const [draft, setDraft] = useState<[number, number][]>([]);
+  const [persisting, setPersisting] = useState(false);
 
   useEffect(() => {
     if (apartments.length === 0) {
@@ -55,21 +67,38 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
     );
   }
 
-  function finishPolygon() {
-    if (!selectedAptId || draft.length < 3) return;
+  async function finishPolygon() {
+    if (!selectedAptId || draft.length < 3) {
+      onToast?.("Առնվազն 3 կետ է պետք գոտին ավարտելու համար", "error");
+      return;
+    }
+    const points = draft.map((p) => [p[0], p[1]] as [number, number]);
     const next: FloorHotspot = {
       apartmentId: selectedAptId,
-      points: draft.map((p) => [p[0], p[1]] as [number, number]),
+      points,
     };
-    onChange((floor) => ({
-      hotspots: [...(floor.hotspots ?? []).filter((h) => h.apartmentId !== selectedAptId), next],
+    onChange((fl) => ({
+      hotspots: [...(fl.hotspots ?? []).filter((h) => h.apartmentId !== selectedAptId), next],
     }));
-    setDraft(next.points.map((p) => [p[0], p[1]] as [number, number]));
+    // Clear draft so the committed polygon is visible immediately.
+    setDraft([]);
+
+    if (!onPersistZone) {
+      onToast?.("Բնակարանի գոտին նշվեց — պահպանեք նախագիծը", "info");
+      return;
+    }
+    setPersisting(true);
+    try {
+      const ok = await onPersistZone();
+      if (!ok) setDraft(points);
+    } finally {
+      setPersisting(false);
+    }
   }
 
   function removeHotspot(apartmentId: string) {
-    onChange((floor) => ({
-      hotspots: (floor.hotspots ?? []).filter((h) => h.apartmentId !== apartmentId),
+    onChange((fl) => ({
+      hotspots: (fl.hotspots ?? []).filter((h) => h.apartmentId !== apartmentId),
     }));
     if (apartmentId === selectedAptId) setDraft([]);
   }
@@ -130,15 +159,15 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
           ) : null}
           <button
             type="button"
-            disabled={draft.length < 3}
-            onClick={finishPolygon}
+            disabled={draft.length < 3 || persisting}
+            onClick={() => void finishPolygon()}
             className="h-11 rounded-[5px] bg-[#0c1428] px-3 text-xs font-semibold text-white disabled:opacity-40"
           >
-            {labels.finishPolygon}
+            {persisting ? "…" : labels.finishPolygon}
           </button>
           <button
             type="button"
-            disabled={draft.length === 0}
+            disabled={draft.length === 0 || persisting}
             onClick={() => setDraft((d) => d.slice(0, -1))}
             className="h-11 rounded-[5px] border border-[#E5E7EB] px-3 text-xs font-semibold text-[#0c1428] disabled:opacity-40"
           >
@@ -146,7 +175,7 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
           </button>
           <button
             type="button"
-            disabled={draft.length === 0}
+            disabled={draft.length === 0 || persisting}
             onClick={() => setDraft([])}
             className="h-11 rounded-[5px] border border-[#E5E7EB] px-3 text-xs font-semibold text-[#0c1428] disabled:opacity-40"
           >
@@ -166,7 +195,7 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
           setDraft((d) => [...d, pt]);
         }}
         onMovePoint={(index, pt) => setDraft((d) => d.map((p, i) => (i === index ? pt : p)))}
-        onFinishDraft={finishPolygon}
+        onFinishDraft={() => void finishPolygon()}
         onSelectPolygon={(id) => selectApartment(id)}
         polygons={floor.hotspots
           .filter((h) => !(h.apartmentId === selectedAptId && draft.length > 0))

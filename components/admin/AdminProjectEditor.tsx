@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
   Building2,
@@ -430,6 +431,15 @@ export function AdminProjectEditor({ projectId }: Props) {
   const formRef = useRef(form);
   formRef.current = form;
 
+  /** Keep formRef in sync inside the updater so Save / zone persist never read a stale snapshot. */
+  function commitForm(updater: (f: EditorForm) => EditorForm) {
+    setForm((f) => {
+      const next = updater(f);
+      formRef.current = next;
+      return next;
+    });
+  }
+
   useEffect(() => {
     if (isNew) {
       setHydrated(true);
@@ -448,7 +458,9 @@ export function AdminProjectEditor({ projectId }: Props) {
         const full = await adminGetProject(projectId);
         if (cancelled) return;
         upsertProject(full);
-        setForm(projectToForm(full));
+        const next = projectToForm(full);
+        formRef.current = next;
+        setForm(next);
         setHydrated(true);
       } catch (e) {
         if (cancelled) return;
@@ -462,7 +474,7 @@ export function AdminProjectEditor({ projectId }: Props) {
     };
   }, [projectId, isNew, upsertProject]);
 
-  const set = (key: string, value: unknown) => setForm((f) => ({ ...f, [key]: value }));
+  const set = (key: string, value: unknown) => commitForm((f) => ({ ...f, [key]: value }));
   const apartmentProjectId = useMemo(() => form.id ?? generateId(), [form.id]);
   const buildings = form.buildings ?? [];
   const amenityPresets: Amenity[] = [
@@ -606,7 +618,7 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   function updateBuilding(id: string, patch: Partial<Building>) {
-    setForm((f) => ({
+    commitForm((f) => ({
       ...f,
       buildings: (f.buildings ?? []).map((b) => (b.id === id ? { ...b, ...patch } : b)),
     }));
@@ -617,7 +629,7 @@ export function AdminProjectEditor({ projectId }: Props) {
     floorId: string,
     patch: Partial<BuildingFloor> | ((floor: BuildingFloor) => Partial<BuildingFloor>),
   ) {
-    setForm((f) => ({
+    commitForm((f) => ({
       ...f,
       buildings: (f.buildings ?? []).map((b) =>
         b.id === buildingId
@@ -790,13 +802,17 @@ export function AdminProjectEditor({ projectId }: Props) {
         }));
     }
 
-    setForm((f) => ({
-      ...f,
-      buildings: (f.buildings ?? []).map((b) =>
-        b.id === floorModalBuildingId ? { ...b, floors: [...(b.floors ?? []), floor] } : b,
-      ),
-      apartments: clonedApts.length ? [...(f.apartments ?? []), ...clonedApts] : f.apartments,
-    }));
+    setForm((f) => {
+      const next = {
+        ...f,
+        buildings: (f.buildings ?? []).map((b) =>
+          b.id === floorModalBuildingId ? { ...b, floors: [...(b.floors ?? []), floor] } : b,
+        ),
+        apartments: clonedApts.length ? [...(f.apartments ?? []), ...clonedApts] : f.apartments,
+      };
+      formRef.current = next;
+      return next;
+    });
     setOpenFloorIds((ids) => [...ids, floor.id]);
     if (clonedApts.length) {
       setOpenAptIds((ids) => [...ids, ...clonedApts.map((x) => x.id)]);
@@ -900,94 +916,136 @@ export function AdminProjectEditor({ projectId }: Props) {
     return <p className="text-sm text-[#9CA3AF]">Բեռնվում է…</p>;
   }
 
-  async function handleSave(asDraft = false) {
+  async function persistProject(asDraft = false): Promise<Project | null> {
+    // Flush any pending zone/form updates so we never PATCH a stale snapshot.
+    flushSync(() => {
+      setForm((f) => {
+        formRef.current = f;
+        return f;
+      });
+    });
     const latest = formRef.current;
     if (!latest.title.trim() && !latest.titleHy?.trim() && !latest.titleRu?.trim()) {
       toast(a.titleRequired, "error");
-      return;
+      return null;
+    }
+    const kind = effectiveProjectKind(latest);
+    // Persist the kind that matches the UI so building floors are never wiped
+    // while the buildings section is still shown (e.g. kind toggled to neighborhood by mistake).
+    const cleanedBuildings = (latest.buildings ?? [])
+      .map((b, i) => ({
+        ...b,
+        name: b.name.trim(),
+        sortOrder: i,
+        kind: "building" as const,
+        exteriorImageUrl: (b.exteriorImageUrl ?? "").trim(),
+        landArea: undefined,
+        price: undefined,
+        images: [],
+        floors: (b.floors ?? []).map((f, fi) => ({
+          ...f,
+          label: f.label.trim() || String(fi + 1),
+          sortOrder: fi,
+          imageUrl: f.imageUrl.trim(),
+          hotspots: f.hotspots ?? [],
+          exteriorHotspot: f.exteriorHotspot ?? [],
+        })),
+      }))
+      .filter((b) => b.name.length > 0);
+    const savedBuildings = kind === "neighborhood" ? [] : cleanedBuildings;
+    const buildingIds = new Set(savedBuildings.map((b) => b.id));
+    const cleanedPlots = (latest.landPlots ?? [])
+      .map((p, i) => ({
+        ...p,
+        label: p.label.trim(),
+        sortOrder: i,
+        points: p.points ?? [],
+      }))
+      .filter((p) => p.label.length > 0);
+    const savedPlots = kind === "neighborhood" ? cleanedPlots : [];
+    const plotIds = new Set(savedPlots.map((p) => p.id));
+    const cleanedStages = (latest.mapStages ?? [])
+      .map((s, i) => ({
+        ...s,
+        label: s.label.trim() || String(i + 1),
+        sortOrder: i,
+        imageUrl: (s.imageUrl ?? "").trim(),
+        hotspots: s.hotspots ?? [],
+      }))
+      .filter((s) => s.label.length > 0 || s.imageUrl.length > 0 || (s.hotspots?.length ?? 0) > 0);
+    const salesMode = kind === "neighborhood" ? "plans" : parseSalesMode(latest.salesMode);
+    const cleanedApartments = latest.apartments.map((apt) => ({
+      ...apt,
+      buildingId:
+        kind === "neighborhood"
+          ? undefined
+          : apt.buildingId && buildingIds.has(apt.buildingId)
+            ? apt.buildingId
+            : undefined,
+      landPlotId:
+        kind === "building"
+          ? undefined
+          : apt.landPlotId && plotIds.has(apt.landPlotId)
+            ? apt.landPlotId
+            : undefined,
+    }));
+    const payload = {
+      ...latest,
+      kind,
+      salesMode,
+      mapStages: kind === "neighborhood" ? [] : cleanedStages,
+      sitePlanImage: latest.sitePlanImage ?? "",
+      landPlots: savedPlots,
+      buildings: savedBuildings,
+      apartments: cleanedApartments,
+      featured: asDraft ? false : latest.featured,
+      droneVideos: (latest.droneVideos ?? []).filter((v) => v.url.trim()),
+    };
+    if (isNew) {
+      const created = await addProject(payload as Omit<Project, "id" | "slug">);
+      return created;
+    }
+    if (!projectId) return null;
+    const updated = await updateProject(projectId, payload as Partial<Project>);
+    // Re-fetch full graph so floors / hotspots match what the server actually stored.
+    const full = await adminGetProject(projectId);
+    const next = projectToForm(full);
+    formRef.current = next;
+    setForm(next);
+    upsertProject(full);
+    return full ?? updated;
+  }
+
+  /** Called after finishing a zone in exterior / floor / sales-map editors. */
+  async function persistZoneAfterCommit(): Promise<boolean> {
+    if (isNew || !projectId) {
+      toast(a.toastZoneMarkedSaveProject, "info");
+      // Local form already has the zone; keep draft cleared so the committed polygon shows.
+      return true;
     }
     setSaving(true);
     try {
-      const kind = effectiveProjectKind(latest);
-      // Persist the kind that matches the UI so building floors are never wiped
-      // while the buildings section is still shown (e.g. kind toggled to neighborhood by mistake).
-      const cleanedBuildings = (latest.buildings ?? [])
-        .map((b, i) => ({
-          ...b,
-          name: b.name.trim(),
-          sortOrder: i,
-          kind: "building" as const,
-          exteriorImageUrl: (b.exteriorImageUrl ?? "").trim(),
-          landArea: undefined,
-          price: undefined,
-          images: [],
-          floors: (b.floors ?? []).map((f, fi) => ({
-            ...f,
-            label: f.label.trim() || String(fi + 1),
-            sortOrder: fi,
-            imageUrl: f.imageUrl.trim(),
-            hotspots: f.hotspots ?? [],
-            exteriorHotspot: f.exteriorHotspot ?? [],
-          })),
-        }))
-        .filter((b) => b.name.length > 0);
-      const savedBuildings = kind === "neighborhood" ? [] : cleanedBuildings;
-      const buildingIds = new Set(savedBuildings.map((b) => b.id));
-      const cleanedPlots = (latest.landPlots ?? [])
-        .map((p, i) => ({
-          ...p,
-          label: p.label.trim(),
-          sortOrder: i,
-          points: p.points ?? [],
-        }))
-        .filter((p) => p.label.length > 0);
-      const savedPlots = kind === "neighborhood" ? cleanedPlots : [];
-      const plotIds = new Set(savedPlots.map((p) => p.id));
-      const cleanedStages = (latest.mapStages ?? [])
-        .map((s, i) => ({
-          ...s,
-          label: s.label.trim() || String(i + 1),
-          sortOrder: i,
-          imageUrl: (s.imageUrl ?? "").trim(),
-          hotspots: s.hotspots ?? [],
-        }))
-        .filter((s) => s.label.length > 0 || s.imageUrl.length > 0 || (s.hotspots?.length ?? 0) > 0);
-      const salesMode = kind === "neighborhood" ? "plans" : parseSalesMode(latest.salesMode);
-      const cleanedApartments = latest.apartments.map((apt) => ({
-        ...apt,
-        buildingId:
-          kind === "neighborhood"
-            ? undefined
-            : apt.buildingId && buildingIds.has(apt.buildingId)
-              ? apt.buildingId
-              : undefined,
-        landPlotId:
-          kind === "building"
-            ? undefined
-            : apt.landPlotId && plotIds.has(apt.landPlotId)
-              ? apt.landPlotId
-              : undefined,
-      }));
-      const payload = {
-        ...latest,
-        kind,
-        salesMode,
-        mapStages: kind === "neighborhood" ? [] : cleanedStages,
-        sitePlanImage: latest.sitePlanImage ?? "",
-        landPlots: savedPlots,
-        buildings: savedBuildings,
-        apartments: cleanedApartments,
-        featured: asDraft ? false : latest.featured,
-        droneVideos: (latest.droneVideos ?? []).filter((v) => v.url.trim()),
-      };
+      const saved = await persistProject(false);
+      if (!saved) return false;
+      toast(a.toastZoneSaved);
+      return true;
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), "error");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleSave(asDraft = false) {
+    setSaving(true);
+    try {
+      const saved = await persistProject(asDraft);
+      if (!saved) return;
       if (isNew) {
-        const created = await addProject(payload as Omit<Project, "id" | "slug">);
         toast(a.toastPublished);
-        router.replace(`${ADMIN_BASE}/projects/${created.id}`);
-      } else if (projectId) {
-        const updated = await updateProject(projectId, payload as Partial<Project>);
-        setForm(projectToForm(updated));
-        upsertProject(updated);
+        router.replace(`${ADMIN_BASE}/projects/${saved.id}`);
+      } else {
         toast(a.toastUpdated);
       }
     } catch (e) {
@@ -1841,11 +1899,12 @@ export function AdminProjectEditor({ projectId }: Props) {
               mapStages={form.mapStages ?? []}
               buildings={buildings}
               onChange={(stages) =>
-                setForm((f) => ({
+                commitForm((f) => ({
                   ...f,
                   mapStages: typeof stages === "function" ? stages(f.mapStages ?? []) : stages,
                 }))
               }
+              onPersistZone={persistZoneAfterCommit}
               onToast={toast}
               labels={{
                 sectionTitle: a.salesMapsHint,
@@ -1965,6 +2024,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                         onChangeFloor={(floorId, patch) =>
                           updateBuildingFloor(building.id, floorId, patch)
                         }
+                        onPersistZone={persistZoneAfterCommit}
                         onToast={toast}
                         labels={{
                           exteriorImage: a.buildingExterior,
@@ -2098,8 +2158,10 @@ export function AdminProjectEditor({ projectId }: Props) {
                             key={`${building.id}:${floor.id}`}
                             floor={floor}
                             apartments={hotspotPickerApts}
+                            onPersistZone={persistZoneAfterCommit}
+                            onToast={toast}
                             onChange={(patch) => {
-                              setForm((f) => {
+                              commitForm((f) => {
                                 let hotspotIds = new Set<string>();
                                 const buildings = (f.buildings ?? []).map((b) => {
                                   if (b.id !== building.id) return b;

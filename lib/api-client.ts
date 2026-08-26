@@ -81,13 +81,17 @@ export async function adminListProjects() {
 }
 
 export async function adminGetProject(id: string) {
-  return apiFetch<Project>(`/api/admin/projects/${id}`, authHeaders());
+  return apiFetch<Project>(`/api/admin/projects/${id}`, {
+    ...authHeaders(),
+    timeoutMs: 30_000,
+  });
 }
 
 export async function adminCreateProject(data: Partial<Project>) {
   return apiFetch<Project>("/api/admin/projects", {
     method: "POST",
     body: JSON.stringify(data),
+    timeoutMs: 60_000,
     ...authHeaders(),
   });
 }
@@ -96,6 +100,7 @@ export async function adminUpdateProject(id: string, data: Partial<Project>) {
   return apiFetch<Project>(`/api/admin/projects/${id}`, {
     method: "PATCH",
     body: JSON.stringify(data),
+    timeoutMs: 60_000,
     ...authHeaders(),
   });
 }

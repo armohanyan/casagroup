@@ -68,6 +68,21 @@ function mapMapStageHotspots(raw: unknown) {
     .filter((h): h is NonNullable<typeof h> => h !== null);
 }
 
+function mapFloorHotspots(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((h) => {
+      if (!h || typeof h !== "object") return null;
+      const item = h as Record<string, unknown>;
+      const apartmentId = typeof item.apartmentId === "string" ? item.apartmentId : "";
+      if (!apartmentId) return null;
+      const points = parsePoints(item.points);
+      if (points.length < 3) return null;
+      return { apartmentId, points };
+    })
+    .filter((h): h is { apartmentId: string; points: [number, number][] } => h !== null);
+}
+
 export function mapBuildingFloor(floor: BuildingFloor) {
   const exteriorHotspot = parsePoints(floor.exteriorHotspot);
   return {
@@ -76,7 +91,7 @@ export function mapBuildingFloor(floor: BuildingFloor) {
     label: floor.label,
     sortOrder: floor.sortOrder,
     imageUrl: floor.imageUrl,
-    hotspots: asArray<{ apartmentId: string; points: [number, number][] }>(floor.hotspots),
+    hotspots: mapFloorHotspots(floor.hotspots),
     exteriorHotspot: exteriorHotspot.length >= 3 ? exteriorHotspot : undefined,
   };
 }
