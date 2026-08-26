@@ -32,8 +32,8 @@ interface Props {
 type Crumb = { id: string; label: string };
 type TipPos = { x: number; y: number };
 
-/** Matches Defanse Housing: map only from md up; image grows with width, min 80vh on md+. */
-const MAPPED_SECTION = "mapped-section relative hidden w-full md:block";
+/** Defanse-style map shell (visibility controlled by page wrappers). */
+const MAPPED_SECTION = "mapped-section relative w-full";
 const MAP_FRAME = "map relative mb-1 h-full w-full";
 /** Exact Defanse image classes — min-height only applies ≥768px so small windows scale naturally. */
 const MAP_IMG = "w-full md:min-h-[80vh] h-auto max-h-screen";

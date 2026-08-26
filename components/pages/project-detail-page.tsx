@@ -252,11 +252,6 @@ export default function ProjectDetailPage() {
     </>
   );
 
-  const salesMode = projectSalesMode(project);
-  const isNeighborhood = isNeighborhoodProject(project);
-  /** Defanse-style: interactive map is the first viewport on desktop. */
-  const mapAsHero = isNeighborhood || salesMode === "buildings" || salesMode === "floors";
-
   return (
     <main className="min-h-screen bg-white">
       <Seo title={`${title} — ${city}`} description={description} path={path} image={heroImage} lang={lang} ogType="article" />
@@ -268,24 +263,7 @@ export default function ProjectDetailPage() {
         ])}
       />
 
-      {isNeighborhood ? (
-        <NeighborhoodSalesSection project={project} />
-      ) : mapAsHero ? (
-        <div className="hidden pt-header md:block">
-          <ApartmentSalesJourney project={project} />
-        </div>
-      ) : null}
-
-      {/* Photo hero on small screens (map is md:hidden), or always when there is no map. */}
-      <div className={mapAsHero && !isNeighborhood ? "md:hidden" : undefined}>
-        <ProjectMediaShowcase project={project} items={galleryItems} />
-      </div>
-
-      {mapAsHero && !isNeighborhood && galleryItems.length > 0 ? (
-        <div className="hidden md:block">
-          <ProjectMediaShowcase project={project} items={galleryItems} variant="section" />
-        </div>
-      ) : null}
+      <ProjectMediaShowcase project={project} items={galleryItems} />
 
       {hasDroneVideos ? (
         <section className="border-t border-[#E5E7EB] bg-[#F9FAFB] py-8 md:py-11">
@@ -306,7 +284,9 @@ export default function ProjectDetailPage() {
         </Container>
       )}
 
-      {isNeighborhood ? null : salesMode === "plans" ? (
+      {isNeighborhoodProject(project) ? (
+        <NeighborhoodSalesSection project={project} />
+      ) : projectSalesMode(project) === "plans" ? (
         <>
           <section id="apartments" className="border-t border-[#E5E7EB]">
             <Container className="py-10 md:py-14">
@@ -326,7 +306,9 @@ export default function ProjectDetailPage() {
               </Container>
             </section>
           </div>
-          {/* Desktop journey already rendered as hero above. */}
+          <div className="hidden md:block">
+            <ApartmentSalesJourney project={project} />
+          </div>
         </>
       )}
 
