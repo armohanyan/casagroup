@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
-  type ReactNode,
 } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -25,8 +24,6 @@ interface Props {
   lockedFloorId?: string;
   /** Override section heading when embedded in the journey. */
   title?: string;
-  /** Sales-journey header overlay (gradient + title), same as building exterior. */
-  overlay?: ReactNode;
 }
 
 function sortedBuildings(buildings: Building[] | undefined) {
@@ -212,7 +209,7 @@ function FloorPlanCanvas({
   );
 }
 
-export function BuildingFloorMapSection({ project, lockedFloorId, title, overlay }: Props) {
+export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props) {
   const { t } = useI18n();
   const router = useRouter();
   const buildings = useMemo(() => sortedBuildings(project.buildings), [project.buildings]);
@@ -342,11 +339,10 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title, overlay
     </div>
   );
 
-  // Locked journey: full-bleed floor map with chrome above (Defanse-style)
+  // Locked journey: full-bleed floor map (Defanse-style)
   if (locked) {
     return (
       <section id="building-floors" className="mapped-section relative w-full">
-        {overlay}
         {floorCanvas}
 
         <AnimatePresence>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Cropper, { type Area } from "react-easy-crop";
+import Cropper, { type Area, type MediaSize } from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
 import {
   Check,
@@ -94,8 +94,12 @@ export function AdminImageEditor({
   const [rotation, setRotation] = useState(0);
   const [flip, setFlip] = useState<FlipState>({ horizontal: false, vertical: false });
   const [aspectId, setAspectId] = useState("free");
+  const [cropSize, setCropSize] = useState<{ width: number; height: number } | undefined>();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const isFree = aspectId === "free";
+  const aspect = aspects.find((a) => a.id === aspectId)?.value;
 
   useEffect(() => {
     if (!open) return;
@@ -104,6 +108,7 @@ export function AdminImageEditor({
     setRotation(0);
     setFlip({ horizontal: false, vertical: false });
     setAspectId("free");
+    setCropSize(undefined);
     setCroppedAreaPixels(null);
     setBusy(false);
   }, [open, imageSrc]);
@@ -121,7 +126,26 @@ export function AdminImageEditor({
     setCroppedAreaPixels(pixels);
   }, []);
 
-  const aspect = aspects.find((a) => a.id === aspectId)?.value;
+  /** Free aspect: fill the crop box to the full displayed media (not the lib default 4:3). */
+  const onMediaLoaded = useCallback(
+    (mediaSize: MediaSize) => {
+      if (!isFree) {
+        setCropSize(undefined);
+        return;
+      }
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCropSize({ width: mediaSize.width, height: mediaSize.height });
+    },
+    [isFree],
+  );
+
+  function selectAspect(id: string) {
+    setAspectId(id);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    if (id !== "free") setCropSize(undefined);
+  }
 
   async function handleApply() {
     if (!imageSrc || !croppedAreaPixels || busy) return;
@@ -173,17 +197,27 @@ export function AdminImageEditor({
             }}
           >
             <Cropper
+              key={`${imageSrc}-${aspectId}`}
               image={imageSrc}
               crop={crop}
               zoom={zoom}
               rotation={rotation}
-              aspect={aspect}
+              {...(isFree
+                ? cropSize
+                  ? { cropSize }
+                  : {}
+                : { aspect: aspect ?? 4 / 3 })}
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onRotationChange={setRotation}
               onCropComplete={onCropComplete}
+              onMediaLoaded={onMediaLoaded}
               objectFit="contain"
               showGrid
+              classes={{
+                containerClassName: "h-full w-full",
+                mediaClassName: "max-h-full max-w-full",
+              }}
             />
           </div>
         </div>
@@ -194,7 +228,7 @@ export function AdminImageEditor({
               <button
                 key={a.id}
                 type="button"
-                onClick={() => setAspectId(a.id)}
+                onClick={() => selectAspect(a.id)}
                 className={cn(
                   "h-8 rounded-[5px] px-2.5 text-xs font-semibold transition-colors",
                   aspectId === a.id

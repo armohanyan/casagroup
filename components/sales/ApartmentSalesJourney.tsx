@@ -7,14 +7,12 @@ import {
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
-  type ReactNode,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Container } from "@/components/site/Container";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { useI18n, type Lang } from "@/lib/i18n";
-import { getProjectTitle } from "@/lib/project-i18n";
 import { projectSalesMode, usesMapStages } from "@/lib/sales-mode";
 import { cn } from "@/lib/utils";
 import type {
@@ -29,7 +27,6 @@ interface Props {
   project: Project;
 }
 
-type Crumb = { id: string; label: string };
 type TipPos = { x: number; y: number };
 
 /** Defanse-style map shell (visibility controlled by page wrappers). */
@@ -143,77 +140,6 @@ function HoverTip({
   );
 }
 
-function JourneyBreadcrumbs({
-  crumbs,
-  onBack,
-  backLabel,
-  onImage = false,
-}: {
-  crumbs: Crumb[];
-  onBack: () => void;
-  backLabel: string;
-  onImage?: boolean;
-}) {
-  if (crumbs.length <= 1) return null;
-  return (
-    <div className="mb-1.5 flex flex-wrap items-center gap-2 text-xs">
-      <button
-        type="button"
-        onClick={onBack}
-        className={cn(
-          "font-semibold transition-colors",
-          onImage ? "text-white/80 hover:text-white" : "text-[#6B7280] hover:text-[#0c1428]",
-        )}
-      >
-        ← {backLabel}
-      </button>
-      <span className={onImage ? "text-white/35" : "text-[#D1D5DB]"}>|</span>
-      {crumbs.map((c, i) => (
-        <span key={c.id} className="inline-flex items-center gap-2">
-          {i > 0 ? <span className={onImage ? "text-white/35" : "text-[#D1D5DB]"}>/</span> : null}
-          <span
-            className={
-              i === crumbs.length - 1
-                ? onImage
-                  ? "font-semibold text-[#c9a96e]"
-                  : "font-semibold text-[#0c1428]"
-                : onImage
-                  ? "text-white/70"
-                  : "text-[#6B7280]"
-            }
-          >
-            {c.label}
-          </span>
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function JourneyChrome({
-  crumbs,
-  title,
-  onBack,
-  backLabel,
-}: {
-  crumbs: Crumb[];
-  title: string;
-  onBack?: () => void;
-  backLabel?: string;
-}) {
-  const showCrumbs = crumbs.length > 1 && onBack && backLabel;
-  return (
-    <div className="border-b border-[#E5E7EB] bg-[#0c1428] px-4 py-3 sm:px-6 lg:px-8">
-      {showCrumbs ? (
-        <JourneyBreadcrumbs crumbs={crumbs} onBack={onBack} backLabel={backLabel} onImage />
-      ) : null}
-      <h2 className={cn("text-sm font-semibold tracking-tight text-white sm:text-base", showCrumbs && "mt-1")}>
-        {title}
-      </h2>
-    </div>
-  );
-}
-
 function MapStageView({
   stage,
   stagesById,
@@ -223,7 +149,6 @@ function MapStageView({
   onSelectBuilding,
   moreLabel,
   buildingsLabel,
-  chrome,
 }: {
   stage: ProjectMapStage;
   stagesById: Map<string, ProjectMapStage>;
@@ -233,7 +158,6 @@ function MapStageView({
   onSelectBuilding: (building: Building) => void;
   moreLabel: string;
   buildingsLabel: string;
-  chrome?: ReactNode;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -270,7 +194,6 @@ function MapStageView({
 
   return (
     <section id="sales-journey" className={MAPPED_SECTION}>
-      {chrome}
       <div
         ref={frameRef}
         className={MAP_FRAME}
@@ -391,7 +314,6 @@ function BuildingExteriorView({
   floorLabelTemplate,
   emptyLabel,
   floorsLabel,
-  chrome,
 }: {
   building: Building;
   floors: BuildingFloor[];
@@ -400,7 +322,6 @@ function BuildingExteriorView({
   floorLabelTemplate: string;
   emptyLabel: string;
   floorsLabel: string;
-  chrome?: ReactNode;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -418,7 +339,6 @@ function BuildingExteriorView({
   if (!exterior) {
     return (
       <section id="sales-journey" className={MAPPED_SECTION}>
-        {chrome}
         <div className="space-y-5 px-4 py-8 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-[#6B7280]">{emptyLabel}</p>
           <div className="flex flex-wrap justify-center gap-2">
@@ -440,7 +360,6 @@ function BuildingExteriorView({
 
   return (
     <section id="sales-journey" className={MAPPED_SECTION}>
-      {chrome}
       <div
         ref={frameRef}
         className={MAP_FRAME}
@@ -645,24 +564,8 @@ function ApartmentSalesJourneyInner({ project }: Props) {
     return (building.floors ?? []).find((f) => f.id === urlFloorId) ?? null;
   }, [building, urlFloorId]);
 
-  const projectTitle = getProjectTitle(project, lang);
   const currentStage = stageStack[stageStack.length - 1] ?? null;
   const root = useMemo(() => rootStage(stages), [stages]);
-
-  const crumbs: Crumb[] = useMemo(() => {
-    const list: Crumb[] = [{ id: "project", label: projectTitle }];
-    for (const s of stageStack) {
-      list.push({ id: s.id, label: stageLabel(s, lang) });
-    }
-    if (building) list.push({ id: building.id, label: building.name });
-    if (floor) {
-      list.push({
-        id: floor.id,
-        label: d.salesJourneyFloor.replace("{n}", floor.label),
-      });
-    }
-    return list;
-  }, [projectTitle, stageStack, building, floor, lang, d.salesJourneyFloor]);
 
   // ——— Case 1: plans only ———
   if (mode === "plans") {
@@ -676,26 +579,6 @@ function ApartmentSalesJourneyInner({ project }: Props) {
         <BuildingFloorMapSection project={project} />
       </>
     );
-  }
-
-  function goBack() {
-    if (floor) {
-      setJourneyParams({ floor: null });
-      return;
-    }
-    if (building) {
-      if (mode === "floors" && buildings.length <= 1) return;
-      setJourneyParams({ building: null, floor: null });
-      return;
-    }
-    if (stageStack.length > 1) {
-      const parent = stageStack[stageStack.length - 2];
-      setJourneyParams({
-        stage: root && parent.id === root.id ? null : parent.id,
-        building: null,
-        floor: null,
-      });
-    }
   }
 
   function selectBuilding(b: Building) {
@@ -727,25 +610,12 @@ function ApartmentSalesJourneyInner({ project }: Props) {
     });
   }
 
-  const canGoBack =
-    Boolean(floor) ||
-    (Boolean(building) && !(mode === "floors" && buildings.length <= 1)) ||
-    stageStack.length > 1;
-
   // ——— Floor plate (apartments) ———
   if (building && floor) {
     return (
       <BuildingFloorMapSection
         project={{ ...project, buildings: [building] }}
         lockedFloorId={floor.id}
-        overlay={
-          <JourneyChrome
-            crumbs={crumbs}
-            title={d.salesJourneySelectApartment}
-            onBack={canGoBack ? goBack : undefined}
-            backLabel={d.salesJourneyBack}
-          />
-        }
       />
     );
   }
@@ -761,14 +631,6 @@ function ApartmentSalesJourneyInner({ project }: Props) {
         floorLabelTemplate={d.salesJourneyFloor}
         emptyLabel={d.salesJourneyEmptyExterior}
         floorsLabel={t.projectDetail.floors}
-        chrome={
-          <JourneyChrome
-            crumbs={crumbs}
-            title={d.salesJourneySelectFloor}
-            onBack={canGoBack ? goBack : undefined}
-            backLabel={d.salesJourneyBack}
-          />
-        }
       />
     );
   }
@@ -801,16 +663,6 @@ function ApartmentSalesJourneyInner({ project }: Props) {
         onSelectBuilding={selectBuilding}
         moreLabel={d.salesJourneyMore}
         buildingsLabel={d.salesJourneyBuilding}
-        chrome={
-          canGoBack ? (
-            <JourneyChrome
-              crumbs={crumbs}
-              title={d.salesJourneySelectBuilding}
-              onBack={goBack}
-              backLabel={d.salesJourneyBack}
-            />
-          ) : undefined
-        }
       />
     );
   }
