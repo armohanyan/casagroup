@@ -1,27 +1,46 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { useAdminToast } from "@/components/admin/AdminToast";
+import { useAdminImagePicker } from "@/components/admin/useAdminImagePicker";
 import { adminBtnPrimary, adminBtnSecondary, adminCardCls } from "@/components/admin/admin-config";
 import {
   adminCreateHeroSlide,
   adminDeleteHeroSlide,
   adminListHeroSlides,
   adminReorderHeroSlides,
-  adminUploadFile,
+  adminUpdateHeroSlide,
   type HeroSlide,
 } from "@/lib/api-client";
 import { toBrowserMediaUrl } from "@/lib/media-url";
+import { hyTranslations } from "@/content/hy";
 import { cn } from "@/lib/utils";
+
+const a = hyTranslations.admin;
+
+const imageEditorLabels = {
+  title: a.imageEditorTitle,
+  zoom: a.imageEditorZoom,
+  rotate: a.imageEditorRotate,
+  flipH: a.imageEditorFlipH,
+  flipV: a.imageEditorFlipV,
+  apply: a.imageEditorApply,
+  cancel: a.imageEditorCancel,
+  aspectFree: a.imageEditorAspectFree,
+  aspect1: a.imageEditorAspect1,
+  aspect43: a.imageEditorAspect43,
+  aspect169: a.imageEditorAspect169,
+  aspect34: a.imageEditorAspect34,
+  edit: a.editImage,
+};
 
 export function AdminHeroPage() {
   const { toast } = useAdminToast();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const imagePicker = useAdminImagePicker(imageEditorLabels, (msg) => toast(msg, "error"));
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -38,27 +57,28 @@ export function AdminHeroPage() {
     void load();
   }, [load]);
 
-  async function handleUpload(files: FileList | File[]) {
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (list.length === 0) {
-      toast("Միայն նկար ֆայլ", "error");
-      return;
-    }
-    setUploading(true);
-    try {
-      for (const file of list) {
-        const result = await adminUploadFile(file);
-        const url = toBrowserMediaUrl(result.jpegUrl || result.url || "");
-        if (url) await adminCreateHeroSlide(url);
-      }
-      await load();
-      toast(list.length === 1 ? "Նկարը ավելացվեց" : `${list.length} նկար ավելացվեց`);
-    } catch (err) {
-      toast(err instanceof Error ? err.message : "Upload failed", "error");
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
+  function handleUpload() {
+    imagePicker.pickAndUpload({
+      multiple: true,
+      onUploaded: async ({ url }) => {
+        if (!url) return;
+        await adminCreateHeroSlide(url);
+        await load();
+        toast("Նկարը ավելացվեց");
+      },
+    });
+  }
+
+  function handleEdit(slide: HeroSlide) {
+    void imagePicker.editExisting({
+      src: slide.imageUrl,
+      onUploaded: async ({ url }) => {
+        if (!url) return;
+        await adminUpdateHeroSlide(slide.id, { imageUrl: url });
+        await load();
+        toast("Նկարը թարմացվեց");
+      },
+    });
   }
 
   async function handleDelete(id: string) {
@@ -93,27 +113,15 @@ export function AdminHeroPage() {
         title="Գլխավոր սլայդեր"
         description="Վերբեռնեք գլխավոր էջի ֆոնային նկարները։ Կայքում դրանք ցուցադրվում են հերթով։"
         actions={
-          <>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files) void handleUpload(e.target.files);
-              }}
-            />
-            <button
-              type="button"
-              className={adminBtnPrimary}
-              disabled={uploading}
-              onClick={() => fileRef.current?.click()}
-            >
-              <Plus size={16} />
-              {uploading ? "Վերբեռնվում է…" : "Ավելացնել նկար"}
-            </button>
-          </>
+          <button
+            type="button"
+            className={adminBtnPrimary}
+            disabled={imagePicker.busy}
+            onClick={handleUpload}
+          >
+            <Plus size={16} />
+            {imagePicker.busy ? "Վերբեռնվում է…" : "Ավելացնել նկար"}
+          </button>
         }
       />
 
@@ -122,7 +130,7 @@ export function AdminHeroPage() {
       ) : slides.length === 0 ? (
         <div className={`${adminCardCls} p-10 text-center`}>
           <p className="text-sm text-[#6B7280]">Սլայդեր չկան։ Ավելացրեք նկարներ գլխավոր էջի համար։</p>
-          <button type="button" className={cn(adminBtnSecondary, "mt-4")} onClick={() => fileRef.current?.click()}>
+          <button type="button" className={cn(adminBtnSecondary, "mt-4")} onClick={handleUpload}>
             Ավելացնել նկար
           </button>
         </div>
@@ -161,6 +169,15 @@ export function AdminHeroPage() {
                   >
                     <ArrowDown size={16} />
                   </button>
+                  <button
+                    type="button"
+                    disabled={imagePicker.busy}
+                    onClick={() => handleEdit(slide)}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-[5px] border border-[#E5E7EB] px-3 text-sm font-medium text-[#0c1428] hover:bg-[#F3F4F6] disabled:opacity-40"
+                  >
+                    <Pencil size={15} />
+                    {a.editImage}
+                  </button>
                 </div>
                 <button
                   type="button"
@@ -175,6 +192,7 @@ export function AdminHeroPage() {
           ))}
         </div>
       )}
+      {imagePicker.ui}
     </div>
   );
 }

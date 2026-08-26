@@ -1,16 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import { BilingualField } from "@/components/admin/BilingualField";
 import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
+import { useAdminImagePicker } from "@/components/admin/useAdminImagePicker";
 import {
   adminBtnSecondary,
   adminInputCls,
   adminSelectCls,
 } from "@/components/admin/admin-config";
-import { adminUploadFile } from "@/lib/api-client";
 import { emptyMapStage, generateId } from "@/lib/store";
 import type { Building, MapStageHotspot, ProjectMapStage } from "@/types";
 import { cn } from "@/lib/utils";
@@ -94,6 +94,7 @@ function StageCard({
   onFinishHotspot,
   onRemoveHotspot,
   onUploadClick,
+  onEditClick,
 }: {
   stage: ProjectMapStage;
   depth: number;
@@ -113,6 +114,7 @@ function StageCard({
   onFinishHotspot: () => void;
   onRemoveHotspot: (id: string) => void;
   onUploadClick: () => void;
+  onEditClick?: () => void;
 }) {
   const childStages = mapStages
     .filter((s) => s.parentId === stage.id)
@@ -179,6 +181,8 @@ function StageCard({
               className="h-40 w-full max-w-sm aspect-auto sm:aspect-[4/3]"
               imgClassName="object-contain bg-[#FAFAF8]"
               removeLabel="×"
+              editLabel="Խմբագրել"
+              onEdit={onEditClick}
               onRemove={() => onUpdate({ imageUrl: "", hotspots: [] })}
             />
           ) : null}
@@ -345,9 +349,7 @@ export function AdminSalesMapSection({
   onToast,
   labels,
 }: Props) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const uploadTargetId = useRef<string | null>(null);
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const imagePicker = useAdminImagePicker(undefined, (msg) => onToast(msg, "error"));
   const [openIds, setOpenIds] = useState<string[]>([]);
   const [draftByStage, setDraftByStage] = useState<Record<string, [number, number][]>>({});
   const [hotspotDraft, setHotspotDraft] = useState<Record<string, HotspotMeta>>({});
@@ -392,24 +394,27 @@ export function AdminSalesMapSection({
     });
   }
 
-  async function handleUpload(file: File, stageId: string) {
-    if (!file.type.startsWith("image/")) {
-      onToast("Միայն նկար ֆայլ", "error");
-      return;
-    }
-    setUploadingId(stageId);
-    try {
-      const result = await adminUploadFile(file, projectId);
-      const url = result.jpegUrl || result.url;
-      if (url) {
+  function uploadStageImage(stageId: string) {
+    imagePicker.pickAndUpload({
+      projectId,
+      onUploaded: ({ url }) => {
+        if (!url) return;
         updateStage(stageId, { imageUrl: url });
         onToast("Նկարը վերբեռնվեց");
-      }
-    } catch (e) {
-      onToast(e instanceof Error ? e.message : String(e), "error");
-    } finally {
-      setUploadingId(null);
-    }
+      },
+    });
+  }
+
+  function editStageImage(stageId: string, src: string) {
+    void imagePicker.editExisting({
+      src,
+      projectId,
+      onUploaded: ({ url }) => {
+        if (!url) return;
+        updateStage(stageId, { imageUrl: url });
+        onToast("Նկարը թարմացվեց");
+      },
+    });
   }
 
   function finishHotspot(stageId: string) {
@@ -478,7 +483,7 @@ export function AdminSalesMapSection({
           open={open}
           draft={draft}
           meta={meta}
-          uploading={uploadingId === stage.id}
+          uploading={imagePicker.busy}
           labels={labels}
           onToggle={() =>
             setOpenIds((ids) =>
@@ -492,10 +497,12 @@ export function AdminSalesMapSection({
           onMetaChange={(m) => setHotspotDraft((prev) => ({ ...prev, [stage.id]: m }))}
           onFinishHotspot={() => finishHotspot(stage.id)}
           onRemoveHotspot={(id) => removeHotspot(stage.id, id)}
-          onUploadClick={() => {
-            uploadTargetId.current = stage.id;
-            fileRef.current?.click();
-          }}
+          onUploadClick={() => uploadStageImage(stage.id)}
+          onEditClick={
+            stage.imageUrl.trim()
+              ? () => editStageImage(stage.id, stage.imageUrl)
+              : undefined
+          }
         />
         {open ? childStages.map((child) => renderStage(child, depth + 1)) : null}
       </div>
@@ -522,19 +529,7 @@ export function AdminSalesMapSection({
       ) : (
         roots.map((stage) => renderStage(stage, 0))
       )}
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          const id = uploadTargetId.current;
-          if (file && id) void handleUpload(file, id);
-          e.target.value = "";
-          uploadTargetId.current = null;
-        }}
-      />
+      {imagePicker.ui}
     </div>
   );
 }

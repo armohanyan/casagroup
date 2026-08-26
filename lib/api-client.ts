@@ -268,6 +268,14 @@ export async function adminCreateHeroSlide(imageUrl: string) {
   });
 }
 
+export async function adminUpdateHeroSlide(id: string, data: { imageUrl?: string; sortOrder?: number }) {
+  return apiFetch<HeroSlide>(`/api/admin/hero-slides/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+    ...authHeaders(),
+  });
+}
+
 export async function adminDeleteHeroSlide(id: string) {
   return apiFetch<{ ok: boolean }>(`/api/admin/hero-slides/${id}`, {
     method: "DELETE",

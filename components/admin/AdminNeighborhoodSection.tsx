@@ -1,16 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { AdminImageGrid, AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import { BilingualField } from "@/components/admin/BilingualField";
 import { SitePlanHotspotEditor } from "@/components/admin/SitePlanHotspotEditor";
+import { useAdminImagePicker } from "@/components/admin/useAdminImagePicker";
 import {
   adminBtnSecondary,
   adminInputCls,
   adminSelectCls,
 } from "@/components/admin/admin-config";
-import { adminUploadFile } from "@/lib/api-client";
 import { getStatusLabel } from "@/lib/i18n";
 import { emptyApartment, emptyLandPlot } from "@/lib/store";
 import { hyTranslations } from "@/content/hy";
@@ -20,6 +20,22 @@ import type { Apartment, ApartmentStatus, LandPlot } from "@/types";
 import { cn } from "@/lib/utils";
 
 const a = hyTranslations.admin;
+
+const imageEditorLabels = {
+  title: a.imageEditorTitle,
+  zoom: a.imageEditorZoom,
+  rotate: a.imageEditorRotate,
+  flipH: a.imageEditorFlipH,
+  flipV: a.imageEditorFlipV,
+  apply: a.imageEditorApply,
+  cancel: a.imageEditorCancel,
+  aspectFree: a.imageEditorAspectFree,
+  aspect1: a.imageEditorAspect1,
+  aspect43: a.imageEditorAspect43,
+  aspect169: a.imageEditorAspect169,
+  aspect34: a.imageEditorAspect34,
+  edit: a.editImage,
+};
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -53,14 +69,7 @@ export function AdminNeighborhoodSection({
   onApartments,
   onToast,
 }: Props) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const planFileRef = useRef<HTMLInputElement>(null);
-  const galleryFileRef = useRef<HTMLInputElement>(null);
-  const planTargetId = useRef<string | null>(null);
-  const galleryTargetId = useRef<string | null>(null);
-  const [uploadingSite, setUploadingSite] = useState(false);
-  const [uploadingPlanId, setUploadingPlanId] = useState<string | null>(null);
-  const [uploadingGalleryId, setUploadingGalleryId] = useState<string | null>(null);
+  const imagePicker = useAdminImagePicker(imageEditorLabels, (msg) => onToast(msg, "error"));
   const [openPlotIds, setOpenPlotIds] = useState<string[]>([]);
   const [openPlanIds, setOpenPlanIds] = useState<string[]>([]);
   const [imageUrlDraft, setImageUrlDraft] = useState("");
@@ -95,56 +104,89 @@ export function AdminNeighborhoodSection({
     setOpenPlotIds((ids) => (ids.includes(plotId) ? ids : [...ids, plotId]));
   }
 
-  async function handleSiteUpload(file: File) {
-    if (!file.type.startsWith("image/")) {
-      onToast("Միայն նկար ֆայլ", "error");
-      return;
-    }
-    setUploadingSite(true);
-    try {
-      const res = await adminUploadFile(file, projectId);
-      const url = res.hasAlpha ? res.url : res.jpegUrl || res.url;
-      if (url) onSitePlanImage(url);
-    } catch (e) {
-      onToast(e instanceof Error ? e.message : "Upload failed", "error");
-    } finally {
-      setUploadingSite(false);
-    }
+  function uploadSite() {
+    imagePicker.pickAndUpload({
+      projectId,
+      onUploaded: ({ url, raw }) => {
+        const finalUrl = raw.hasAlpha ? raw.url : raw.jpegUrl || raw.url || url;
+        if (finalUrl) {
+          onSitePlanImage(finalUrl);
+          onToast("Նկարը վերբեռնվեց");
+        }
+      },
+    });
   }
 
-  async function handlePlanImage(file: File, aptId: string) {
-    setUploadingPlanId(aptId);
-    try {
-      const res = await adminUploadFile(file, projectId);
-      const url = res.hasAlpha ? res.url : res.jpegUrl || res.url;
-      if (url) updatePlan(aptId, { floorPlanImage: url });
-    } catch (e) {
-      onToast(e instanceof Error ? e.message : "Upload failed", "error");
-    } finally {
-      setUploadingPlanId(null);
-    }
+  function editSite() {
+    if (!sitePlanImage.trim()) return;
+    void imagePicker.editExisting({
+      src: sitePlanImage,
+      projectId,
+      onUploaded: ({ url, raw }) => {
+        const finalUrl = raw.hasAlpha ? raw.url : raw.jpegUrl || raw.url || url;
+        if (finalUrl) {
+          onSitePlanImage(finalUrl);
+          onToast("Նկարը թարմացվեց");
+        }
+      },
+    });
   }
 
-  async function handleGallery(files: FileList, aptId: string) {
-    const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (!list.length) return;
-    setUploadingGalleryId(aptId);
-    try {
-      const urls: string[] = [];
-      for (const file of list) {
-        const res = await adminUploadFile(file, projectId);
-        const url = res.jpegUrl || res.url;
-        if (url) urls.push(url);
-      }
-      if (urls.length) {
+  function uploadPlanImage(aptId: string) {
+    imagePicker.pickAndUpload({
+      projectId,
+      onUploaded: ({ url, raw }) => {
+        const finalUrl = raw.hasAlpha ? raw.url : raw.jpegUrl || raw.url || url;
+        if (finalUrl) {
+          updatePlan(aptId, { floorPlanImage: finalUrl });
+          onToast("Նկարը վերբեռնվեց");
+        }
+      },
+    });
+  }
+
+  function editPlanImage(aptId: string, src: string) {
+    void imagePicker.editExisting({
+      src,
+      projectId,
+      onUploaded: ({ url, raw }) => {
+        const finalUrl = raw.hasAlpha ? raw.url : raw.jpegUrl || raw.url || url;
+        if (finalUrl) {
+          updatePlan(aptId, { floorPlanImage: finalUrl });
+          onToast("Նկարը թարմացվեց");
+        }
+      },
+    });
+  }
+
+  function uploadGallery(aptId: string) {
+    imagePicker.pickAndUpload({
+      projectId,
+      multiple: true,
+      onUploaded: ({ url }) => {
+        if (!url) return;
         const apt = apartments.find((x) => x.id === aptId);
-        updatePlan(aptId, { gallery: [...(apt?.gallery ?? []), ...urls] });
-      }
-    } catch (e) {
-      onToast(e instanceof Error ? e.message : "Upload failed", "error");
-    } finally {
-      setUploadingGalleryId(null);
-    }
+        updatePlan(aptId, { gallery: [...(apt?.gallery ?? []), url] });
+        onToast("Լուսանկարը վերբեռնվեց");
+      },
+    });
+  }
+
+  function editGallery(aptId: string, index: number) {
+    const apt = apartments.find((x) => x.id === aptId);
+    const src = apt?.gallery?.[index];
+    if (!src) return;
+    void imagePicker.editExisting({
+      src,
+      projectId,
+      onUploaded: ({ url }) => {
+        if (!url) return;
+        updatePlan(aptId, {
+          gallery: (apt?.gallery ?? []).map((u, i) => (i === index ? url : u)),
+        });
+        onToast("Լուսանկարը թարմացվեց");
+      },
+    });
   }
 
   function addSiteUrl() {
@@ -181,11 +223,11 @@ export function AdminNeighborhoodSection({
             </button>
             <button
               type="button"
-              disabled={uploadingSite}
+              disabled={imagePicker.busy}
               className={adminBtnSecondary}
-              onClick={() => fileRef.current?.click()}
+              onClick={uploadSite}
             >
-              {uploadingSite ? "…" : a.uploadSitePlan}
+              {imagePicker.busy ? "…" : a.uploadSitePlan}
             </button>
           </div>
         </div>
@@ -195,20 +237,11 @@ export function AdminNeighborhoodSection({
             className="h-48 w-full max-w-xl aspect-auto sm:aspect-[16/9]"
             imgClassName="object-contain bg-[#FAFAF8]"
             removeLabel={a.removeImage}
+            editLabel={a.editImage}
+            onEdit={editSite}
             onRemove={() => onSitePlanImage("")}
           />
         ) : null}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void handleSiteUpload(file);
-            e.target.value = "";
-          }}
-        />
       </div>
 
       <SitePlanHotspotEditor
@@ -437,14 +470,11 @@ export function AdminNeighborhoodSection({
                                   />
                                   <button
                                     type="button"
-                                    disabled={uploadingPlanId === plan.id}
+                                    disabled={imagePicker.busy}
                                     className={adminBtnSecondary}
-                                    onClick={() => {
-                                      planTargetId.current = plan.id;
-                                      planFileRef.current?.click();
-                                    }}
+                                    onClick={() => uploadPlanImage(plan.id)}
                                   >
-                                    {uploadingPlanId === plan.id ? "…" : a.uploadImages}
+                                    {a.uploadImages}
                                   </button>
                                 </div>
                               </Field>
@@ -454,6 +484,8 @@ export function AdminNeighborhoodSection({
                                   className="aspect-[4/3] max-w-xs"
                                   imgClassName="object-contain bg-[#FAFAF8]"
                                   removeLabel={a.removeImage}
+                                  editLabel={a.editImage}
+                                  onEdit={() => editPlanImage(plan.id, plan.floorPlanImage)}
                                   onRemove={() => updatePlan(plan.id, { floorPlanImage: "" })}
                                 />
                               ) : null}
@@ -464,15 +496,12 @@ export function AdminNeighborhoodSection({
                                   </p>
                                   <button
                                     type="button"
-                                    disabled={uploadingGalleryId === plan.id}
+                                    disabled={imagePicker.busy}
                                     className={cn(adminBtnSecondary, "h-9 text-xs")}
-                                    onClick={() => {
-                                      galleryTargetId.current = plan.id;
-                                      galleryFileRef.current?.click();
-                                    }}
+                                    onClick={() => uploadGallery(plan.id)}
                                   >
                                     <Plus size={14} />
-                                    {uploadingGalleryId === plan.id ? "…" : a.uploadImages}
+                                    {a.uploadImages}
                                   </button>
                                 </div>
                                 <AdminImageGrid
@@ -482,8 +511,10 @@ export function AdminNeighborhoodSection({
                                       gallery: (plan.gallery ?? []).filter((_, idx) => idx !== i),
                                     })
                                   }
+                                  onEdit={(i) => editGallery(plan.id, i)}
                                   emptyLabel={a.aptGalleryEmpty}
                                   removeLabel={a.removeImage}
+                                  editLabel={a.editImage}
                                   className="sm:grid-cols-3"
                                 />
                               </div>
@@ -509,33 +540,7 @@ export function AdminNeighborhoodSection({
         })}
       </div>
 
-      <input
-        ref={planFileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          const id = planTargetId.current;
-          if (file && id) void handlePlanImage(file, id);
-          e.target.value = "";
-          planTargetId.current = null;
-        }}
-      />
-      <input
-        ref={galleryFileRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          const files = e.target.files;
-          const id = galleryTargetId.current;
-          if (files?.length && id) void handleGallery(files, id);
-          e.target.value = "";
-          galleryTargetId.current = null;
-        }}
-      />
+      {imagePicker.ui}
     </div>
   );
 }

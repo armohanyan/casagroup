@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
+import { useAdminImagePicker } from "@/components/admin/useAdminImagePicker";
 import { adminBtnSecondary, adminInputCls, adminSelectCls } from "@/components/admin/admin-config";
-import { adminUploadFile } from "@/lib/api-client";
 import type { Building, BuildingFloor } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -34,14 +34,25 @@ type Labels = {
   zoomReset: string;
   panMode: string;
   drawMode: string;
+  editImage?: string;
+  imageEditorTitle?: string;
+  imageEditorZoom?: string;
+  imageEditorRotate?: string;
+  imageEditorFlipH?: string;
+  imageEditorFlipV?: string;
+  imageEditorApply?: string;
+  imageEditorCancel?: string;
+  imageEditorAspectFree?: string;
+  imageEditorAspect1?: string;
+  imageEditorAspect43?: string;
+  imageEditorAspect169?: string;
+  imageEditorAspect34?: string;
 };
 
 interface Props {
   projectId?: string;
   building: Building;
-  /** Building-level fields (e.g. exteriorImageUrl). */
   onChange: (patch: Partial<Building>) => void;
-  /** Single-floor patch — parent merges against latest form state (avoids stale floors overwrite). */
   onChangeFloor: (floorId: string, patch: Partial<BuildingFloor>) => void;
   onToast: (message: string, type?: "success" | "error") => void;
   labels: Labels;
@@ -60,8 +71,25 @@ export function BuildingExteriorEditor({
   onToast,
   labels,
 }: Props) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const imagePicker = useAdminImagePicker(
+    {
+      title: labels.imageEditorTitle,
+      zoom: labels.imageEditorZoom,
+      rotate: labels.imageEditorRotate,
+      flipH: labels.imageEditorFlipH,
+      flipV: labels.imageEditorFlipV,
+      apply: labels.imageEditorApply,
+      cancel: labels.imageEditorCancel,
+      aspectFree: labels.imageEditorAspectFree,
+      aspect1: labels.imageEditorAspect1,
+      aspect43: labels.imageEditorAspect43,
+      aspect169: labels.imageEditorAspect169,
+      aspect34: labels.imageEditorAspect34,
+      edit: labels.editImage,
+    },
+    (msg) => onToast(msg, "error"),
+  );
+
   const floors = [...(building.floors ?? [])].sort(
     (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, undefined, { numeric: true }),
   );
@@ -84,7 +112,7 @@ export function BuildingExteriorEditor({
       setSelectedFloorId(nextId);
       setDraft(draftFromFloor(floors[0]));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- floors derived from building.floors
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorIdsKey, selectedFloorId]);
 
   function selectFloor(floorId: string) {
@@ -92,24 +120,32 @@ export function BuildingExteriorEditor({
     setDraft(draftFromFloor(floors.find((f) => f.id === floorId)));
   }
 
-  async function handleUpload(file: File) {
-    if (!file.type.startsWith("image/")) {
-      onToast("Միայն նկար ֆայլ", "error");
-      return;
-    }
-    setUploading(true);
-    try {
-      const result = await adminUploadFile(file, projectId);
-      const url = result.jpegUrl || result.url;
-      if (url) {
-        onChange({ exteriorImageUrl: url });
-        onToast("Նկարը վերբեռնվեց");
-      }
-    } catch (e) {
-      onToast(e instanceof Error ? e.message : String(e), "error");
-    } finally {
-      setUploading(false);
-    }
+  function uploadExterior() {
+    imagePicker.pickAndUpload({
+      projectId,
+      onUploaded: ({ url, raw }) => {
+        const finalUrl = raw.hasAlpha ? raw.url : raw.jpegUrl || raw.url || url;
+        if (finalUrl) {
+          onChange({ exteriorImageUrl: finalUrl });
+          onToast("Նկարը վերբեռնվեց");
+        }
+      },
+    });
+  }
+
+  function editExterior() {
+    if (!exteriorUrl.trim()) return;
+    void imagePicker.editExisting({
+      src: exteriorUrl,
+      projectId,
+      onUploaded: ({ url, raw }) => {
+        const finalUrl = raw.hasAlpha ? raw.url : raw.jpegUrl || raw.url || url;
+        if (finalUrl) {
+          onChange({ exteriorImageUrl: finalUrl });
+          onToast("Նկարը թարմացվեց");
+        }
+      },
+    });
   }
 
   function finishBand() {
@@ -119,7 +155,6 @@ export function BuildingExteriorEditor({
     }
     const points = draft.map((p) => [p[0], p[1]] as [number, number]);
     onChangeFloor(selectedFloorId, { exteriorHotspot: points });
-    // Keep draft so the band stays visible/editable until the user switches floor
     setDraft(points);
     onToast("Հարկի գոտին նշվեց — պահպանեք նախագիծը");
   }
@@ -138,24 +173,14 @@ export function BuildingExteriorEditor({
             <button
               type="button"
               className={cn(adminBtnSecondary, "h-11")}
-              disabled={uploading}
-              onClick={() => fileRef.current?.click()}
+              disabled={imagePicker.busy}
+              onClick={uploadExterior}
             >
-              {uploading ? "…" : labels.uploadImage}
+              {imagePicker.busy ? "…" : labels.uploadImage}
             </button>
           </div>
         </Field>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void handleUpload(file);
-            e.target.value = "";
-          }}
-        />
+        {imagePicker.ui}
       </div>
     );
   }
@@ -173,10 +198,10 @@ export function BuildingExteriorEditor({
           <button
             type="button"
             className={cn(adminBtnSecondary, "h-11")}
-            disabled={uploading}
-            onClick={() => fileRef.current?.click()}
+            disabled={imagePicker.busy}
+            onClick={uploadExterior}
           >
-            {uploading ? "…" : labels.uploadImage}
+            {imagePicker.busy ? "…" : labels.uploadImage}
           </button>
         </div>
       </Field>
@@ -186,6 +211,8 @@ export function BuildingExteriorEditor({
           className="h-40 w-full max-w-sm aspect-auto sm:aspect-[4/3]"
           imgClassName="object-contain bg-white"
           removeLabel="×"
+          editLabel={labels.editImage}
+          onEdit={editExterior}
           onRemove={() => {
             onChange({ exteriorImageUrl: "" });
             for (const f of building.floors ?? []) {
@@ -289,18 +316,7 @@ export function BuildingExteriorEditor({
           </div>
         </>
       ) : null}
-
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) void handleUpload(file);
-          e.target.value = "";
-        }}
-      />
+      {imagePicker.ui}
     </div>
   );
 }
