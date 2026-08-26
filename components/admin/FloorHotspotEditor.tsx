@@ -8,7 +8,9 @@ import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
 interface Props {
   floor: BuildingFloor;
   apartments: Apartment[];
-  onChange: (patch: Partial<BuildingFloor>) => void;
+  onChange: (
+    patch: Partial<BuildingFloor> | ((floor: BuildingFloor) => Partial<BuildingFloor>),
+  ) => void;
   onAddApartment?: () => void;
   labels: {
     selectApartment: string;
@@ -59,14 +61,16 @@ export function FloorHotspotEditor({ floor, apartments, onChange, onAddApartment
       apartmentId: selectedAptId,
       points: draft.map((p) => [p[0], p[1]] as [number, number]),
     };
-    onChange({
-      hotspots: [...floor.hotspots.filter((h) => h.apartmentId !== selectedAptId), next],
-    });
-    setDraft([]);
+    onChange((floor) => ({
+      hotspots: [...(floor.hotspots ?? []).filter((h) => h.apartmentId !== selectedAptId), next],
+    }));
+    setDraft(next.points.map((p) => [p[0], p[1]] as [number, number]));
   }
 
   function removeHotspot(apartmentId: string) {
-    onChange({ hotspots: floor.hotspots.filter((h) => h.apartmentId !== apartmentId) });
+    onChange((floor) => ({
+      hotspots: (floor.hotspots ?? []).filter((h) => h.apartmentId !== apartmentId),
+    }));
     if (apartmentId === selectedAptId) setDraft([]);
   }
 

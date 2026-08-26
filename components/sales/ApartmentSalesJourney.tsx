@@ -30,7 +30,10 @@ interface Props {
 type Crumb = { id: string; label: string };
 type TipPos = { x: number; y: number };
 
-const MAP_FRAME = "relative w-full";
+const MAP_FRAME = "relative w-full max-w-none";
+/** Full-bleed map/exterior art: width-driven, natural height, never cropped. */
+const MAP_IMG =
+  "pointer-events-none block h-auto w-full max-w-none select-none object-contain";
 
 function stageLabel(stage: ProjectMapStage, lang: Lang): string {
   if (lang === "hy") return stage.labelHy?.trim() || stage.label || stage.labelRu || "";
@@ -240,7 +243,7 @@ function MapStageView({
   return (
     <div
       ref={frameRef}
-      className={MAP_FRAME}
+      className={cn(MAP_FRAME)}
       onMouseLeave={() => {
         setHoveredId(null);
         setTip(null);
@@ -250,8 +253,9 @@ function MapStageView({
       <img
         src={stage.imageUrl}
         alt={stage.label}
-        className="pointer-events-none block h-auto w-full select-none"
+        className={MAP_IMG}
         draggable={false}
+        decoding="async"
       />
       {overlay}
       <svg
@@ -369,7 +373,7 @@ function BuildingExteriorView({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-none">
       <div
         ref={frameRef}
         className={MAP_FRAME}
@@ -382,8 +386,9 @@ function BuildingExteriorView({
         <img
           src={exterior}
           alt={building.name}
-          className="pointer-events-none block h-auto w-full select-none"
+          className={MAP_IMG}
           draggable={false}
+          decoding="async"
         />
         {overlay}
         <svg
@@ -588,7 +593,7 @@ export function ApartmentSalesJourney({ project }: Props) {
   // ——— Floor plate (apartments) ———
   if (building && floor) {
     return (
-      <section id="sales-journey">
+      <section id="sales-journey" className="w-full max-w-none">
         <BuildingFloorMapSection
           project={{ ...project, buildings: [building] }}
           lockedFloorId={floor.id}
@@ -608,7 +613,7 @@ export function ApartmentSalesJourney({ project }: Props) {
   // ——— Building exterior (choose floor) ———
   if (building && !floor) {
     return (
-      <section id="sales-journey">
+      <section id="sales-journey" className="w-full max-w-none">
         <BuildingExteriorView
           building={building}
           floors={sortedFloors(building.floors)}
@@ -648,7 +653,7 @@ export function ApartmentSalesJourney({ project }: Props) {
   // ——— Case 3: buildings — site map ———
   if (currentStage?.imageUrl.trim()) {
     return (
-      <section id="sales-journey">
+      <section id="sales-journey" className="w-full max-w-none">
         <MapStageView
           stage={currentStage}
           stagesById={stagesById}

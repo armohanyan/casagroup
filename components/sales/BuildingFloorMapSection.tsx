@@ -114,19 +114,21 @@ function FloorPlanCanvas({
   }
 
   return (
-    <div className="relative w-full overflow-hidden rounded-sm">
+    <div className="relative w-full max-w-none">
       <div
         ref={frameRef}
-        className={cn("relative w-full", onBackgroundClick && "cursor-zoom-in")}
+        className={cn("relative w-full max-w-none", onBackgroundClick && "cursor-zoom-in")}
         onClick={onBackgroundClick}
       >
         <Image
           src={floor.imageUrl}
           alt={`${title} — ${floor.label}`}
-          width={1600}
-          height={1200}
-          className="pointer-events-none h-auto w-full object-contain"
+          width={2400}
+          height={1800}
+          sizes="100vw"
+          className="pointer-events-none block h-auto w-full max-w-none object-contain"
           unoptimized
+          priority={false}
         />
         <svg
           viewBox="0 0 100 100"
@@ -297,7 +299,7 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title, overlay
   };
 
   const floorCanvas = selectedFloor ? (
-    <div className="relative w-full">
+    <div className="relative w-full max-w-none">
       {overlay}
       <FloorPlanCanvas
         floor={selectedFloor}
@@ -343,7 +345,7 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title, overlay
   // Locked journey: full-bleed floor map with gradient title overlay
   if (locked) {
     return (
-      <section id="building-floors" className="w-full">
+      <section id="building-floors" className="w-full max-w-none">
         {floorCanvas}
 
         <AnimatePresence>

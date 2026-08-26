@@ -39,7 +39,10 @@ type Labels = {
 interface Props {
   projectId?: string;
   building: Building;
+  /** Building-level fields (e.g. exteriorImageUrl). */
   onChange: (patch: Partial<Building>) => void;
+  /** Single-floor patch — parent merges against latest form state (avoids stale floors overwrite). */
+  onChangeFloor: (floorId: string, patch: Partial<BuildingFloor>) => void;
   onToast: (message: string, type?: "success" | "error") => void;
   labels: Labels;
 }
@@ -53,6 +56,7 @@ export function BuildingExteriorEditor({
   projectId,
   building,
   onChange,
+  onChangeFloor,
   onToast,
   labels,
 }: Props) {
@@ -80,19 +84,12 @@ export function BuildingExteriorEditor({
       setSelectedFloorId(nextId);
       setDraft(draftFromFloor(floors[0]));
     }
-    // floorIdsKey tracks membership changes without depending on a new array each render
     // eslint-disable-next-line react-hooks/exhaustive-deps -- floors derived from building.floors
   }, [floorIdsKey, selectedFloorId]);
 
   function selectFloor(floorId: string) {
     setSelectedFloorId(floorId);
     setDraft(draftFromFloor(floors.find((f) => f.id === floorId)));
-  }
-
-  function updateFloor(floorId: string, patch: Partial<BuildingFloor>) {
-    onChange({
-      floors: building.floors.map((f) => (f.id === floorId ? { ...f, ...patch } : f)),
-    });
   }
 
   async function handleUpload(file: File) {
@@ -116,9 +113,15 @@ export function BuildingExteriorEditor({
   }
 
   function finishBand() {
-    if (!selectedFloorId || draft.length < 3) return;
-    updateFloor(selectedFloorId, { exteriorHotspot: draft.map((p) => [p[0], p[1]] as [number, number]) });
-    setDraft([]);
+    if (!selectedFloorId || draft.length < 3) {
+      onToast("Առնվազն 3 կետ է պետք գոտին ավարտելու համար", "error");
+      return;
+    }
+    const points = draft.map((p) => [p[0], p[1]] as [number, number]);
+    onChangeFloor(selectedFloorId, { exteriorHotspot: points });
+    // Keep draft so the band stays visible/editable until the user switches floor
+    setDraft(points);
+    onToast("Հարկի գոտին նշվեց — պահպանեք նախագիծը");
   }
 
   if (!exteriorUrl.trim() && floors.length === 0) {
@@ -184,10 +187,12 @@ export function BuildingExteriorEditor({
           imgClassName="object-contain bg-white"
           removeLabel="×"
           onRemove={() => {
-            onChange({
-              exteriorImageUrl: "",
-              floors: building.floors.map((f) => ({ ...f, exteriorHotspot: [] })),
-            });
+            onChange({ exteriorImageUrl: "" });
+            for (const f of building.floors ?? []) {
+              if ((f.exteriorHotspot?.length ?? 0) > 0) {
+                onChangeFloor(f.id, { exteriorHotspot: [] });
+              }
+            }
             setDraft([]);
           }}
         />
@@ -220,7 +225,6 @@ export function BuildingExteriorEditor({
             polygons={floors
               .filter((f) => {
                 if ((f.exteriorHotspot?.length ?? 0) < 3) return false;
-                // While editing this floor, show draft instead of the saved band
                 if (f.id === selectedFloorId && draft.length > 0) return false;
                 return true;
               })
@@ -275,7 +279,7 @@ export function BuildingExteriorEditor({
                 type="button"
                 className="inline-flex h-9 items-center rounded-[5px] px-3 text-xs text-red-500 hover:bg-red-50"
                 onClick={() => {
-                  updateFloor(selectedFloorId, { exteriorHotspot: [] });
+                  onChangeFloor(selectedFloorId, { exteriorHotspot: [] });
                   setDraft([]);
                 }}
               >

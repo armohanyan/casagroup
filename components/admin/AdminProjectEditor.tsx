@@ -420,6 +420,8 @@ export function AdminProjectEditor({ projectId }: Props) {
   const aptPlanTargetAptId = useRef<string | null>(null);
   const aptGalleryTargetAptId = useRef<string | null>(null);
   const floorImageTarget = useRef<{ buildingId: string; floorId: string } | null>(null);
+  const formRef = useRef(form);
+  formRef.current = form;
 
   useEffect(() => {
     if (isNew) {
@@ -603,14 +605,22 @@ export function AdminProjectEditor({ projectId }: Props) {
     }));
   }
 
-  function updateBuildingFloor(buildingId: string, floorId: string, patch: Partial<BuildingFloor>) {
+  function updateBuildingFloor(
+    buildingId: string,
+    floorId: string,
+    patch: Partial<BuildingFloor> | ((floor: BuildingFloor) => Partial<BuildingFloor>),
+  ) {
     setForm((f) => ({
       ...f,
       buildings: (f.buildings ?? []).map((b) =>
         b.id === buildingId
           ? {
               ...b,
-              floors: (b.floors ?? []).map((fl) => (fl.id === floorId ? { ...fl, ...patch } : fl)),
+              floors: (b.floors ?? []).map((fl) => {
+                if (fl.id !== floorId) return fl;
+                const next = typeof patch === "function" ? patch(fl) : patch;
+                return { ...fl, ...next };
+              }),
             }
           : b,
       ),
@@ -870,16 +880,17 @@ export function AdminProjectEditor({ projectId }: Props) {
   }
 
   async function handleSave(asDraft = false) {
-    if (!form.title.trim() && !form.titleHy?.trim() && !form.titleRu?.trim()) {
+    const latest = formRef.current;
+    if (!latest.title.trim() && !latest.titleHy?.trim() && !latest.titleRu?.trim()) {
       toast(a.titleRequired, "error");
       return;
     }
     setSaving(true);
     try {
-      const kind = effectiveProjectKind(form);
+      const kind = effectiveProjectKind(latest);
       // Persist the kind that matches the UI so building floors are never wiped
       // while the buildings section is still shown (e.g. kind toggled to neighborhood by mistake).
-      const cleanedBuildings = (form.buildings ?? [])
+      const cleanedBuildings = (latest.buildings ?? [])
         .map((b, i) => ({
           ...b,
           name: b.name.trim(),
@@ -901,7 +912,7 @@ export function AdminProjectEditor({ projectId }: Props) {
         .filter((b) => b.name.length > 0);
       const savedBuildings = kind === "neighborhood" ? [] : cleanedBuildings;
       const buildingIds = new Set(savedBuildings.map((b) => b.id));
-      const cleanedPlots = (form.landPlots ?? [])
+      const cleanedPlots = (latest.landPlots ?? [])
         .map((p, i) => ({
           ...p,
           label: p.label.trim(),
@@ -911,7 +922,7 @@ export function AdminProjectEditor({ projectId }: Props) {
         .filter((p) => p.label.length > 0);
       const savedPlots = kind === "neighborhood" ? cleanedPlots : [];
       const plotIds = new Set(savedPlots.map((p) => p.id));
-      const cleanedStages = (form.mapStages ?? [])
+      const cleanedStages = (latest.mapStages ?? [])
         .map((s, i) => ({
           ...s,
           label: s.label.trim() || String(i + 1),
@@ -920,8 +931,8 @@ export function AdminProjectEditor({ projectId }: Props) {
           hotspots: s.hotspots ?? [],
         }))
         .filter((s) => s.label.length > 0 || s.imageUrl.length > 0 || (s.hotspots?.length ?? 0) > 0);
-      const salesMode = kind === "neighborhood" ? "plans" : parseSalesMode(form.salesMode);
-      const cleanedApartments = form.apartments.map((apt) => ({
+      const salesMode = kind === "neighborhood" ? "plans" : parseSalesMode(latest.salesMode);
+      const cleanedApartments = latest.apartments.map((apt) => ({
         ...apt,
         buildingId:
           kind === "neighborhood"
@@ -937,16 +948,16 @@ export function AdminProjectEditor({ projectId }: Props) {
               : undefined,
       }));
       const payload = {
-        ...form,
+        ...latest,
         kind,
         salesMode,
         mapStages: kind === "neighborhood" ? [] : cleanedStages,
-        sitePlanImage: form.sitePlanImage ?? "",
+        sitePlanImage: latest.sitePlanImage ?? "",
         landPlots: savedPlots,
         buildings: savedBuildings,
         apartments: cleanedApartments,
-        featured: asDraft ? false : form.featured,
-        droneVideos: (form.droneVideos ?? []).filter((v) => v.url.trim()),
+        featured: asDraft ? false : latest.featured,
+        droneVideos: (latest.droneVideos ?? []).filter((v) => v.url.trim()),
       };
       if (isNew) {
         const created = await addProject(payload as Omit<Project, "id" | "slug">);
@@ -1792,7 +1803,12 @@ export function AdminProjectEditor({ projectId }: Props) {
               projectId={form.id}
               mapStages={form.mapStages ?? []}
               buildings={buildings}
-              onChange={(stages) => set("mapStages", stages)}
+              onChange={(stages) =>
+                setForm((f) => ({
+                  ...f,
+                  mapStages: typeof stages === "function" ? stages(f.mapStages ?? []) : stages,
+                }))
+              }
               onToast={toast}
               labels={{
                 sectionTitle: a.salesMapsHint,
@@ -1905,9 +1921,13 @@ export function AdminProjectEditor({ projectId }: Props) {
                         {a.buildingExterior}
                       </p>
                       <BuildingExteriorEditor
+                        key={building.id}
                         projectId={form.id}
                         building={building}
                         onChange={(patch) => updateBuilding(building.id, patch)}
+                        onChangeFloor={(floorId, patch) =>
+                          updateBuildingFloor(building.id, floorId, patch)
+                        }
                         onToast={toast}
                         labels={{
                           exteriorImage: a.buildingExterior,
@@ -2040,21 +2060,36 @@ export function AdminProjectEditor({ projectId }: Props) {
                             />
                           ) : null}
                           <FloorHotspotEditor
+                            key={`${building.id}:${floor.id}`}
                             floor={floor}
                             apartments={hotspotPickerApts}
                             onChange={(patch) => {
-                              updateBuildingFloor(building.id, floor.id, patch);
-                              if (patch.hotspots) {
-                                const ids = new Set(patch.hotspots.map((h) => h.apartmentId));
-                                setForm((f) => ({
+                              setForm((f) => {
+                                let hotspotIds = new Set<string>();
+                                const buildings = (f.buildings ?? []).map((b) => {
+                                  if (b.id !== building.id) return b;
+                                  return {
+                                    ...b,
+                                    floors: (b.floors ?? []).map((fl) => {
+                                      if (fl.id !== floor.id) return fl;
+                                      const resolved = typeof patch === "function" ? patch(fl) : patch;
+                                      if (resolved.hotspots) {
+                                        hotspotIds = new Set(resolved.hotspots.map((h) => h.apartmentId));
+                                      }
+                                      return { ...fl, ...resolved };
+                                    }),
+                                  };
+                                });
+                                return {
                                   ...f,
+                                  buildings,
                                   apartments: f.apartments.map((apt) =>
-                                    ids.has(apt.id) && !apt.buildingId
+                                    hotspotIds.has(apt.id) && !apt.buildingId
                                       ? { ...apt, buildingId: building.id }
                                       : apt,
                                   ),
-                                }));
-                              }
+                                };
+                              });
                             }}
                             onAddApartment={() => {
                               const trimmed = floor.label.trim();

@@ -61,7 +61,9 @@ interface Props {
   projectId?: string;
   mapStages: ProjectMapStage[];
   buildings: Building[];
-  onChange: (stages: ProjectMapStage[]) => void;
+  onChange: (
+    stages: ProjectMapStage[] | ((prev: ProjectMapStage[]) => ProjectMapStage[]),
+  ) => void;
   onToast: (message: string, type?: "success" | "error") => void;
   labels: SalesMapLabels;
 }
@@ -356,38 +358,38 @@ export function AdminSalesMapSection({
     .sort((a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label));
 
   function updateStage(id: string, patch: Partial<ProjectMapStage>) {
-    onChange(mapStages.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+    onChange((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   }
 
   function addRoot() {
     const stage = emptyMapStage(projectKey, null, mapStages.length);
-    onChange([...mapStages, stage]);
+    onChange((prev) => [...prev, { ...stage, sortOrder: prev.length }]);
     setOpenIds((ids) => [...ids, stage.id]);
   }
 
   function addChild(parentId: string) {
     const stage = emptyMapStage(projectKey, parentId, mapStages.length);
-    onChange([...mapStages, stage]);
+    onChange((prev) => [...prev, { ...stage, sortOrder: prev.length }]);
     setOpenIds((ids) => [...ids, stage.id, parentId]);
   }
 
   function removeStage(id: string) {
-    const removeIds = new Set<string>();
-    const walk = (sid: string) => {
-      removeIds.add(sid);
-      mapStages.filter((s) => s.parentId === sid).forEach((c) => walk(c.id));
-    };
-    walk(id);
-    onChange(
-      mapStages
+    onChange((prev) => {
+      const removeIds = new Set<string>();
+      const walk = (sid: string) => {
+        removeIds.add(sid);
+        prev.filter((s) => s.parentId === sid).forEach((c) => walk(c.id));
+      };
+      walk(id);
+      return prev
         .filter((s) => !removeIds.has(s.id))
         .map((s) => ({
           ...s,
           hotspots: s.hotspots.filter(
             (h) => !(h.targetType === "stage" && removeIds.has(h.targetId)),
           ),
-        })),
-    );
+        }));
+    });
   }
 
   async function handleUpload(file: File, stageId: string) {
@@ -410,9 +412,9 @@ export function AdminSalesMapSection({
     }
   }
 
-  function finishHotspot(stage: ProjectMapStage) {
-    const draft = draftByStage[stage.id] ?? [];
-    const meta = hotspotDraft[stage.id] ?? {
+  function finishHotspot(stageId: string) {
+    const draft = draftByStage[stageId] ?? [];
+    const meta = hotspotDraft[stageId] ?? {
       label: "",
       targetType: "building" as const,
       targetId: buildings[0]?.id ?? "",
@@ -436,14 +438,22 @@ export function AdminSalesMapSection({
       targetType: meta.targetType,
       targetId: meta.targetId,
     };
-    updateStage(stage.id, { hotspots: [...stage.hotspots, hotspot] });
-    setDraftByStage((d) => ({ ...d, [stage.id]: [] }));
+    onChange((prev) =>
+      prev.map((s) =>
+        s.id === stageId ? { ...s, hotspots: [...s.hotspots, hotspot] } : s,
+      ),
+    );
+    setDraftByStage((d) => ({ ...d, [stageId]: [] }));
   }
 
   function removeHotspot(stageId: string, hotspotId: string) {
-    const stage = mapStages.find((s) => s.id === stageId);
-    if (!stage) return;
-    updateStage(stageId, { hotspots: stage.hotspots.filter((h) => h.id !== hotspotId) });
+    onChange((prev) =>
+      prev.map((s) =>
+        s.id === stageId
+          ? { ...s, hotspots: s.hotspots.filter((h) => h.id !== hotspotId) }
+          : s,
+      ),
+    );
   }
 
   function renderStage(stage: ProjectMapStage, depth: number): React.ReactNode {
@@ -480,7 +490,7 @@ export function AdminSalesMapSection({
           onAddChild={() => addChild(stage.id)}
           onDraftChange={(d) => setDraftByStage((prev) => ({ ...prev, [stage.id]: d }))}
           onMetaChange={(m) => setHotspotDraft((prev) => ({ ...prev, [stage.id]: m }))}
-          onFinishHotspot={() => finishHotspot(stage)}
+          onFinishHotspot={() => finishHotspot(stage.id)}
           onRemoveHotspot={(id) => removeHotspot(stage.id, id)}
           onUploadClick={() => {
             uploadTargetId.current = stage.id;
