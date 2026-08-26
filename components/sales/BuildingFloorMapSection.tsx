@@ -114,10 +114,10 @@ function FloorPlanCanvas({
   }
 
   return (
-    <div className="map relative w-full h-full max-w-none mb-1">
+    <div className="map relative mb-1 h-full w-full">
       <div
         ref={frameRef}
-        className={cn("relative w-full h-full", onBackgroundClick && "cursor-zoom-in")}
+        className={cn("relative h-full w-full", onBackgroundClick && "cursor-zoom-in")}
         onClick={onBackgroundClick}
       >
         <Image
@@ -126,14 +126,15 @@ function FloorPlanCanvas({
           width={2400}
           height={1800}
           sizes="100vw"
-          className="pointer-events-none block w-full h-auto md:min-h-[80vh] max-h-screen select-none object-contain"
+          className="pointer-events-none block w-full md:min-h-[80vh] h-auto max-h-screen select-none object-contain"
           unoptimized
           priority={false}
         />
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
-          className="absolute inset-0 h-full w-full"
+          fill="none"
+          className="absolute left-0 top-0 z-10 h-full w-full"
         >
           {floor.hotspots.map((h) => {
             const apt = aptById.get(h.apartmentId);
@@ -299,8 +300,7 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title, overlay
   };
 
   const floorCanvas = selectedFloor ? (
-    <div className="relative w-full max-w-none">
-      {overlay}
+    <div className="relative w-full">
       <FloorPlanCanvas
         floor={selectedFloor}
         aptById={aptById}
@@ -342,10 +342,11 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title, overlay
     </div>
   );
 
-  // Locked journey: full-bleed floor map with gradient title overlay
+  // Locked journey: full-bleed floor map with chrome above (Defanse-style)
   if (locked) {
     return (
-      <section id="building-floors" className="w-full max-w-none">
+      <section id="building-floors" className="mapped-section relative w-full">
+        {overlay}
         {floorCanvas}
 
         <AnimatePresence>

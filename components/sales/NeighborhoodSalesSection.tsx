@@ -71,99 +71,153 @@ export function NeighborhoodSalesSection({ project }: Props) {
 
   return (
     <>
-      <section id="neighborhood-map" className="scroll-mt-24 border-t border-[#E5E7EB] bg-white">
-        <Container className="py-10 md:py-14">
-          <h2 className="mb-3 text-2xl font-semibold leading-snug tracking-tight text-[#0c1428] sm:mb-4 sm:text-3xl">
-            {t.developerDetail.siteMapTitle}
-          </h2>
-          <p className="mb-8 max-w-2xl text-sm text-[#6B7280]">{t.developerDetail.plotMapHint}</p>
-
-          {!imageUrl ? (
+      <section id="neighborhood-map" className="mapped-section relative hidden w-full bg-white md:block">
+        {!imageUrl ? (
+          <Container className="py-10 md:py-14">
+            <h2 className="mb-3 text-2xl font-semibold leading-snug tracking-tight text-[#0c1428] sm:mb-4 sm:text-3xl">
+              {t.developerDetail.siteMapTitle}
+            </h2>
+            <p className="mb-8 max-w-2xl text-sm text-[#6B7280]">{t.developerDetail.plotMapHint}</p>
             <p className="text-sm text-[#9CA3AF]">{t.developerDetail.plotMapEmpty}</p>
-          ) : (
-            <div className="map relative w-full h-full mb-1 overflow-hidden rounded-[8px] border border-[#E5E7EB] bg-[#FAFAF8]">
+          </Container>
+        ) : (
+          <>
+            <div className="map relative mb-1 h-full w-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
+                id="mappedImage"
                 src={imageUrl}
-                alt=""
-                className="block w-full h-auto md:min-h-[80vh] max-h-screen select-none"
+                alt={t.developerDetail.siteMapTitle}
+                className="w-full md:min-h-[80vh] h-auto max-h-screen"
                 decoding="async"
               />
               <svg
                 viewBox="0 0 100 100"
                 preserveAspectRatio="none"
-                className="absolute inset-0 h-full w-full"
+                fill="none"
+                className="absolute left-0 top-0 z-10 h-full w-full"
               >
                 {plots.map((plot) => {
                   const active = plot.id === modalPlotId;
                   const hover = plot.id === hoveredId;
+                  const [cx, cy] = centroid(plot.points);
                   return (
-                    <polygon
-                      key={plot.id}
-                      points={pointsToSvg(plot.points)}
-                      className={cn(
-                        "cursor-pointer stroke-[0.35] transition-opacity",
-                        active || hover
-                          ? "fill-[#c9a96e]/50 stroke-[#c9a96e]"
-                          : "fill-[#c45c4a]/22 stroke-[#0c1428]/35",
-                      )}
-                      onMouseEnter={() => setHoveredId(plot.id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                      onClick={() => setModalPlotId(plot.id)}
-                    />
+                    <g key={plot.id}>
+                      <polygon
+                        points={pointsToSvg(plot.points)}
+                        className={cn(
+                          "relative cursor-pointer fill-[#c9a96e]/5 transition duration-150 ease-in-out",
+                          (active || hover) && "fill-[#c9a96e]/40",
+                        )}
+                        onMouseEnter={() => setHoveredId(plot.id)}
+                        onMouseLeave={() => setHoveredId(null)}
+                        onClick={() => setModalPlotId(plot.id)}
+                      />
+                      <circle
+                        className="fill-[#c9a96e] stroke-white"
+                        strokeWidth={0.35}
+                        cx={cx}
+                        cy={cy}
+                        r={1.15}
+                        style={{ pointerEvents: "none" }}
+                      />
+                      <text
+                        textAnchor="middle"
+                        fill="white"
+                        dy=".35em"
+                        x={cx}
+                        y={cy}
+                        fontSize={1.15}
+                        style={{ pointerEvents: "none", fontWeight: 700 }}
+                      >
+                        {plot.label}
+                      </text>
+                    </g>
                   );
                 })}
               </svg>
               {hovered && !modalPlotId ? (
-                <div
-                  className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[110%] rounded-[5px] border border-[#E5E7EB] bg-white px-3 py-2 shadow-lg"
-                  style={{
-                    left: `${centroid(hovered.points)[0]}%`,
-                    top: `${centroid(hovered.points)[1]}%`,
-                  }}
-                >
-                  <p className="text-xs font-semibold text-[#0c1428]">{hovered.label}</p>
-                  {hovered.area && hovered.area > 0 ? (
-                    <p className="mt-0.5 text-[11px] text-[#6B7280]">
-                      {t.developerDetail.plotArea}: {hovered.area} m²
-                    </p>
-                  ) : null}
-                  {hovered.price && hovered.price > 0 ? (
-                    <p className="mt-0.5 text-[11px] font-medium text-[#c9a96e]">
-                      {formatPrice(hovered.price)}
-                    </p>
-                  ) : null}
+                <div className="popovers pointer-events-none absolute left-0 top-0 z-20 hidden h-full w-full md:block">
+                  <div
+                    className="absolute z-10 -translate-x-1/2 -translate-y-[110%] rounded-[5px] border border-[#E5E7EB] bg-white px-3 py-2 shadow-lg"
+                    style={{
+                      left: `${centroid(hovered.points)[0]}%`,
+                      top: `${centroid(hovered.points)[1]}%`,
+                    }}
+                  >
+                    <p className="text-xs font-semibold text-[#0c1428]">{hovered.label}</p>
+                    {hovered.area && hovered.area > 0 ? (
+                      <p className="mt-0.5 text-[11px] text-[#6B7280]">
+                        {t.developerDetail.plotArea}: {hovered.area} m²
+                      </p>
+                    ) : null}
+                    {hovered.price && hovered.price > 0 ? (
+                      <p className="mt-0.5 text-[11px] font-medium text-[#c9a96e]">
+                        {formatPrice(hovered.price)}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
             </div>
-          )}
+            {plots.length > 0 ? (
+              <div className="z-20 mb-4 hidden items-center justify-end lg:mr-10 lg:flex">
+                <div
+                  className="flex max-w-full flex-wrap items-center text-sm text-[#0c1428]"
+                  role="list"
+                  aria-label={t.developerDetail.choosePlot}
+                >
+                  <span className="flex h-12 items-center justify-center border border-[#c9a96e] bg-[#c9a96e] p-4 text-white">
+                    {t.developerDetail.choosePlot}
+                  </span>
+                  {plots.map((plot) => (
+                    <button
+                      key={plot.id}
+                      type="button"
+                      title={plot.label}
+                      aria-label={plot.label}
+                      onMouseEnter={() => setHoveredId(plot.id)}
+                      onMouseLeave={() => setHoveredId(null)}
+                      onClick={() => setModalPlotId(plot.id)}
+                      className={cn(
+                        "flex h-12 min-w-12 cursor-pointer items-center justify-center border border-white bg-[#F3F4F6] px-3 transition duration-100 ease-in hover:border-[#c9a96e]",
+                        (hoveredId === plot.id || modalPlotId === plot.id) && "border-[#c9a96e]",
+                      )}
+                    >
+                      {plot.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
+      </section>
 
-          {plots.length > 0 ? (
-            <div
-              className="mt-6 flex flex-wrap gap-2"
-              role="list"
-              aria-label={t.developerDetail.choosePlot}
-            >
-              {plots.map((plot) => {
-                const active = plot.id === modalPlotId;
-                return (
-                  <button
-                    key={plot.id}
-                    type="button"
-                    onClick={() => setModalPlotId(plot.id)}
-                    className={cn(
-                      "rounded-[5px] border px-3.5 py-2 text-sm font-semibold transition-colors",
-                      active
-                        ? "border-[#c9a96e] bg-[#F8F6F1] text-[#0c1428]"
-                        : "border-[#E5E7EB] bg-white text-[#6B7280] hover:border-[#c9a96e]/60 hover:text-[#0c1428]",
-                    )}
-                  >
-                    {plot.label}
-                  </button>
-                );
-              })}
+      {/* Below md: Defanse hides the mapped image — show plot picker instead. */}
+      <section className="border-t border-[#E5E7EB] bg-white pt-header md:hidden">
+        <Container className="py-8">
+          <h2 className="mb-2 text-xl font-semibold text-[#0c1428]">{t.developerDetail.siteMapTitle}</h2>
+          <p className="mb-5 text-sm text-[#6B7280]">{t.developerDetail.plotMapHint}</p>
+          {!imageUrl ? (
+            <p className="text-sm text-[#9CA3AF]">{t.developerDetail.plotMapEmpty}</p>
+          ) : plots.length > 0 ? (
+            <div className="flex flex-wrap gap-2" role="list" aria-label={t.developerDetail.choosePlot}>
+              {plots.map((plot) => (
+                <button
+                  key={`m-${plot.id}`}
+                  type="button"
+                  onClick={() => setModalPlotId(plot.id)}
+                  className="rounded-[5px] border border-[#E5E7EB] bg-white px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:border-[#c9a96e]"
+                >
+                  {plot.label}
+                </button>
+              ))}
             </div>
-          ) : null}
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageUrl} alt="" className="h-auto w-full max-h-[70vh] object-contain" />
+          )}
         </Container>
       </section>
 

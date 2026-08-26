@@ -252,8 +252,13 @@ export default function ProjectDetailPage() {
     </>
   );
 
+  const salesMode = projectSalesMode(project);
+  const isNeighborhood = isNeighborhoodProject(project);
+  /** Defanse-style: interactive map is the first viewport on desktop. */
+  const mapAsHero = isNeighborhood || salesMode === "buildings" || salesMode === "floors";
+
   return (
-    <main className="bg-white min-h-screen">
+    <main className="min-h-screen bg-white">
       <Seo title={`${title} — ${city}`} description={description} path={path} image={heroImage} lang={lang} ogType="article" />
       <JsonLd
         data={breadcrumbListSchema([
@@ -263,7 +268,24 @@ export default function ProjectDetailPage() {
         ])}
       />
 
-      <ProjectMediaShowcase project={project} items={galleryItems} />
+      {isNeighborhood ? (
+        <NeighborhoodSalesSection project={project} />
+      ) : mapAsHero ? (
+        <div className="hidden pt-header md:block">
+          <ApartmentSalesJourney project={project} />
+        </div>
+      ) : null}
+
+      {/* Photo hero on small screens (map is md:hidden), or always when there is no map. */}
+      <div className={mapAsHero && !isNeighborhood ? "md:hidden" : undefined}>
+        <ProjectMediaShowcase project={project} items={galleryItems} />
+      </div>
+
+      {mapAsHero && !isNeighborhood && galleryItems.length > 0 ? (
+        <div className="hidden md:block">
+          <ProjectMediaShowcase project={project} items={galleryItems} variant="section" />
+        </div>
+      ) : null}
 
       {hasDroneVideos ? (
         <section className="border-t border-[#E5E7EB] bg-[#F9FAFB] py-8 md:py-11">
@@ -284,33 +306,27 @@ export default function ProjectDetailPage() {
         </Container>
       )}
 
-      {isNeighborhoodProject(project) ? (
-        <NeighborhoodSalesSection project={project} />
-      ) : projectSalesMode(project) === "plans" ? (
+      {isNeighborhood ? null : salesMode === "plans" ? (
         <>
           <section id="apartments" className="border-t border-[#E5E7EB]">
             <Container className="py-10 md:py-14">
               <DeveloperFloorPlanSection project={project} />
             </Container>
           </section>
-          {/* Floor/building map is desktop-only; mobile shows apartment plans above. */}
-          <div className="hidden lg:block">
+          <div className="hidden md:block">
             <BuildingFloorMapSection project={project} />
           </div>
         </>
       ) : (
         <>
-          {/* Mobile: apartment plans only — skip building/floor journey. */}
-          <div className="lg:hidden">
+          <div className="md:hidden">
             <section id="apartments" className="border-t border-[#E5E7EB]">
               <Container className="py-10 md:py-14">
                 <DeveloperFloorPlanSection project={project} />
               </Container>
             </section>
           </div>
-          <div className="hidden lg:block">
-            <ApartmentSalesJourney project={project} />
-          </div>
+          {/* Desktop journey already rendered as hero above. */}
         </>
       )}
 

@@ -13,9 +13,11 @@ import { cn } from "@/lib/utils";
 interface Props {
   project: Project;
   items: ProjectGalleryItem[];
+  /** `hero` = full viewport cover (default). `section` = Defanse-like natural-height strip. */
+  variant?: "hero" | "section";
 }
 
-export function ProjectMediaShowcase({ project, items }: Props) {
+export function ProjectMediaShowcase({ project, items, variant = "hero" }: Props) {
   const { t, lang } = useI18n();
   const title = getProjectTitle(project, lang);
   const location = getProjectLocation(project, lang);
@@ -23,6 +25,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   const [lightbox, setLightbox] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const isSection = variant === "section";
 
   const safeIndex = items.length === 0 ? 0 : Math.min(index, items.length - 1);
   const active = items[safeIndex];
@@ -108,40 +111,63 @@ export function ProjectMediaShowcase({ project, items }: Props) {
   }, [next, prev]);
 
   if (items.length === 0) {
-    return <div className="h-[100dvh] bg-[#F3F4F6]" />;
+    return isSection ? null : <div className="h-[100dvh] bg-[#F3F4F6]" />;
   }
 
   return (
-    <section className="flex h-[100dvh] flex-col bg-[#0B1220]" aria-label={title}>
+    <section
+      className={cn(
+        "flex flex-col",
+        isSection ? "bg-white" : "h-[100dvh] bg-[#0B1220]",
+      )}
+      aria-label={title}
+    >
       <div
         ref={heroRef}
-        className="relative min-h-0 flex-1 group touch-pan-y"
+        className={cn(
+          "relative group touch-pan-y",
+          isSection ? "w-full" : "min-h-0 flex-1",
+        )}
       >
         <AnimatePresence mode="wait" initial={false}>
           {active && (
             <motion.div
               key={active.url + safeIndex}
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0, scale: 1.02 }}
+              className={cn(
+                "pointer-events-none",
+                isSection ? "relative w-full" : "absolute inset-0",
+              )}
+              initial={{ opacity: 0, scale: isSection ? 1 : 1.02 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
             >
-              <Image
-                src={active.url}
-                alt={`${title} — ${categoryLabel(active.category)}`}
-                fill
-                priority
-                unoptimized
-                sizes="100vw"
-                className="object-cover object-center"
-              />
+              {isSection ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={active.url}
+                  alt={`${title} — ${categoryLabel(active.category)}`}
+                  className="w-full md:min-h-[80vh] h-auto max-h-screen"
+                  decoding="async"
+                />
+              ) : (
+                <Image
+                  src={active.url}
+                  alt={`${title} — ${categoryLabel(active.category)}`}
+                  fill
+                  priority
+                  unoptimized
+                  sizes="100vw"
+                  className="object-cover object-center"
+                />
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/35 pointer-events-none" />
-
+        {!isSection ? (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/35 pointer-events-none" />
+        ) : null}
         {items.length > 1 && (
           <>
             <button
@@ -174,36 +200,50 @@ export function ProjectMediaShowcase({ project, items }: Props) {
         <button
           type="button"
           onClick={() => setLightbox(true)}
-          className="absolute top-20 right-4 z-30 w-10 h-10 flex items-center justify-center rounded-lg bg-black/45 text-white backdrop-blur-sm hover:bg-black/60"
+          className={cn(
+            "absolute right-4 z-30 flex h-10 w-10 items-center justify-center rounded-lg bg-black/45 text-white backdrop-blur-sm hover:bg-black/60",
+            isSection ? "top-4" : "top-20",
+          )}
           aria-label="Fullscreen"
         >
           <Expand size={18} />
         </button>
 
-        <div className="absolute inset-x-0 bottom-0 z-20 px-4 sm:px-6 lg:px-8 pb-5 md:pb-6 pt-20 pointer-events-none">
-          <div className="mx-auto w-full max-w-[1600px] 2xl:max-w-[1760px]">
-            <p className="text-sm font-medium text-[#c9a96e]">{getStatusLabel(t, project.status)}</p>
-            <h1 className="mt-1 font-display text-3xl md:text-5xl text-white tracking-tight">{title}</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-white/85">
-              <p className="flex items-center gap-1.5 text-sm md:text-base">
-                <MapPin size={15} className="shrink-0 text-[#c9a96e]" />
-                {location}
-              </p>
-              <p className="text-sm md:text-base font-semibold tabular-nums">
-                {t.home.startingFrom} {formatPrice(project.startingPrice)}
-              </p>
+        {!isSection ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-4 pb-5 pt-20 sm:px-6 md:pb-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[1600px] 2xl:max-w-[1760px]">
+              <p className="text-sm font-medium text-[#c9a96e]">{getStatusLabel(t, project.status)}</p>
+              <h1 className="mt-1 font-display text-3xl tracking-tight text-white md:text-5xl">{title}</h1>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-white/85">
+                <p className="flex items-center gap-1.5 text-sm md:text-base">
+                  <MapPin size={15} className="shrink-0 text-[#c9a96e]" />
+                  {location}
+                </p>
+                <p className="text-sm font-semibold tabular-nums md:text-base">
+                  {t.home.startingFrom} {formatPrice(project.startingPrice)}
+                </p>
+              </div>
+              {active && (
+                <p className="mt-3 text-xs tabular-nums text-white/55">
+                  {safeIndex + 1} / {items.length}
+                </p>
+              )}
             </div>
-            {active && (
-              <p className="mt-3 text-xs text-white/55 tabular-nums">
-                {safeIndex + 1} / {items.length}
-              </p>
-            )}
           </div>
-        </div>
+        ) : active ? (
+          <p className="pointer-events-none absolute bottom-4 left-4 z-20 text-xs tabular-nums text-white drop-shadow">
+            {safeIndex + 1} / {items.length}
+          </p>
+        ) : null}
       </div>
 
       {items.length > 1 && (
-        <div className="shrink-0 border-t border-white/10 bg-[#0B1220] px-4 py-3 sm:px-6 lg:px-8">
+        <div
+          className={cn(
+            "shrink-0 px-4 py-3 sm:px-6 lg:px-8",
+            isSection ? "border-t border-[#E5E7EB] bg-white" : "border-t border-white/10 bg-[#0B1220]",
+          )}
+        >
           <div className="mx-auto flex max-w-[1600px] gap-2 overflow-x-auto 2xl:max-w-[1760px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {items.map((item, i) => (
               <button

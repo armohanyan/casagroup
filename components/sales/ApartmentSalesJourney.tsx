@@ -32,11 +32,12 @@ interface Props {
 type Crumb = { id: string; label: string };
 type TipPos = { x: number; y: number };
 
-/** Defanse-style map frame: relative host for absolute SVG pins/hotspots. */
-const MAP_FRAME = "map relative w-full h-full max-w-none mb-1";
-/** Full-width map art: natural height, tall on desktop, capped to the viewport. */
-const MAP_IMG =
-  "pointer-events-none block w-full h-auto md:min-h-[80vh] max-h-screen select-none";
+/** Matches Defanse Housing: map only from md up; image grows with width, min 80vh on md+. */
+const MAPPED_SECTION = "mapped-section relative hidden w-full md:block";
+const MAP_FRAME = "map relative mb-1 h-full w-full";
+/** Exact Defanse image classes — min-height only applies ≥768px so small windows scale naturally. */
+const MAP_IMG = "w-full md:min-h-[80vh] h-auto max-h-screen";
+const MAP_SVG = "absolute left-0 top-0 z-10 h-full w-full";
 
 function stageLabel(stage: ProjectMapStage, lang: Lang): string {
   if (lang === "hy") return stage.labelHy?.trim() || stage.label || stage.labelRu || "";
@@ -189,7 +190,7 @@ function JourneyBreadcrumbs({
   );
 }
 
-function JourneyOverlay({
+function JourneyChrome({
   crumbs,
   title,
   onBack,
@@ -200,16 +201,15 @@ function JourneyOverlay({
   onBack?: () => void;
   backLabel?: string;
 }) {
+  const showCrumbs = crumbs.length > 1 && onBack && backLabel;
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-30 bg-gradient-to-b from-black/60 via-black/30 to-transparent pb-14 pt-4 sm:pb-16 sm:pt-5">
-      <div className="pointer-events-auto px-4 sm:px-6 lg:px-8">
-        {crumbs.length > 1 && onBack && backLabel ? (
-          <JourneyBreadcrumbs crumbs={crumbs} onBack={onBack} backLabel={backLabel} onImage />
-        ) : null}
-        <h2 className="text-xl font-semibold tracking-tight text-white drop-shadow-sm sm:text-2xl">
-          {title}
-        </h2>
-      </div>
+    <div className="border-b border-[#E5E7EB] bg-[#0c1428] px-4 py-3 sm:px-6 lg:px-8">
+      {showCrumbs ? (
+        <JourneyBreadcrumbs crumbs={crumbs} onBack={onBack} backLabel={backLabel} onImage />
+      ) : null}
+      <h2 className={cn("text-sm font-semibold tracking-tight text-white sm:text-base", showCrumbs && "mt-1")}>
+        {title}
+      </h2>
     </div>
   );
 }
@@ -222,7 +222,8 @@ function MapStageView({
   onSelectStage,
   onSelectBuilding,
   moreLabel,
-  overlay,
+  buildingsLabel,
+  chrome,
 }: {
   stage: ProjectMapStage;
   stagesById: Map<string, ProjectMapStage>;
@@ -231,12 +232,14 @@ function MapStageView({
   onSelectStage: (stage: ProjectMapStage) => void;
   onSelectBuilding: (building: Building) => void;
   moreLabel: string;
-  overlay?: ReactNode;
+  buildingsLabel: string;
+  chrome?: ReactNode;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [tip, setTip] = useState<TipPos | null>(null);
   const hovered = stage.hotspots.find((h) => h.id === hoveredId) ?? null;
+  const stripHotspots = stage.hotspots.filter((h) => h.points.length >= 3 || h.targetType === "building");
 
   const tipTitle = hovered
     ? hovered.targetType === "building"
@@ -266,84 +269,117 @@ function MapStageView({
   if (!stage.imageUrl.trim()) return null;
 
   return (
-    <div
-      ref={frameRef}
-      className={cn(MAP_FRAME)}
-      onMouseLeave={() => {
-        setHoveredId(null);
-        setTip(null);
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={stage.imageUrl}
-        alt={stage.label}
-        className={MAP_IMG}
-        draggable={false}
-        decoding="async"
-      />
-      {overlay}
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        className="absolute inset-0 z-[5] h-full w-full"
+    <section id="sales-journey" className={MAPPED_SECTION}>
+      {chrome}
+      <div
+        ref={frameRef}
+        className={MAP_FRAME}
+        onMouseLeave={() => {
+          setHoveredId(null);
+          setTip(null);
+        }}
       >
-        {stage.hotspots.map((h) =>
-          h.points.length >= 3 ? (
-            <polygon
-              key={h.id}
-              points={pointsToSvg(h.points)}
-              className={cn(
-                "cursor-pointer transition-opacity duration-200",
-                hoveredId === h.id
-                  ? "fill-[#c9a96e]/50 stroke-[#c9a96e]"
-                  : "fill-transparent stroke-transparent hover:fill-[#c9a96e]/30",
-              )}
-              strokeWidth={0.3}
-              onMouseEnter={() => setHoveredId(h.id)}
-              onMouseMove={track}
-              onMouseLeave={() => {
-                setHoveredId(null);
-                setTip(null);
-              }}
-              onClick={() => activate(h)}
-            />
-          ) : null,
-        )}
-      </svg>
-      {stage.hotspots.map((h) => {
-        const m = markerPos(h);
-        const pinLabel = hotspotDisplayLabel(h, buildingsById, stagesById, lang);
-        return (
-          <button
-            key={`m-${h.id}`}
-            type="button"
-            className={cn(
-              "absolute z-10 flex h-8 min-w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#0c1428] px-2.5 text-[11px] font-bold text-white shadow-md transition-transform duration-200",
-              hoveredId === h.id ? "scale-110 bg-[#c9a96e] text-[#0c1428]" : "hover:scale-105",
-            )}
-            style={{ left: `${m.x}%`, top: `${m.y}%` }}
-            onMouseEnter={() => setHoveredId(h.id)}
-            onMouseMove={track}
-            onMouseLeave={() => {
-              setHoveredId(null);
-              setTip(null);
-            }}
-            onClick={() => activate(h)}
-          >
-            {pinLabel}
-          </button>
-        );
-      })}
-      {hovered && tip ? (
-        <HoverTip
-          tip={tip}
-          title={tipTitle || hotspotDisplayLabel(hovered, buildingsById, stagesById, lang)}
-          actionLabel={moreLabel}
-          onAction={() => activate(hovered)}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          id="mappedImage"
+          src={stage.imageUrl}
+          alt={stage.label}
+          className={MAP_IMG}
+          draggable={false}
+          decoding="async"
         />
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          fill="none"
+          className={MAP_SVG}
+          aria-hidden={false}
+        >
+          {stage.hotspots.map((h) => {
+            if (h.points.length < 3) return null;
+            const m = markerPos(h);
+            const pinLabel = hotspotDisplayLabel(h, buildingsById, stagesById, lang);
+            const active = hoveredId === h.id;
+            return (
+              <g key={h.id}>
+                <polygon
+                  points={pointsToSvg(h.points)}
+                  className={cn(
+                    "relative cursor-pointer fill-[#c9a96e]/5 transition duration-150 ease-in-out",
+                    active && "fill-[#c9a96e]/40",
+                  )}
+                  onMouseEnter={() => setHoveredId(h.id)}
+                  onMouseMove={track}
+                  onMouseLeave={() => {
+                    setHoveredId(null);
+                    setTip(null);
+                  }}
+                  onClick={() => activate(h)}
+                />
+                <circle
+                  className="fill-[#c9a96e] stroke-white"
+                  strokeWidth={0.35}
+                  cx={m.x}
+                  cy={m.y}
+                  r={1.15}
+                  style={{ pointerEvents: "none" }}
+                />
+                <text
+                  textAnchor="middle"
+                  fill="white"
+                  dy=".35em"
+                  x={m.x}
+                  y={m.y}
+                  fontSize={1.15}
+                  style={{ pointerEvents: "none", fontWeight: 700 }}
+                >
+                  {pinLabel}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+        {hovered && tip ? (
+          <div className="popovers pointer-events-none absolute left-0 top-0 z-20 hidden h-full w-full md:block">
+            <HoverTip
+              tip={tip}
+              title={tipTitle || hotspotDisplayLabel(hovered, buildingsById, stagesById, lang)}
+              actionLabel={moreLabel}
+              onAction={() => activate(hovered)}
+            />
+          </div>
+        ) : null}
+      </div>
+      {stripHotspots.length > 0 ? (
+        <div className="mb-4 hidden items-center justify-end z-20 lg:mr-10 lg:flex">
+          <div className="flex max-w-full flex-wrap items-center text-sm text-[#0c1428]">
+            <span className="flex h-12 items-center justify-center border border-[#c9a96e] bg-[#c9a96e] p-4 text-white">
+              {buildingsLabel}
+            </span>
+            {stripHotspots.map((h) => {
+              const label = hotspotDisplayLabel(h, buildingsById, stagesById, lang);
+              return (
+                <button
+                  key={`strip-${h.id}`}
+                  type="button"
+                  title={label}
+                  aria-label={label}
+                  onMouseEnter={() => setHoveredId(h.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onClick={() => activate(h)}
+                  className={cn(
+                    "flex h-12 w-12 cursor-pointer items-center justify-center border border-white bg-[#F3F4F6] p-4 transition duration-100 ease-in hover:border-[#c9a96e]",
+                    hoveredId === h.id && "border-[#c9a96e]",
+                  )}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       ) : null}
-    </div>
+    </section>
   );
 }
 
@@ -354,7 +390,8 @@ function BuildingExteriorView({
   moreLabel,
   floorLabelTemplate,
   emptyLabel,
-  overlay,
+  floorsLabel,
+  chrome,
 }: {
   building: Building;
   floors: BuildingFloor[];
@@ -362,7 +399,8 @@ function BuildingExteriorView({
   moreLabel: string;
   floorLabelTemplate: string;
   emptyLabel: string;
-  overlay?: ReactNode;
+  floorsLabel: string;
+  chrome?: ReactNode;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -379,26 +417,30 @@ function BuildingExteriorView({
 
   if (!exterior) {
     return (
-      <div className="space-y-5 px-4 py-8 sm:px-6 lg:px-8">
-        <p className="text-center text-sm text-[#6B7280]">{emptyLabel}</p>
-        <div className="flex flex-wrap justify-center gap-2">
-          {floors.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => onSelectFloor(f)}
-              className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#0c1428] hover:text-white"
-            >
-              {floorLabelTemplate.replace("{n}", f.label)}
-            </button>
-          ))}
+      <section id="sales-journey" className={MAPPED_SECTION}>
+        {chrome}
+        <div className="space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-[#6B7280]">{emptyLabel}</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {floors.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => onSelectFloor(f)}
+                className="rounded-[5px] bg-[#F3F4F6] px-3.5 py-2 text-sm font-semibold text-[#0c1428] transition-colors hover:bg-[#0c1428] hover:text-white"
+              >
+                {floorLabelTemplate.replace("{n}", f.label)}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="w-full max-w-none">
+    <section id="sales-journey" className={MAPPED_SECTION}>
+      {chrome}
       <div
         ref={frameRef}
         className={MAP_FRAME}
@@ -409,92 +451,96 @@ function BuildingExteriorView({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          id="mappedImage"
           src={exterior}
           alt={building.name}
           className={MAP_IMG}
           draggable={false}
           decoding="async"
         />
-        {overlay}
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute inset-0 z-[5] h-full w-full"
-        >
-          {withBands.map((f) => (
-            <polygon
-              key={f.id}
-              points={pointsToSvg(f.exteriorHotspot as [number, number][])}
-              className={cn(
-                "cursor-pointer transition-opacity duration-200",
-                hoveredId === f.id
-                  ? "fill-[#c9a96e]/50 stroke-[#c9a96e]"
-                  : "fill-transparent hover:fill-[#c9a96e]/30",
-              )}
-              strokeWidth={0.25}
-              onMouseEnter={() => setHoveredId(f.id)}
-              onMouseMove={track}
-              onMouseLeave={() => {
-                setHoveredId(null);
-                setTip(null);
-              }}
-              onClick={() => onSelectFloor(f)}
-            />
-          ))}
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" className={MAP_SVG}>
+          {withBands.map((f) => {
+            const pts = f.exteriorHotspot as [number, number][];
+            const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+            const y = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+            const active = hoveredId === f.id;
+            return (
+              <g key={f.id}>
+                <polygon
+                  points={pointsToSvg(pts)}
+                  className={cn(
+                    "relative cursor-pointer fill-[#c9a96e]/5 transition duration-150 ease-in-out",
+                    active && "fill-[#c9a96e]/40",
+                  )}
+                  onMouseEnter={() => setHoveredId(f.id)}
+                  onMouseMove={track}
+                  onMouseLeave={() => {
+                    setHoveredId(null);
+                    setTip(null);
+                  }}
+                  onClick={() => onSelectFloor(f)}
+                />
+                <circle
+                  className="fill-[#c9a96e] stroke-white"
+                  strokeWidth={0.35}
+                  cx={x}
+                  cy={y}
+                  r={1.15}
+                  style={{ pointerEvents: "none" }}
+                />
+                <text
+                  textAnchor="middle"
+                  fill="white"
+                  dy=".35em"
+                  x={x}
+                  y={y}
+                  fontSize={1.15}
+                  style={{ pointerEvents: "none", fontWeight: 700 }}
+                >
+                  {f.label}
+                </text>
+              </g>
+            );
+          })}
         </svg>
-        {floors.map((f) => {
-          const pts = f.exteriorHotspot;
-          if (!pts || pts.length < 3) return null;
-          const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
-          const y = pts.reduce((s, p) => s + p[1], 0) / pts.length;
-          return (
-            <button
-              key={`lbl-${f.id}`}
-              type="button"
-              className={cn(
-                "absolute z-10 flex h-8 min-w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#0c1428] px-2.5 text-[11px] font-bold text-white shadow-md transition-transform duration-200",
-                hoveredId === f.id ? "scale-110 bg-[#c9a96e] text-[#0c1428]" : "hover:scale-105",
-              )}
-              style={{ left: `${x}%`, top: `${y}%` }}
-              onMouseEnter={() => setHoveredId(f.id)}
-              onMouseMove={track}
-              onMouseLeave={() => {
-                setHoveredId(null);
-                setTip(null);
-              }}
-              onClick={() => onSelectFloor(f)}
-            >
-              {f.label}
-            </button>
-          );
-        })}
         {hovered && tip ? (
-          <HoverTip
-            tip={tip}
-            title={floorLabelTemplate.replace("{n}", hovered.label)}
-            actionLabel={moreLabel}
-            onAction={() => onSelectFloor(hovered)}
-          />
+          <div className="popovers pointer-events-none absolute left-0 top-0 z-20 hidden h-full w-full md:block">
+            <HoverTip
+              tip={tip}
+              title={floorLabelTemplate.replace("{n}", hovered.label)}
+              actionLabel={moreLabel}
+              onAction={() => onSelectFloor(hovered)}
+            />
+          </div>
         ) : null}
       </div>
-      <div className="flex flex-wrap justify-center gap-2 px-4 py-4 sm:px-6 lg:px-8">
-        {floors.map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => onSelectFloor(f)}
-            className={cn(
-              "flex h-10 min-w-10 items-center justify-center rounded-full px-2.5 text-sm font-semibold transition-colors",
-              hoveredId === f.id
-                ? "bg-[#0c1428] text-white"
-                : "bg-[#F3F4F6] text-[#0c1428] hover:bg-[#E5E7EB]",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-    </div>
+      {floors.length > 0 ? (
+        <div className="mb-4 hidden items-center justify-end z-20 lg:mr-10 lg:flex">
+          <div className="flex max-w-full flex-wrap items-center text-sm text-[#0c1428]">
+            <span className="flex h-12 items-center justify-center border border-[#c9a96e] bg-[#c9a96e] p-4 text-white">
+              {floorsLabel}
+            </span>
+            {floors.map((f) => (
+              <button
+                key={`strip-${f.id}`}
+                type="button"
+                title={floorLabelTemplate.replace("{n}", f.label)}
+                aria-label={floorLabelTemplate.replace("{n}", f.label)}
+                onMouseEnter={() => setHoveredId(f.id)}
+                onMouseLeave={() => setHoveredId(null)}
+                onClick={() => onSelectFloor(f)}
+                className={cn(
+                  "flex h-12 w-12 cursor-pointer items-center justify-center border border-white bg-[#F3F4F6] p-4 transition duration-100 ease-in hover:border-[#c9a96e]",
+                  hoveredId === f.id && "border-[#c9a96e]",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -689,44 +735,41 @@ function ApartmentSalesJourneyInner({ project }: Props) {
   // ——— Floor plate (apartments) ———
   if (building && floor) {
     return (
-      <section id="sales-journey" className="w-full max-w-none">
-        <BuildingFloorMapSection
-          project={{ ...project, buildings: [building] }}
-          lockedFloorId={floor.id}
-          overlay={
-            <JourneyOverlay
-              crumbs={crumbs}
-              title={d.salesJourneySelectApartment}
-              onBack={canGoBack ? goBack : undefined}
-              backLabel={d.salesJourneyBack}
-            />
-          }
-        />
-      </section>
+      <BuildingFloorMapSection
+        project={{ ...project, buildings: [building] }}
+        lockedFloorId={floor.id}
+        overlay={
+          <JourneyChrome
+            crumbs={crumbs}
+            title={d.salesJourneySelectApartment}
+            onBack={canGoBack ? goBack : undefined}
+            backLabel={d.salesJourneyBack}
+          />
+        }
+      />
     );
   }
 
   // ——— Building exterior (choose floor) ———
   if (building && !floor) {
     return (
-      <section id="sales-journey" className="w-full max-w-none">
-        <BuildingExteriorView
-          building={building}
-          floors={sortedFloors(building.floors)}
-          onSelectFloor={selectFloor}
-          moreLabel={d.salesJourneyMore}
-          floorLabelTemplate={d.salesJourneyFloor}
-          emptyLabel={d.salesJourneyEmptyExterior}
-          overlay={
-            <JourneyOverlay
-              crumbs={crumbs}
-              title={d.salesJourneySelectFloor}
-              onBack={canGoBack ? goBack : undefined}
-              backLabel={d.salesJourneyBack}
-            />
-          }
-        />
-      </section>
+      <BuildingExteriorView
+        building={building}
+        floors={sortedFloors(building.floors)}
+        onSelectFloor={selectFloor}
+        moreLabel={d.salesJourneyMore}
+        floorLabelTemplate={d.salesJourneyFloor}
+        emptyLabel={d.salesJourneyEmptyExterior}
+        floorsLabel={t.projectDetail.floors}
+        chrome={
+          <JourneyChrome
+            crumbs={crumbs}
+            title={d.salesJourneySelectFloor}
+            onBack={canGoBack ? goBack : undefined}
+            backLabel={d.salesJourneyBack}
+          />
+        }
+      />
     );
   }
 
@@ -749,25 +792,26 @@ function ApartmentSalesJourneyInner({ project }: Props) {
   // ——— Case 3: buildings — site map ———
   if (currentStage?.imageUrl.trim()) {
     return (
-      <section id="sales-journey" className="w-full max-w-none">
-        <MapStageView
-          stage={currentStage}
-          stagesById={stagesById}
-          buildingsById={buildingsById}
-          lang={lang}
-          onSelectStage={selectStage}
-          onSelectBuilding={selectBuilding}
-          moreLabel={d.salesJourneyMore}
-          overlay={
-            <JourneyOverlay
+      <MapStageView
+        stage={currentStage}
+        stagesById={stagesById}
+        buildingsById={buildingsById}
+        lang={lang}
+        onSelectStage={selectStage}
+        onSelectBuilding={selectBuilding}
+        moreLabel={d.salesJourneyMore}
+        buildingsLabel={d.salesJourneyBuilding}
+        chrome={
+          canGoBack ? (
+            <JourneyChrome
               crumbs={crumbs}
               title={d.salesJourneySelectBuilding}
-              onBack={canGoBack ? goBack : undefined}
+              onBack={goBack}
               backLabel={d.salesJourneyBack}
             />
-          }
-        />
-      </section>
+          ) : undefined
+        }
+      />
     );
   }
 
