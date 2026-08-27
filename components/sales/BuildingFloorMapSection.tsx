@@ -7,7 +7,6 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, Expand, X } from "lucide-react";
@@ -117,15 +116,12 @@ function FloorPlanCanvas({
         className={cn("relative h-full w-full", onBackgroundClick && "cursor-zoom-in")}
         onClick={onBackgroundClick}
       >
-        <Image
+        {/* Match building/exterior maps: stretch image to the frame so % hotspots stay aligned (no object-contain). */}
+        <img
           src={floor.imageUrl}
           alt={`${title} — ${floor.label}`}
-          width={2400}
-          height={1800}
-          sizes="100vw"
-          className="pointer-events-none block w-full md:min-h-[80vh] h-auto max-h-screen select-none object-contain"
-          unoptimized
-          priority={false}
+          className="pointer-events-none block w-full md:min-h-[80vh] h-auto max-h-screen select-none"
+          draggable={false}
         />
         <svg
           viewBox="0 0 100 100"

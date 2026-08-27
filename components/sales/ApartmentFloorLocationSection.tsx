@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
 import { Container } from "@/components/site/Container";
 import { useI18n } from "@/lib/i18n";
 import { hasApartmentNumber, apartmentDisplayNumber } from "@/lib/apartment-number";
@@ -64,13 +63,12 @@ export function ApartmentFloorLocationSection({ project, apartment }: Props) {
 
         <div className="overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white p-3 shadow-sm sm:p-5">
           <div className="relative w-full">
-            <Image
+            {/* Stretch like building maps so overlay % coords match the bitmap (no object-contain). */}
+            <img
               src={floor.imageUrl}
               alt={`${t.aptDetail.floorLocationTitle} — ${building.name}, ${floor.label}`}
-              width={1200}
-              height={900}
-              className="h-auto w-full object-contain"
-              unoptimized
+              className="h-auto w-full"
+              draggable={false}
             />
             <svg
               viewBox="0 0 100 100"
