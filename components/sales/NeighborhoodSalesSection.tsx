@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { X, BedDouble, Maximize2, Layers } from "lucide-react";
 import { Container } from "@/components/site/Container";
+import { MapPinMarker } from "@/components/sales/MapPinMarker";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
@@ -100,7 +101,6 @@ export function NeighborhoodSalesSection({ project }: Props) {
                 {plots.map((plot) => {
                   const active = plot.id === modalPlotId;
                   const hover = plot.id === hoveredId;
-                  const [cx, cy] = centroid(plot.points);
                   return (
                     <g key={plot.id}>
                       <polygon
@@ -113,29 +113,14 @@ export function NeighborhoodSalesSection({ project }: Props) {
                         onMouseLeave={() => setHoveredId(null)}
                         onClick={() => setModalPlotId(plot.id)}
                       />
-                      <circle
-                        className="fill-[#c9a96e] stroke-white"
-                        strokeWidth={0.35}
-                        cx={cx}
-                        cy={cy}
-                        r={1.15}
-                        style={{ pointerEvents: "none" }}
-                      />
-                      <text
-                        textAnchor="middle"
-                        fill="white"
-                        dy=".35em"
-                        x={cx}
-                        y={cy}
-                        fontSize={1.15}
-                        style={{ pointerEvents: "none", fontWeight: 700 }}
-                      >
-                        {plot.label}
-                      </text>
                     </g>
                   );
                 })}
               </svg>
+              {plots.map((plot) => {
+                const [cx, cy] = centroid(plot.points);
+                return <MapPinMarker key={`pin-${plot.id}`} x={cx} y={cy} label={plot.label} />;
+              })}
               {hovered && !modalPlotId ? (
                 <div className="popovers pointer-events-none absolute left-0 top-0 z-20 hidden h-full w-full md:block">
                   <div

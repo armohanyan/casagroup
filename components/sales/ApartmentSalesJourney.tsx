@@ -12,6 +12,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Container } from "@/components/site/Container";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
+import { MapPinMarker } from "@/components/sales/MapPinMarker";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { projectSalesMode, usesMapStages } from "@/lib/sales-mode";
 import { cn } from "@/lib/utils";
@@ -220,8 +221,6 @@ function MapStageView({
         >
           {stage.hotspots.map((h) => {
             if (h.points.length < 3) return null;
-            const m = markerPos(h);
-            const pinLabel = hotspotDisplayLabel(h, buildingsById, stagesById, lang);
             const active = hoveredId === h.id;
             return (
               <g key={h.id}>
@@ -239,29 +238,22 @@ function MapStageView({
                   }}
                   onClick={() => activate(h)}
                 />
-                <circle
-                  className="fill-[#c9a96e] stroke-white"
-                  strokeWidth={0.35}
-                  cx={m.x}
-                  cy={m.y}
-                  r={1.15}
-                  style={{ pointerEvents: "none" }}
-                />
-                <text
-                  textAnchor="middle"
-                  fill="white"
-                  dy=".35em"
-                  x={m.x}
-                  y={m.y}
-                  fontSize={1.15}
-                  style={{ pointerEvents: "none", fontWeight: 700 }}
-                >
-                  {pinLabel}
-                </text>
               </g>
             );
           })}
         </svg>
+        {stage.hotspots.map((h) => {
+          if (h.points.length < 3) return null;
+          const m = markerPos(h);
+          return (
+            <MapPinMarker
+              key={`pin-${h.id}`}
+              x={m.x}
+              y={m.y}
+              label={hotspotDisplayLabel(h, buildingsById, stagesById, lang)}
+            />
+          );
+        })}
         {hovered && tip ? (
           <div className="popovers pointer-events-none absolute left-0 top-0 z-20 hidden h-full w-full md:block">
             <HoverTip
@@ -291,7 +283,7 @@ function MapStageView({
                   onMouseLeave={() => setHoveredId(null)}
                   onClick={() => activate(h)}
                   className={cn(
-                    "flex h-12 w-12 cursor-pointer items-center justify-center border border-white bg-[#F3F4F6] p-4 transition duration-100 ease-in hover:border-[#c9a96e]",
+                    "flex h-12 min-w-12 cursor-pointer items-center justify-center border border-white bg-[#F3F4F6] px-3 transition duration-100 ease-in hover:border-[#c9a96e]",
                     hoveredId === h.id && "border-[#c9a96e]",
                   )}
                 >
@@ -380,8 +372,6 @@ function BuildingExteriorView({
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" className={MAP_SVG}>
           {withBands.map((f) => {
             const pts = f.exteriorHotspot as [number, number][];
-            const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
-            const y = pts.reduce((s, p) => s + p[1], 0) / pts.length;
             const active = hoveredId === f.id;
             return (
               <g key={f.id}>
@@ -399,29 +389,16 @@ function BuildingExteriorView({
                   }}
                   onClick={() => onSelectFloor(f)}
                 />
-                <circle
-                  className="fill-[#c9a96e] stroke-white"
-                  strokeWidth={0.35}
-                  cx={x}
-                  cy={y}
-                  r={1.15}
-                  style={{ pointerEvents: "none" }}
-                />
-                <text
-                  textAnchor="middle"
-                  fill="white"
-                  dy=".35em"
-                  x={x}
-                  y={y}
-                  fontSize={1.15}
-                  style={{ pointerEvents: "none", fontWeight: 700 }}
-                >
-                  {f.label}
-                </text>
               </g>
             );
           })}
         </svg>
+        {withBands.map((f) => {
+          const pts = f.exteriorHotspot as [number, number][];
+          const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+          const y = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+          return <MapPinMarker key={`pin-${f.id}`} x={x} y={y} label={f.label} />;
+        })}
         {hovered && tip ? (
           <div className="popovers pointer-events-none absolute left-0 top-0 z-20 hidden h-full w-full md:block">
             <HoverTip
@@ -449,7 +426,7 @@ function BuildingExteriorView({
                 onMouseLeave={() => setHoveredId(null)}
                 onClick={() => onSelectFloor(f)}
                 className={cn(
-                  "flex h-12 w-12 cursor-pointer items-center justify-center border border-white bg-[#F3F4F6] p-4 transition duration-100 ease-in hover:border-[#c9a96e]",
+                  "flex h-12 min-w-12 cursor-pointer items-center justify-center border border-white bg-[#F3F4F6] px-3 transition duration-100 ease-in hover:border-[#c9a96e]",
                   hoveredId === f.id && "border-[#c9a96e]",
                 )}
               >
