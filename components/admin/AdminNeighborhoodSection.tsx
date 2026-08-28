@@ -438,8 +438,30 @@ export function AdminNeighborhoodSection({
                                     type="number"
                                     className={adminInputCls}
                                     value={plan.price}
+                                    disabled={plan.status === "Sold"}
                                     onChange={(e) => updatePlan(plan.id, { price: +e.target.value })}
                                   />
+                                </Field>
+                                <Field label={hyTranslations.filter.status}>
+                                  <select
+                                    className={adminSelectCls}
+                                    value={plan.status}
+                                    onChange={(e) => {
+                                      const status = e.target.value as ApartmentStatus;
+                                      updatePlan(plan.id, {
+                                        status,
+                                        ...(status === "Sold" ? { price: 0 } : {}),
+                                      });
+                                    }}
+                                  >
+                                    <option value="Available">
+                                      {getStatusLabel(hyTranslations, "Available")}
+                                    </option>
+                                    <option value="Reserved">
+                                      {getStatusLabel(hyTranslations, "Reserved")}
+                                    </option>
+                                    <option value="Sold">{getStatusLabel(hyTranslations, "Sold")}</option>
+                                  </select>
                                 </Field>
                               </div>
                               <BilingualField

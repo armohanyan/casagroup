@@ -1440,9 +1440,11 @@ export const en = {
     addApartmentOnFloor: "+ Apartment on this floor",
     markAsSold: "Sold",
     soldZoneHint:
-      "Sold units don't need a floor plan — draw the zone on the floor map and finish.",
+      "No floor plan needed — draw the zone on the floor map and finish. Or upload a plan in the Units section instead.",
     soldZoneOnlyHint:
-      "Sold unit — no floor plan required. Mark the zone under Floor plates, then save the project.",
+      "Sold unit — upload a floor plan below to show it in the plan grid (no floor zone needed), or mark a zone under Floor plates without a plan.",
+    soldPlanHint:
+      "Sold plan — shown in the plan grid. No floor zone attachment needed.",
     switchToNeighborhoodConfirm:
       "Switch to Neighborhood? Building floors and mapped zones will be removed from this project.",
     switchToBuildingConfirm:

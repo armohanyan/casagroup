@@ -349,12 +349,18 @@ function PlotPlanRow({
           </span>
         </div>
       </div>
-      <Link
-        href={href}
-        className="inline-flex h-10 shrink-0 items-center justify-center rounded-[5px] bg-[#0c1428] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#152038]"
-      >
-        {t.developerDetail.details}
-      </Link>
+      {sold ? (
+        <span className="inline-flex h-10 shrink-0 items-center justify-center rounded-[5px] bg-[#E5E7EB] px-4 text-sm font-semibold uppercase tracking-wide text-[#9CA3AF]">
+          {t.developerDetail.sold}
+        </span>
+      ) : (
+        <Link
+          href={href}
+          className="inline-flex h-10 shrink-0 items-center justify-center rounded-[5px] bg-[#0c1428] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#152038]"
+        >
+          {t.developerDetail.details}
+        </Link>
+      )}
     </li>
   );
 }

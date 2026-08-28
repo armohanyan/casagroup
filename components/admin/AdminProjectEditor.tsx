@@ -2438,12 +2438,11 @@ export function AdminProjectEditor({ projectId }: Props) {
                       copyEnLabel={a.copyFromOther}
                       className="md:col-span-3"
                     />
-                    {apt.status === "Sold" && !apt.floorPlanImage.trim() ? (
+                    {apt.status === "Sold" ? (
                       <p className="md:col-span-3 text-xs leading-relaxed text-[#6B7280]">
-                        {a.soldZoneOnlyHint}
+                        {apt.floorPlanImage.trim() ? a.soldPlanHint : a.soldZoneOnlyHint}
                       </p>
-                    ) : (
-                      <>
+                    ) : null}
                     <div className="md:col-span-2">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                         <Field label={a.floorPlanUrl}>
@@ -2487,8 +2486,6 @@ export function AdminProjectEditor({ projectId }: Props) {
                         Այո
                       </label>
                     </Field>
-                      </>
-                    )}
                   </div>
                   {apt.status === "Sold" && !apt.floorPlanImage.trim() ? null : (
                   <>

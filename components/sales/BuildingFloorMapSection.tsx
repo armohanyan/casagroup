@@ -138,11 +138,12 @@ function FloorPlanCanvas({
               <polygon
                 key={h.apartmentId}
                 points={pointsToSvg(h.points)}
-                role="link"
-                tabIndex={0}
-                aria-label={`${hasApartmentNumber(apt) ? `№ ${apartmentDisplayNumber(apt)}, ` : ""}${apt.rooms} ${t.aptDetail.bedrooms}, ${apt.area} m²`}
+                role={sold ? undefined : "link"}
+                tabIndex={sold ? undefined : 0}
+                aria-label={`${hasApartmentNumber(apt) ? `№ ${apartmentDisplayNumber(apt)}, ` : ""}${apt.rooms} ${t.aptDetail.bedrooms}, ${apt.area} m²${sold ? ` — ${t.developerDetail.sold}` : ""}`}
                 className={cn(
-                  "cursor-pointer outline-none transition-all duration-150",
+                  "outline-none transition-all duration-150",
+                  sold ? "cursor-default" : "cursor-pointer",
                   sold
                     ? active
                       ? "fill-white/25 stroke-white/40"
@@ -156,15 +157,19 @@ function FloorPlanCanvas({
                 onMouseLeave={onLeave}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onAptClick(apt.id);
+                  if (!sold) onAptClick(apt.id);
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onAptClick(apt.id);
-                  }
-                }}
+                onKeyDown={
+                  sold
+                    ? undefined
+                    : (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onAptClick(apt.id);
+                        }
+                      }
+                }
               />
             );
           })}
@@ -289,6 +294,8 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
   if (buildings.length === 0) return null;
 
   const goToApt = (aptId: string) => {
+    const apt = aptById.get(aptId);
+    if (apt?.status === "Sold") return;
     router.push(`/projects/${project.slug}/apartments/${aptId}`);
   };
 

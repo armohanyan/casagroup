@@ -74,7 +74,7 @@ export function HomeHero() {
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <section className="relative flex min-h-[100svh] min-h-[640px] flex-col bg-[#0c1428]">
+    <section className="relative flex h-[100dvh] min-h-[640px] flex-col overflow-hidden bg-[#0c1428]">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {slides.map((src, i) => (
           // User-uploaded slides may use hosts outside next/image remotePatterns;
