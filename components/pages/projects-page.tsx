@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Seo } from "@/components/seo/Seo";
 import { Container } from "@/components/site/Container";
-import { PropertyCard } from "@/components/site/PropertyCard";
+import { ProjectCard } from "@/components/site/ProjectCard";
 import { ProjectsMapExplorer } from "@/components/site/ProjectsMapExplorer";
 import { ProjectsSidebarFilters } from "@/components/site/ProjectsSidebarFilters";
 import { useProjects } from "@/lib/projects-context";
@@ -85,7 +85,7 @@ export default function ProjectsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((project) => (
-              <PropertyCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         )}

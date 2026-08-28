@@ -1446,6 +1446,11 @@ export const hyTranslations: Translations = {
     hotspotPanMode: "Տեղափոխել",
     hotspotDrawMode: "Նշել",
     addApartmentOnFloor: "+ Բնակարան այս հարկին",
+    markAsSold: "Վաճառված",
+    soldZoneHint:
+      "Վաճառված բնակարանների համար հատակագիծ պետք չէ — նշեք գոտին հարկի քարտեզում և ավարտեք։",
+    soldZoneOnlyHint:
+      "Վաճառված բնակարան — հատակագիծ պարտադիր չէ։ Նշեք գոտին «Հարկերի հատակագծեր» բաժնում, ապա պահպանեք նախագիծը։",
     switchToNeighborhoodConfirm:
       "Անցնել թաղամասի՞։ Շենքերի հարկերն ու գոտիները կջնջվեն այս նախագծից։",
     switchToBuildingConfirm:

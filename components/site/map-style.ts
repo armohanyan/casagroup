@@ -1,9 +1,18 @@
 import L from "leaflet";
 
-/** Clean light basemap (CARTO Positron) matching the site's minimal style. */
-export const TILE_URL = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+/** Free OpenStreetMap basemap — no API key required. */
+export const TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 export const TILE_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+export const TILE_OPTIONS: L.TileLayerOptions = {
+  attribution: TILE_ATTRIBUTION,
+  maxZoom: 19,
+};
+
+export function addBasemapLayer(map: L.Map): L.TileLayer {
+  return L.tileLayer(TILE_URL, TILE_OPTIONS).addTo(map);
+}
 
 /** Branded navy/gold pin. Replaces default Leaflet marker whose image assets break under bundlers. */
 export function brandMarkerIcon(): L.DivIcon {

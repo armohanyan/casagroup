@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { addBasemapLayer } from "@/components/site/map-style";
 import { useI18n } from "@/lib/i18n";
 import { getProjectTitle } from "@/lib/project-i18n";
 import type { Project } from "@/types";
@@ -45,11 +46,7 @@ export function ProjectsMapCanvas({ projects, highlightId, centerId, onMarkerCli
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      subdomains: "abcd",
-      maxZoom: 19,
-    }).addTo(map);
+    addBasemapLayer(map);
 
     mapRef.current = map;
 

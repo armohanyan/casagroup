@@ -1438,6 +1438,11 @@ export const en = {
     hotspotPanMode: "Pan",
     hotspotDrawMode: "Draw",
     addApartmentOnFloor: "+ Apartment on this floor",
+    markAsSold: "Sold",
+    soldZoneHint:
+      "Sold units don't need a floor plan — draw the zone on the floor map and finish.",
+    soldZoneOnlyHint:
+      "Sold unit — no floor plan required. Mark the zone under Floor plates, then save the project.",
     switchToNeighborhoodConfirm:
       "Switch to Neighborhood? Building floors and mapped zones will be removed from this project.",
     switchToBuildingConfirm:

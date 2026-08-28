@@ -1440,6 +1440,11 @@ export const ru: Translations = {
     hotspotPanMode: "Перемещать",
     hotspotDrawMode: "Рисовать",
     addApartmentOnFloor: "+ Квартира на этот этаж",
+    markAsSold: "Продано",
+    soldZoneHint:
+      "Для проданных квартир планировка не нужна — отметьте зону на плане этажа и завершите.",
+    soldZoneOnlyHint:
+      "Проданная квартира — планировка не обязательна. Отметьте зону в разделе «Планы этажей», затем сохраните проект.",
     switchToNeighborhoodConfirm:
       "Переключить на квартал? Этажи корпуса и зоны на планах будут удалены из этого проекта.",
     switchToBuildingConfirm:

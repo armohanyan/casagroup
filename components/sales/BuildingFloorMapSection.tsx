@@ -148,8 +148,8 @@ function FloorPlanCanvas({
                       ? "fill-white/25 stroke-white/40"
                       : "fill-white/10 stroke-transparent"
                     : active
-                      ? "fill-[#e85d4c]/70 stroke-[#c9a96e] stroke-[0.35]"
-                      : "fill-[#e85d4c]/40 stroke-transparent",
+                      ? "fill-[#c9a96e]/40 stroke-[#c9a96e] stroke-[0.35]"
+                      : "fill-[#c9a96e]/22 stroke-transparent",
                 )}
                 onMouseEnter={(e) => trackHover(h.apartmentId, e)}
                 onMouseMove={(e) => trackHover(h.apartmentId, e)}

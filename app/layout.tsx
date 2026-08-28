@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Inter, Noto_Sans_Armenian } from "next/font/google";
 import { Provider } from "@/components/provider";
 import { SiteChrome } from "@/components/SiteChrome";
+import { LANG_COOKIE, resolveLang } from "@/lib/i18n-config";
 import "./globals.css";
 
 const inter = Inter({
@@ -80,11 +82,14 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const lang = resolveLang(cookieStore.get(LANG_COOKIE)?.value);
+
   return (
-    <html lang="hy" suppressHydrationWarning className={`${inter.variable} ${notoArmenian.variable}`}>
+    <html lang={lang} suppressHydrationWarning className={`${inter.variable} ${notoArmenian.variable}`}>
       <body>
-        <Provider>
+        <Provider initialLang={lang}>
           <SiteChrome>{children}</SiteChrome>
         </Provider>
       </body>

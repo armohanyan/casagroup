@@ -1,51 +1,250 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
-import { getStatusLabel, useI18n } from "@/lib/i18n";
-import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatPrice } from "@/lib/format-price";
+import { getProjectGallery } from "@/lib/project-gallery";
+import { useI18n } from "@/lib/i18n";
+import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 
-export function ProjectCard({ project }: { project: Project }) {
+const MAX_IMAGES = 6;
+
+const slideVariants = {
+  enter: (dir: number) => ({
+    x: dir > 0 ? "55%" : "-55%",
+    opacity: 0,
+    scale: 1.05,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1,
+  },
+  exit: (dir: number) => ({
+    x: dir > 0 ? "-55%" : "55%",
+    opacity: 0,
+    scale: 0.98,
+  }),
+};
+
+function CardImageSlider({ images, title }: { images: string[]; title: string }) {
+  const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || images.length <= 1) return;
+
+    const onStart = (e: TouchEvent) => {
+      touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!touchStart.current) return;
+      const dx = e.touches[0].clientX - touchStart.current.x;
+      const dy = e.touches[0].clientY - touchStart.current.y;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) {
+        e.stopPropagation();
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+
+    const onEnd = (e: TouchEvent) => {
+      if (!touchStart.current) return;
+      const dx = e.changedTouches[0].clientX - touchStart.current.x;
+      const dy = e.changedTouches[0].clientY - touchStart.current.y;
+      touchStart.current = null;
+      const len = images.length;
+      if (len <= 1) return;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+      e.stopPropagation();
+      if (dx < 0) {
+        setDirection(1);
+        setIndex((i) => (i + 1) % len);
+      } else {
+        setDirection(-1);
+        setIndex((i) => (i - 1 + len) % len);
+      }
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [images.length]);
+
+  if (images.length === 0) {
+    return <div className="absolute inset-0 bg-[#F3F4F6]" />;
+  }
+
+  const goTo = (next: number, dir: 1 | -1) => {
+    setDirection(dir);
+    setIndex(next);
+  };
+
+  const goPrev = () => goTo((index - 1 + images.length) % images.length, -1);
+  const goNext = () => goTo((index + 1) % images.length, 1);
+
+  const arrowCls =
+    "absolute top-1/2 -translate-y-1/2 z-30 flex h-10 w-10 items-center justify-center text-white drop-shadow-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:scale-110 active:scale-95";
+
+  return (
+    <div ref={rootRef} className="absolute inset-0 touch-pan-y">
+      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+        <motion.div
+          key={`${title}-${index}`}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.42, ease: [0.32, 0.72, 0, 1] }}
+          className="absolute inset-0 pointer-events-none"
+        >
+          <Image
+            src={images[index]}
+            alt={`${title} — ${index + 1}`}
+            fill
+            unoptimized
+            draggable={false}
+            sizes="(max-width: 768px) 85vw, 420px"
+            className="object-cover select-none"
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      {images.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goPrev();
+            }}
+            aria-label="Previous image"
+            className={cn(arrowCls, "left-2")}
+          >
+            <ChevronLeft size={28} strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goNext();
+            }}
+            aria-label="Next image"
+            className={cn(arrowCls, "right-2")}
+          >
+            <ChevronRight size={28} strokeWidth={1.5} />
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-1.5 pointer-events-auto">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goTo(i, i > index ? 1 : -1);
+                }}
+                aria-label={`Image ${i + 1}`}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-300",
+                  i === index ? "w-5 bg-white" : "w-1.5 bg-white/45",
+                )}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export function ProjectCard({
+  project,
+  showAvailableUnits = true,
+}: {
+  project: Project;
+  showAvailableUnits?: boolean;
+}) {
   const { t, lang } = useI18n();
   const title = getProjectTitle(project, lang);
   const location = getProjectLocation(project, lang);
 
+  const images = useMemo(() => {
+    const gallery = getProjectGallery(project);
+    const urls = [...new Set([...project.images, ...gallery.map((g) => g.url)])];
+    return urls.slice(0, MAX_IMAGES);
+  }, [project]);
+
   return (
-    <article className="flex flex-col bg-white border border-[#E5E7EB] rounded-lg overflow-hidden">
-      <div className="relative aspect-[4/3] bg-[#F3F4F6]">
-        {project.images[0] && (
-          <Image
-            src={project.images[0]}
-            alt={title}
-            fill
-            unoptimized
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover"
-          />
-        )}
-        <span className="absolute top-3 left-3 px-2.5 py-1 text-xs font-medium bg-white rounded-md text-[#0c1428]">
-          {getStatusLabel(t, project.status)}
-        </span>
+    <article
+      data-card
+      className="group/card relative flex flex-col h-full bg-white rounded-[5px] overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
+    >
+      <Link
+        href={`/projects/${project.slug}`}
+        className="absolute inset-0 z-10"
+        aria-label={title}
+      />
+
+      <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
+        <CardImageSlider images={images} title={title} />
       </div>
+
       <div className="flex flex-col flex-1 p-5">
-        <h3 className="text-lg font-semibold text-[#0c1428]">{title}</h3>
-        <p className="mt-1 flex items-center gap-1 text-sm text-[#6B7280]">
-          <MapPin size={14} className="shrink-0" />
-          {location}
+        <div className="mb-3">
+          <StatusBadge status={project.status} />
+        </div>
+        <h3 className="font-sans font-semibold text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/card:text-[#c9a96e] transition-colors">
+          {title}
+        </h3>
+        <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
+          <MapPin size={14} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
+          <span className="truncate">{location}</span>
         </p>
-        <p className="mt-3 text-sm text-[#6B7280] leading-relaxed line-clamp-2 flex-1">{getProjectDescription(project, lang)}</p>
-        <p className="mt-4 text-sm font-medium text-[#0c1428]">
-          {t.home.startingFrom} {formatPrice(project.startingPrice)}
-        </p>
-        <Link
-          href={`/projects/${project.slug}`}
-          className="mt-5 inline-flex h-11 items-center justify-center rounded-lg bg-[#0c1428] text-white text-sm font-semibold hover:bg-[#1F2937] transition-colors"
-        >
-          {t.home.viewProject}
-        </Link>
+        {project.startingPrice > 0 || showAvailableUnits ? (
+          <div
+            className={cn(
+              "mt-auto pt-4 text-sm min-w-0",
+              project.startingPrice > 0 && showAvailableUnits
+                ? "grid grid-cols-2 gap-x-4 gap-y-2"
+                : undefined,
+            )}
+          >
+            {project.startingPrice > 0 ? (
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-[#9CA3AF] mb-0.5">{t.home.startingFrom}</p>
+                <p className="font-semibold text-[#0c1428] text-xs leading-tight sm:text-sm tabular-nums">
+                  {formatPrice(project.startingPrice)}
+                </p>
+              </div>
+            ) : showAvailableUnits ? (
+              <div aria-hidden="true" />
+            ) : null}
+            {showAvailableUnits ? (
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wider text-[#9CA3AF] mb-0.5">{t.home.availableUnits}</p>
+                <p className="font-semibold text-[#0c1428]">{project.availableApartmentsCount}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </article>
   );

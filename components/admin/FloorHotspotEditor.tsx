@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Apartment, BuildingFloor, FloorHotspot } from "@/types";
+import type { Apartment, ApartmentStatus, BuildingFloor, FloorHotspot } from "@/types";
 import { adminSelectCls } from "@/components/admin/admin-config";
 import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
 
@@ -11,7 +11,8 @@ interface Props {
   onChange: (
     patch: Partial<BuildingFloor> | ((floor: BuildingFloor) => Partial<BuildingFloor>),
   ) => void;
-  onAddApartment?: () => void;
+  onAddApartment?: (options?: { sold?: boolean }) => void;
+  onApartmentStatusChange?: (apartmentId: string, status: ApartmentStatus) => void;
   /** Persist project after a zone is committed. Return true when server kept the zone. */
   onPersistZone?: () => Promise<boolean>;
   onToast?: (message: string, type?: "success" | "error" | "info") => void;
@@ -30,6 +31,8 @@ interface Props {
     panMode: string;
     drawMode: string;
     addApartmentOnFloor?: string;
+    markAsSold?: string;
+    soldZoneHint?: string;
   };
 }
 
@@ -38,6 +41,7 @@ export function FloorHotspotEditor({
   apartments,
   onChange,
   onAddApartment,
+  onApartmentStatusChange,
   onPersistZone,
   onToast,
   labels,
@@ -45,6 +49,7 @@ export function FloorHotspotEditor({
   const [selectedAptId, setSelectedAptId] = useState(apartments[0]?.id ?? "");
   const [draft, setDraft] = useState<[number, number][]>([]);
   const [persisting, setPersisting] = useState(false);
+  const [markAsSold, setMarkAsSold] = useState(false);
 
   useEffect(() => {
     if (apartments.length === 0) {
@@ -57,6 +62,11 @@ export function FloorHotspotEditor({
     }
   }, [apartments, selectedAptId]);
 
+  useEffect(() => {
+    const apt = apartments.find((a) => a.id === selectedAptId);
+    setMarkAsSold(apt?.status === "Sold");
+  }, [apartments, selectedAptId]);
+
   function selectApartment(id: string) {
     setSelectedAptId(id);
     const existing = floor.hotspots.find((h) => h.apartmentId === id);
@@ -65,6 +75,13 @@ export function FloorHotspotEditor({
         ? existing.points.map((p) => [p[0], p[1]] as [number, number])
         : [],
     );
+  }
+
+  function handleMarkAsSoldChange(checked: boolean) {
+    setMarkAsSold(checked);
+    if (selectedAptId && onApartmentStatusChange) {
+      onApartmentStatusChange(selectedAptId, checked ? "Sold" : "Available");
+    }
   }
 
   async function finishPolygon() {
@@ -82,6 +99,10 @@ export function FloorHotspotEditor({
     }));
     // Clear draft so the committed polygon is visible immediately.
     setDraft([]);
+
+    if (markAsSold && onApartmentStatusChange) {
+      onApartmentStatusChange(selectedAptId, "Sold");
+    }
 
     if (!onPersistZone) {
       onToast?.("Բնակարանի գոտին նշվեց — պահպանեք նախագիծը", "info");
@@ -125,7 +146,7 @@ export function FloorHotspotEditor({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-        <div>
+        <div className="space-y-2">
           <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
             {labels.selectApartment}
           </label>
@@ -146,12 +167,23 @@ export function FloorHotspotEditor({
               ))
             )}
           </select>
+          {labels.markAsSold ? (
+            <label className="flex items-center gap-2 text-sm text-[#0c1428]">
+              <input
+                type="checkbox"
+                checked={markAsSold}
+                disabled={!selectedAptId}
+                onChange={(e) => handleMarkAsSoldChange(e.target.checked)}
+              />
+              {labels.markAsSold}
+            </label>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           {onAddApartment && labels.addApartmentOnFloor ? (
             <button
               type="button"
-              onClick={onAddApartment}
+              onClick={() => onAddApartment({ sold: markAsSold })}
               className="h-11 rounded-[5px] border border-[#c9a96e] bg-[#F8F6F1] px-3 text-xs font-semibold text-[#0c1428]"
             >
               {labels.addApartmentOnFloor}
@@ -184,7 +216,11 @@ export function FloorHotspotEditor({
         </div>
       </div>
 
-      <p className="text-xs text-[#6B7280]">{labels.drawHint}</p>
+      {markAsSold && labels.soldZoneHint ? (
+        <p className="text-xs text-[#6B7280]">{labels.soldZoneHint}</p>
+      ) : (
+        <p className="text-xs text-[#6B7280]">{labels.drawHint}</p>
+      )}
 
       <PlanHotspotCanvas
         imageUrl={floor.imageUrl}

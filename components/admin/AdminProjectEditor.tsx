@@ -865,6 +865,7 @@ export function AdminProjectEditor({ projectId }: Props) {
     apt.landArea = undefined;
     apt.price = aptCreateDraft.price;
     apt.status = aptCreateDraft.status;
+    if (apt.status === "Sold") apt.price = 0;
     set("apartments", [...form.apartments, apt]);
     setOpenAptIds((ids) => [...ids, apt.id]);
     if (apt.buildingId) {
@@ -2188,11 +2189,15 @@ export function AdminProjectEditor({ projectId }: Props) {
                                 };
                               });
                             }}
-                            onAddApartment={() => {
+                            onAddApartment={(options) => {
                               const trimmed = floor.label.trim();
                               const floorNum = Number(trimmed);
                               const apt = emptyApartment(apartmentProjectId, building.id);
                               apt.floor = Number.isFinite(floorNum) ? floorNum : 1;
+                              if (options?.sold) {
+                                apt.status = "Sold";
+                                apt.price = 0;
+                              }
                               set("apartments", [...form.apartments, apt]);
                               setOpenAptIds((ids) => [...ids, apt.id]);
                               setOpenBuildingIds((ids) =>
@@ -2202,6 +2207,12 @@ export function AdminProjectEditor({ projectId }: Props) {
                                 ids.includes(floor.id) ? ids : [...ids, floor.id],
                               );
                             }}
+                            onApartmentStatusChange={(aptId, status) =>
+                              updateApt(aptId, {
+                                status,
+                                ...(status === "Sold" ? { price: 0 } : {}),
+                              })
+                            }
                             labels={{
                               selectApartment: a.hotspotSelectApartment,
                               drawHint: a.hotspotDrawHint,
@@ -2217,6 +2228,8 @@ export function AdminProjectEditor({ projectId }: Props) {
                               panMode: a.hotspotPanMode,
                               drawMode: a.hotspotDrawMode,
                               addApartmentOnFloor: a.addApartmentOnFloor,
+                              markAsSold: a.markAsSold,
+                              soldZoneHint: a.soldZoneHint,
                             }}
                           />
                         </AccordionItem>
@@ -2367,6 +2380,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                         type="number"
                         className={adminInputCls}
                         value={apt.price}
+                        disabled={apt.status === "Sold"}
                         onChange={(e) => updateApt(apt.id, { price: +e.target.value })}
                       />
                     </Field>
@@ -2374,7 +2388,13 @@ export function AdminProjectEditor({ projectId }: Props) {
                       <select
                         className={adminSelectCls}
                         value={apt.status}
-                        onChange={(e) => updateApt(apt.id, { status: e.target.value as ApartmentStatus })}
+                        onChange={(e) => {
+                          const status = e.target.value as ApartmentStatus;
+                          updateApt(apt.id, {
+                            status,
+                            ...(status === "Sold" ? { price: 0 } : {}),
+                          });
+                        }}
                       >
                         <option value="Available">{getStatusLabel(hyTranslations, "Available")}</option>
                         <option value="Reserved">{getStatusLabel(hyTranslations, "Reserved")}</option>
@@ -2418,6 +2438,12 @@ export function AdminProjectEditor({ projectId }: Props) {
                       copyEnLabel={a.copyFromOther}
                       className="md:col-span-3"
                     />
+                    {apt.status === "Sold" && !apt.floorPlanImage.trim() ? (
+                      <p className="md:col-span-3 text-xs leading-relaxed text-[#6B7280]">
+                        {a.soldZoneOnlyHint}
+                      </p>
+                    ) : (
+                      <>
                     <div className="md:col-span-2">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                         <Field label={a.floorPlanUrl}>
@@ -2461,7 +2487,11 @@ export function AdminProjectEditor({ projectId }: Props) {
                         Այո
                       </label>
                     </Field>
+                      </>
+                    )}
                   </div>
+                  {apt.status === "Sold" && !apt.floorPlanImage.trim() ? null : (
+                  <>
                   <BilingualField
                     label={a.unitDescription}
                     hy={apt.descriptionHy ?? ""}
@@ -2539,6 +2569,8 @@ export function AdminProjectEditor({ projectId }: Props) {
                       </button>
                     </p>
                   ) : null}
+                  </>
+                  )}
                 </AccordionItem>
                 </div>
               );
@@ -2740,7 +2772,11 @@ export function AdminProjectEditor({ projectId }: Props) {
               className={adminSelectCls}
               value={aptCreateDraft.status}
               onChange={(e) =>
-                setAptCreateDraft((d) => ({ ...d, status: e.target.value as ApartmentStatus }))
+                setAptCreateDraft((d) => ({
+                  ...d,
+                  status: e.target.value as ApartmentStatus,
+                  ...(e.target.value === "Sold" ? { price: 0 } : {}),
+                }))
               }
             >
               <option value="Available">{getStatusLabel(hyTranslations, "Available")}</option>

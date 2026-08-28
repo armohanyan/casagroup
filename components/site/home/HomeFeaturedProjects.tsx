@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Container } from "@/components/site/Container";
-import { FeaturedPropertyCard } from "@/components/site/FeaturedPropertyCard";
+import { ProjectCard } from "@/components/site/ProjectCard";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
@@ -61,11 +61,12 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
       key={project.id}
       data-card
       className={cn(
+        "h-full",
         showCarouselArrows &&
           "snap-start shrink-0 w-[calc((100%-1rem)/1.3)] sm:w-[380px] lg:w-[calc((100%-3rem)/3)]",
       )}
     >
-      <FeaturedPropertyCard project={project} />
+      <ProjectCard project={project} showAvailableUnits={false} />
     </div>
   ));
 
@@ -106,7 +107,7 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
 
             <div
               ref={scrollRef}
-              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 md:gap-6 md:px-14 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="flex items-stretch gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 md:gap-6 md:px-14 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               {cards}
             </div>

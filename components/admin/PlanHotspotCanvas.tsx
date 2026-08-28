@@ -346,7 +346,7 @@ export function PlanHotspotCanvas({
                 pointerEvents={drawing ? "none" : "auto"}
                 className={cn(
                   "stroke-[#0c1428] transition-opacity",
-                  poly.active || hoveredId === poly.id ? "fill-[#c45c4a]/55" : "fill-[#c45c4a]/28",
+                  poly.active || hoveredId === poly.id ? "fill-[#c9a96e]/40" : "fill-[#c9a96e]/22",
                   poly.dimmed && !poly.active ? "opacity-40" : "",
                 )}
                 strokeWidth={poly.active ? 0.45 : 0.3}

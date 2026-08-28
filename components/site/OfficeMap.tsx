@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { TILE_URL, TILE_ATTRIBUTION, brandMarkerIcon } from "@/components/site/map-style";
+import { addBasemapLayer, brandMarkerIcon } from "@/components/site/map-style";
 
 /** Sayat-Nova Ave 40, Yerevan (OSM way 472376826) */
 const OFFICE = { lat: 40.17731, lng: 44.52626 };
@@ -14,7 +14,7 @@ export function OfficeMap() {
   useEffect(() => {
     if (!ref.current) return;
     const map = L.map(ref.current, { center: [OFFICE.lat, OFFICE.lng], zoom: 15, scrollWheelZoom: false });
-    L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION }).addTo(map);
+    addBasemapLayer(map);
     L.marker([OFFICE.lat, OFFICE.lng], { icon: brandMarkerIcon() })
       .addTo(map)
       .bindPopup("CasaGroup — Սայաթ-Նովա 40");

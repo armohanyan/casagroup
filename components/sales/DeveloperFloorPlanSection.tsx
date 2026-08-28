@@ -20,7 +20,12 @@ interface Props {
 }
 
 function marketOf(apartments: Apartment[]) {
-  return apartments.filter((a) => a.status !== "Reserved");
+  return apartments.filter((a) => {
+    if (a.status === "Reserved") return false;
+    // Zone-only sold units (no plan) appear on the floor map only.
+    if (a.status === "Sold" && !a.floorPlanImage?.trim()) return false;
+    return true;
+  });
 }
 
 function uniqueSorted(nums: number[]) {

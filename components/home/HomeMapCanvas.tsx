@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { addBasemapLayer } from "@/components/site/map-style";
 import type { Project } from "@/types";
 
 interface Props {
@@ -34,12 +35,7 @@ export function HomeMapCanvas({ projects, selectedId, onSelect }: Props) {
       scrollWheelZoom: false,
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>',
-      subdomains: "abcd",
-      maxZoom: 19,
-    }).addTo(map);
+    addBasemapLayer(map);
 
     mapRef.current = map;
 

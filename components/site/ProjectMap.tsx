@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { TILE_URL, TILE_ATTRIBUTION, brandMarkerIcon } from "@/components/site/map-style";
+import { addBasemapLayer, brandMarkerIcon } from "@/components/site/map-style";
 
 interface Props {
   lat: number;
@@ -25,7 +25,7 @@ export function ProjectMap({ lat, lng, title, scrollWheelZoom = false }: Props) 
       scrollWheelZoom,
     });
 
-    L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION }).addTo(map);
+    addBasemapLayer(map);
 
     L.marker([lat, lng], { icon: brandMarkerIcon() }).addTo(map).bindPopup(title);
 

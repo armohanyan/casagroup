@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { addBasemapLayer } from "@/components/site/map-style";
 import { formatPrice } from "@/lib/format-price";
 import { getMarkerCoords } from "@/lib/map-coords";
 import type { PropertyListing } from "@/lib/properties";
@@ -37,10 +38,7 @@ export function PropertiesMap({ listings, selectedId, onSelect }: Props) {
       scrollWheelZoom: true,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>',
-    }).addTo(map);
+    addBasemapLayer(map);
 
     mapRef.current = map;
 

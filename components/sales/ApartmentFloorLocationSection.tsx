@@ -81,7 +81,7 @@ export function ApartmentFloorLocationSection({ project, apartment }: Props) {
                 className={
                   sold
                     ? "fill-white/30 stroke-white/50 stroke-[0.4]"
-                    : "fill-[#e85d4c]/55 stroke-[#c9a96e] stroke-[0.45]"
+                    : "fill-[#c9a96e]/30 stroke-[#c9a96e] stroke-[0.4]"
                 }
               />
             </svg>
