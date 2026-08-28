@@ -2210,7 +2210,9 @@ export function AdminProjectEditor({ projectId }: Props) {
                             onApartmentStatusChange={(aptId, status) =>
                               updateApt(aptId, {
                                 status,
-                                ...(status === "Sold" ? { price: 0 } : {}),
+                                ...(status === "Sold"
+                                  ? { price: 0, floorPlanImage: "", planPdfUrl: "", gallery: [] }
+                                  : {}),
                               })
                             }
                             labels={{

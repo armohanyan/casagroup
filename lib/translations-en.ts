@@ -1440,7 +1440,7 @@ export const en = {
     addApartmentOnFloor: "+ Apartment on this floor",
     markAsSold: "Sold",
     soldZoneHint:
-      "No floor plan needed — draw the zone on the floor map and finish.",
+      "Sold — no floor zone needed. Save the project to apply.",
     soldZoneOnlyHint:
       "Sold unit — no floor plan needed. Save the project to apply.",
     switchToNeighborhoodConfirm:

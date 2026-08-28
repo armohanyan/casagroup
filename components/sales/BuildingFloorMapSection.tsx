@@ -86,6 +86,7 @@ function FloorPlanCanvas({
   onAptClick,
   onBackgroundClick,
   showExpandHint,
+  expanded,
 }: {
   floor: BuildingFloor;
   aptById: Map<string, Apartment>;
@@ -97,6 +98,7 @@ function FloorPlanCanvas({
   onAptClick: (aptId: string) => void;
   onBackgroundClick?: () => void;
   showExpandHint?: boolean;
+  expanded?: boolean;
 }) {
   const { t } = useI18n();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -110,7 +112,7 @@ function FloorPlanCanvas({
   }
 
   return (
-    <div className="map relative mb-1 h-full w-full">
+    <div className={cn("map relative h-full w-full", !expanded && "mb-1")}>
       <div
         ref={frameRef}
         className={cn("relative h-full w-full", onBackgroundClick && "cursor-zoom-in")}
@@ -120,7 +122,12 @@ function FloorPlanCanvas({
         <img
           src={floor.imageUrl}
           alt={`${title} — ${floor.label}`}
-          className="pointer-events-none block w-full md:min-h-[80vh] h-auto max-h-screen select-none"
+          className={cn(
+            "pointer-events-none block w-full select-none",
+            expanded
+              ? "h-full min-h-screen"
+              : "h-auto max-h-screen md:min-h-[80vh]",
+          )}
           draggable={false}
         />
         <svg
@@ -132,8 +139,8 @@ function FloorPlanCanvas({
           {floor.hotspots.map((h) => {
             const apt = aptById.get(h.apartmentId);
             if (!apt) return null;
-            const active = hoveredAptId === h.apartmentId;
             const sold = apt.status === "Sold";
+            const active = !sold && hoveredAptId === h.apartmentId;
             return (
               <polygon
                 key={h.apartmentId}
@@ -142,23 +149,25 @@ function FloorPlanCanvas({
                 tabIndex={sold ? undefined : 0}
                 aria-label={`${hasApartmentNumber(apt) ? `№ ${apartmentDisplayNumber(apt)}, ` : ""}${apt.rooms} ${t.aptDetail.bedrooms}, ${apt.area} m²${sold ? ` — ${t.developerDetail.sold}` : ""}`}
                 className={cn(
-                  "outline-none transition-all duration-150",
-                  sold ? "cursor-default" : "cursor-pointer",
+                  "outline-none",
+                  sold ? "pointer-events-none cursor-default" : "cursor-pointer transition-all duration-150",
                   sold
-                    ? active
-                      ? "fill-white/25 stroke-white/40"
-                      : "fill-white/10 stroke-transparent"
+                    ? "fill-white/10 stroke-transparent"
                     : active
                       ? "fill-[#c9a96e]/40 stroke-[#c9a96e] stroke-[0.35]"
                       : "fill-[#c9a96e]/22 stroke-transparent",
                 )}
-                onMouseEnter={(e) => trackHover(h.apartmentId, e)}
-                onMouseMove={(e) => trackHover(h.apartmentId, e)}
-                onMouseLeave={onLeave}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!sold) onAptClick(apt.id);
-                }}
+                onMouseEnter={sold ? undefined : (e) => trackHover(h.apartmentId, e)}
+                onMouseMove={sold ? undefined : (e) => trackHover(h.apartmentId, e)}
+                onMouseLeave={sold ? undefined : onLeave}
+                onClick={
+                  sold
+                    ? undefined
+                    : (e) => {
+                        e.stopPropagation();
+                        onAptClick(apt.id);
+                      }
+                }
                 onKeyDown={
                   sold
                     ? undefined
@@ -189,7 +198,7 @@ function FloorPlanCanvas({
             </span>
           );
         })}
-        {tooltip && hoveredApt && (
+        {tooltip && hoveredApt && hoveredApt.status !== "Sold" && (
           <HotspotTooltip apartment={hoveredApt} x={tooltip.x} y={tooltip.y} />
         )}
       </div>
@@ -351,7 +360,7 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
         <AnimatePresence>
           {expanded && selectedFloor ? (
             <motion.div
-              className="fixed inset-0 z-[1200] flex flex-col bg-black/95"
+              className="fixed inset-0 z-[1200] bg-black/95"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -359,53 +368,37 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
               aria-modal="true"
               aria-label={t.developerDetail.floorMapExpand}
             >
-              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-white">
-                    {t.developerDetail.floorMapTitle}
-                    {selectedBuilding?.name ? ` · ${selectedBuilding.name}` : ""}
-                  </p>
-                  <p className="mt-0.5 text-xs text-white/50">
-                    {t.developerDetail.chooseFloor}: {selectedFloor.label}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setExpanded(false)}
-                  className="shrink-0 rounded-full p-2 text-white hover:bg-white/10"
-                  aria-label="Close"
-                >
-                  <X size={22} />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="absolute right-3 top-3 z-50 rounded-full p-2 text-white hover:bg-white/10 sm:right-4 sm:top-4"
+                aria-label="Close"
+              >
+                <X size={22} />
+              </button>
 
-              <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-3 sm:p-6">
-                <div className="w-full max-w-6xl">
-                  <FloorPlanCanvas
-                    floor={selectedFloor}
-                    aptById={aptById}
-                    title={t.developerDetail.floorMapTitle}
-                    hoveredAptId={expandedHoveredAptId}
-                    tooltip={expandedTooltip}
-                    onHover={(aptId, x, y) => {
-                      setExpandedHoveredAptId(aptId);
-                      setExpandedTooltip({ aptId, x, y });
-                    }}
-                    onLeave={() => {
-                      setExpandedHoveredAptId(null);
-                      setExpandedTooltip(null);
-                    }}
-                    onAptClick={(aptId) => {
-                      setExpanded(false);
-                      goToApt(aptId);
-                    }}
-                  />
-                </div>
+              <div className="h-full w-full">
+                <FloorPlanCanvas
+                  expanded
+                  floor={selectedFloor}
+                  aptById={aptById}
+                  title={t.developerDetail.floorMapTitle}
+                  hoveredAptId={expandedHoveredAptId}
+                  tooltip={expandedTooltip}
+                  onHover={(aptId, x, y) => {
+                    setExpandedHoveredAptId(aptId);
+                    setExpandedTooltip({ aptId, x, y });
+                  }}
+                  onLeave={() => {
+                    setExpandedHoveredAptId(null);
+                    setExpandedTooltip(null);
+                  }}
+                  onAptClick={(aptId) => {
+                    setExpanded(false);
+                    goToApt(aptId);
+                  }}
+                />
               </div>
-
-              <p className="shrink-0 px-4 pb-4 text-center text-xs text-white/40">
-                {t.developerDetail.floorMapExpandHint}
-              </p>
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -490,7 +483,7 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
       <AnimatePresence>
         {expanded && selectedFloor ? (
           <motion.div
-            className="fixed inset-0 z-[1200] flex flex-col bg-black/95"
+            className="fixed inset-0 z-[1200] bg-black/95"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -498,53 +491,37 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
             aria-modal="true"
             aria-label={t.developerDetail.floorMapExpand}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-white">
-                  {t.developerDetail.floorMapTitle}
-                  {selectedBuilding?.name ? ` · ${selectedBuilding.name}` : ""}
-                </p>
-                <p className="mt-0.5 text-xs text-white/50">
-                  {t.developerDetail.chooseFloor}: {selectedFloor.label}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="shrink-0 rounded-full p-2 text-white hover:bg-white/10"
-                aria-label="Close"
-              >
-                <X size={22} />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="absolute right-3 top-3 z-50 rounded-full p-2 text-white hover:bg-white/10 sm:right-4 sm:top-4"
+              aria-label="Close"
+            >
+              <X size={22} />
+            </button>
 
-            <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-3 sm:p-6">
-              <div className="w-full max-w-6xl">
-                <FloorPlanCanvas
-                  floor={selectedFloor}
-                  aptById={aptById}
-                  title={t.developerDetail.floorMapTitle}
-                  hoveredAptId={expandedHoveredAptId}
-                  tooltip={expandedTooltip}
-                  onHover={(aptId, x, y) => {
-                    setExpandedHoveredAptId(aptId);
-                    setExpandedTooltip({ aptId, x, y });
-                  }}
-                  onLeave={() => {
-                    setExpandedHoveredAptId(null);
-                    setExpandedTooltip(null);
-                  }}
-                  onAptClick={(aptId) => {
-                    setExpanded(false);
-                    goToApt(aptId);
-                  }}
-                />
-              </div>
+            <div className="h-full w-full">
+              <FloorPlanCanvas
+                expanded
+                floor={selectedFloor}
+                aptById={aptById}
+                title={t.developerDetail.floorMapTitle}
+                hoveredAptId={expandedHoveredAptId}
+                tooltip={expandedTooltip}
+                onHover={(aptId, x, y) => {
+                  setExpandedHoveredAptId(aptId);
+                  setExpandedTooltip({ aptId, x, y });
+                }}
+                onLeave={() => {
+                  setExpandedHoveredAptId(null);
+                  setExpandedTooltip(null);
+                }}
+                onAptClick={(aptId) => {
+                  setExpanded(false);
+                  goToApt(aptId);
+                }}
+              />
             </div>
-
-            <p className="shrink-0 px-4 pb-4 text-center text-xs text-white/40">
-              {t.developerDetail.floorMapExpandHint}
-            </p>
           </motion.div>
         ) : null}
       </AnimatePresence>

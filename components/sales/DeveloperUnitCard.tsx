@@ -103,8 +103,9 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1, isHous
     </>
   );
 
-  const className =
-    "relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all";
+  const className = sold
+    ? "relative block bg-white rounded-lg overflow-hidden shadow-sm"
+    : "relative block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all";
 
   if (sold) {
     return <article className={className}>{body}</article>;

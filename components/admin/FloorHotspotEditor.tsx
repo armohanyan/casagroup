@@ -82,6 +82,12 @@ export function FloorHotspotEditor({
     if (selectedAptId && onApartmentStatusChange) {
       onApartmentStatusChange(selectedAptId, checked ? "Sold" : "Available");
     }
+    if (checked && selectedAptId) {
+      onChange((fl) => ({
+        hotspots: (fl.hotspots ?? []).filter((h) => h.apartmentId !== selectedAptId),
+      }));
+      setDraft([]);
+    }
   }
 
   async function finishPolygon() {
@@ -141,7 +147,9 @@ export function FloorHotspotEditor({
     );
   }
 
-  const drawing = Boolean(selectedAptId);
+  const drawing = Boolean(selectedAptId) && !markAsSold;
+  const selectedApt = apartments.find((a) => a.id === selectedAptId);
+  const isSold = markAsSold || selectedApt?.status === "Sold";
 
   return (
     <div className="space-y-3">
@@ -162,7 +170,9 @@ export function FloorHotspotEditor({
               apartments.map((apt) => (
                 <option key={apt.id} value={apt.id}>
                   {aptLabel(apt.id)} ({apt.status})
-                  {floor.hotspots.some((h) => h.apartmentId === apt.id) ? " ✓" : ""}
+                  {apt.status !== "Sold" && floor.hotspots.some((h) => h.apartmentId === apt.id)
+                    ? " ✓"
+                    : ""}
                 </option>
               ))
             )}
@@ -179,6 +189,17 @@ export function FloorHotspotEditor({
             </label>
           ) : null}
         </div>
+        {isSold ? (
+          onAddApartment && labels.addApartmentOnFloor ? (
+            <button
+              type="button"
+              onClick={() => onAddApartment({ sold: true })}
+              className="h-11 rounded-[5px] border border-[#c9a96e] bg-[#F8F6F1] px-3 text-xs font-semibold text-[#0c1428]"
+            >
+              {labels.addApartmentOnFloor}
+            </button>
+          ) : null
+        ) : (
         <div className="flex flex-wrap gap-2">
           {onAddApartment && labels.addApartmentOnFloor ? (
             <button
@@ -214,14 +235,16 @@ export function FloorHotspotEditor({
             {labels.clearDraft}
           </button>
         </div>
+        )}
       </div>
 
-      {markAsSold && labels.soldZoneHint ? (
+      {isSold && labels.soldZoneHint ? (
         <p className="text-xs text-[#6B7280]">{labels.soldZoneHint}</p>
       ) : (
         <p className="text-xs text-[#6B7280]">{labels.drawHint}</p>
       )}
 
+      {!isSold ? (
       <PlanHotspotCanvas
         imageUrl={floor.imageUrl}
         drawing={drawing}
@@ -249,8 +272,9 @@ export function FloorHotspotEditor({
           drawMode: labels.drawMode,
         }}
       />
+      ) : null}
 
-      {floor.hotspots.length > 0 ? (
+      {!isSold && floor.hotspots.length > 0 ? (
         <ul className="space-y-1.5">
           <li className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
             {labels.hotspotCount.replace("{count}", String(floor.hotspots.length))}

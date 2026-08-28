@@ -1448,7 +1448,7 @@ export const hyTranslations: Translations = {
     addApartmentOnFloor: "+ Բնակարան այս հարկին",
     markAsSold: "Վաճառված",
     soldZoneHint:
-      "Հատակագիծ պետք չէ — նշեք գոտին հարկի քարտեզում և ավարտեք։",
+      "Վաճառված — հարկի գոտի պետք չէ։ Պահպանեք նախագիծը։",
     soldZoneOnlyHint:
       "Վաճառված բնակարան — հատակագիծ պետք չէ։ Պահպանեք նախագիծը՝ կիրառելու համար։",
     switchToNeighborhoodConfirm:

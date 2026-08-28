@@ -1442,7 +1442,7 @@ export const ru: Translations = {
     addApartmentOnFloor: "+ Квартира на этот этаж",
     markAsSold: "Продано",
     soldZoneHint:
-      "Планировка не нужна — отметьте зону на плане этажа и завершите.",
+      "Продано — зона на этаже не нужна. Сохраните проект.",
     soldZoneOnlyHint:
       "Проданная квартира — планировка не нужна. Сохраните проект для применения.",
     switchToNeighborhoodConfirm:
