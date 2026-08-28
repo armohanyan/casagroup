@@ -24,17 +24,27 @@ function isActive(href: string, pathname: string) {
 const LANG_SHORT: Record<Lang, string> = { hy: "ՀՅ", ru: "РУ", en: "EN" };
 const LANG_FULL: Record<Lang, string> = { hy: "Հայերեն", ru: "Русский", en: "English" };
 
-function LangDropdown({ onDark = false }: { onDark?: boolean }) {
+function LangDropdown({
+  onDark = false,
+  menuAlign = "right",
+}: {
+  onDark?: boolean;
+  menuAlign?: "left" | "right";
+}) {
   const { lang, setLang } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function onDoc(e: MouseEvent) {
+    function onDoc(e: MouseEvent | TouchEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("touchstart", onDoc, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("touchstart", onDoc);
+    };
   }, []);
 
   return (
@@ -58,7 +68,10 @@ function LangDropdown({ onDark = false }: { onDark?: boolean }) {
       {open && (
         <div
           role="listbox"
-          className="absolute right-0 z-50 mt-1.5 w-32 overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white py-1 shadow-[0_8px_24px_rgba(12,20,40,0.12)]"
+          className={cn(
+            "absolute z-50 mt-1.5 w-36 overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white py-1 shadow-[0_8px_24px_rgba(12,20,40,0.12)]",
+            menuAlign === "left" ? "left-0" : "right-0",
+          )}
         >
           {(["hy", "ru", "en"] as const).map((l: Lang) => (
             <button
@@ -138,7 +151,7 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 inset-x-0 z-[1100] transition-all duration-300 ease-out",
+        "fixed top-0 inset-x-0 z-[1100] transition-[background-color,border-color,box-shadow] duration-300 ease-out",
         mobileOpen
           ? "bg-[#0F172A]"
           : transparent
@@ -198,9 +211,9 @@ export function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden bg-white border-t border-[#E5E7EB] px-4 py-4 space-y-1">
-          <div className="flex justify-start pb-3 mb-1 border-b border-[#E5E7EB]">
-            <LangDropdown />
+        <div className="md:hidden overflow-visible bg-white border-t border-[#E5E7EB] px-4 py-4 space-y-1">
+          <div className="relative z-20 flex justify-start overflow-visible pb-3 mb-1 border-b border-[#E5E7EB]">
+            <LangDropdown menuAlign="left" />
           </div>
           {NAV_LINKS.map(({ href, key }) => (
             <Link key={href} href={href} className="block py-3 text-base font-medium text-[#0c1428]">{label(key)}</Link>

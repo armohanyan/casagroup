@@ -46,8 +46,13 @@
 }
 
 html {
-  scroll-behavior: smooth;
   overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
