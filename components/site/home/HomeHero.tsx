@@ -103,11 +103,11 @@ export function HomeHero() {
 
       <Container className="relative z-10 flex h-full w-full flex-col pt-28 pb-24 md:pb-7">
         <div className="flex flex-1 flex-col justify-center">
-          <div className="max-w-xl md:max-w-2xl">
+          <div className="max-w-2xl md:max-w-3xl lg:max-w-4xl">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-semibold text-white leading-[1.15] tracking-tight">
               {t.home.heroHeadline}
             </h1>
-            <p className="mt-4 text-sm sm:text-base md:text-lg text-white/85 max-w-lg leading-relaxed">
+            <p className="mt-4 text-sm sm:text-base md:text-lg text-white/85 max-w-xl md:max-w-2xl lg:max-w-3xl leading-relaxed">
               {t.home.heroSubline}
             </p>
           </div>

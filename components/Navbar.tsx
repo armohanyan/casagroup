@@ -146,7 +146,7 @@ export function Navbar() {
             : "bg-white border-b border-[#E5E7EB]",
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 grid grid-cols-[auto_1fr_auto] items-center gap-3">
         <Link
           href="/"
           className={cn("shrink-0 text-lg font-semibold", headerDark ? "text-white" : "text-[#0c1428]")}
@@ -154,17 +154,17 @@ export function Navbar() {
           Casa<span className="text-[#c9a96e]">Group</span>
         </Link>
 
-        <nav className="hidden lg:flex flex-1 items-center justify-center gap-0.5">
+        <nav className="hidden lg:flex items-center justify-center gap-0.5 flex-nowrap min-w-0">
           {NAV_LINKS.map(({ href, key }) => (
             <Link key={href} href={href} className={linkCls(href)}>{label(key)}</Link>
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-4 ml-auto lg:ml-0">
+        <div className="hidden md:flex items-center gap-3 shrink-0 flex-nowrap justify-end col-start-3">
           <a
             href="tel:+37496799733"
             className={cn(
-              "hidden lg:inline-flex items-center gap-1.5 text-sm font-medium whitespace-nowrap transition-colors",
+              "inline-flex items-center gap-1.5 text-sm font-medium whitespace-nowrap transition-colors",
               transparent ? "text-white/85 hover:text-white" : "text-[#374151] hover:text-[#0c1428]",
             )}
           >
@@ -188,7 +188,7 @@ export function Navbar() {
 
         <button
           type="button"
-          className={cn("md:hidden ml-auto p-2", headerDark ? "text-white" : "text-[#0c1428]")}
+          className={cn("md:hidden col-start-3 justify-self-end p-2", headerDark ? "text-white" : "text-[#0c1428]")}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
           aria-expanded={mobileOpen}

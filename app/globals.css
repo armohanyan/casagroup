@@ -6,7 +6,7 @@
 
 @theme {
   --font-sans: var(--font-inter), var(--font-armenian), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-inter), var(--font-armenian), ui-sans-serif, system-ui, sans-serif;
   --color-brand: #0f172a;
   --color-brand-secondary: #1e293b;
   --color-brand-foreground: #ffffff;
@@ -63,6 +63,10 @@ body {
 
 .font-display {
   font-family: var(--font-display);
+}
+
+html[lang="hy"] .font-display {
+  font-family: var(--font-armenian), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 ::selection {

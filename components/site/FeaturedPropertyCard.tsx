@@ -5,9 +5,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { formatPrice } from "@/lib/format-price";
 import { getProjectGallery } from "@/lib/project-gallery";
-import { getStatusLabel, useI18n } from "@/lib/i18n";
-import { getProjectDescription, getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
+import { useI18n } from "@/lib/i18n";
+import { getProjectLocation, getProjectTitle } from "@/lib/project-i18n";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -173,10 +175,6 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
   );
 }
 
-function statusBadges(project: Project, t: ReturnType<typeof useI18n>["t"]) {
-  return [getStatusLabel(t, project.status)];
-}
-
 /** Liam-style featured property card with inner image slider. */
 export function FeaturedPropertyCard({ project }: { project: Project }) {
   const { t, lang } = useI18n();
@@ -188,9 +186,6 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
     const urls = [...new Set([...project.images, ...gallery.map((g) => g.url)])];
     return urls.slice(0, MAX_IMAGES);
   }, [project]);
-
-  const badges = statusBadges(project, t);
-  const shortInfo = getProjectDescription(project, lang);
 
   return (
     <article
@@ -205,32 +200,31 @@ export function FeaturedPropertyCard({ project }: { project: Project }) {
 
       <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
         <CardImageSlider images={images} title={title} />
-
-        <div className="absolute top-3 right-3 z-20 flex flex-wrap justify-end gap-1.5 max-w-[70%] pointer-events-none">
-          {badges.map((badge) => (
-            <span
-              key={badge}
-              className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest bg-[#1F2937]/80 text-white rounded-[5px] backdrop-blur-sm"
-            >
-              {badge}
-            </span>
-          ))}
-        </div>
       </div>
 
       <div className="flex flex-col flex-1 p-5">
-        <h3 className="font-display text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/card:text-[#c9a96e] transition-colors">
+        <div className="mb-3">
+          <StatusBadge status={project.status} />
+        </div>
+        <h3 className="font-sans font-semibold text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/card:text-[#c9a96e] transition-colors">
           {title}
         </h3>
         <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
           <MapPin size={14} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
           <span className="truncate">{location}</span>
         </p>
-        {shortInfo ? (
-          <p className="mt-auto pt-4 text-sm text-[#6B7280] leading-relaxed line-clamp-2">
-            {shortInfo}
-          </p>
-        ) : null}
+        <div className="mt-auto pt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          {project.startingPrice > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-[#9CA3AF] mb-0.5">{t.home.startingFrom}</p>
+              <p className="font-semibold text-[#0c1428]">{formatPrice(project.startingPrice)}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-[#9CA3AF] mb-0.5">{t.home.availableUnits}</p>
+            <p className="font-semibold text-[#0c1428]">{project.availableApartmentsCount}</p>
+          </div>
+        </div>
       </div>
     </article>
   );

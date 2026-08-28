@@ -14,6 +14,7 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
+  const showCarouselArrows = projects.length > 3;
 
   const updateButtons = useCallback(() => {
     const el = scrollRef.current;
@@ -24,6 +25,7 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
   }, []);
 
   useEffect(() => {
+    if (!showCarouselArrows) return;
     const el = scrollRef.current;
     if (!el) return;
     updateButtons();
@@ -33,7 +35,7 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
       el.removeEventListener("scroll", updateButtons);
       window.removeEventListener("resize", updateButtons);
     };
-  }, [updateButtons, projects.length]);
+  }, [updateButtons, projects.length, showCarouselArrows]);
 
   function scroll(direction: "prev" | "next") {
     const el = scrollRef.current;
@@ -53,6 +55,19 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
     );
 
   if (projects.length === 0) return null;
+
+  const cards = projects.map((project) => (
+    <div
+      key={project.id}
+      data-card
+      className={cn(
+        showCarouselArrows &&
+          "snap-start shrink-0 w-[calc((100%-1rem)/1.3)] sm:w-[380px] lg:w-[calc((100%-3rem)/3)]",
+      )}
+    >
+      <FeaturedPropertyCard project={project} />
+    </div>
+  ));
 
   return (
     <section className="py-16 md:py-24 bg-[#FAFAFA] overflow-hidden">
@@ -77,42 +92,40 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
           </Link>
         </div>
 
-        <div className="relative -mx-1">
-          <button
-            type="button"
-            onClick={() => scroll("prev")}
-            disabled={!canPrev}
-            aria-label={t.home.featuredPrev}
-            className={cn(sideArrowCls(canPrev), "-left-1 lg:-left-5")}
-          >
-            <ChevronLeft size={22} />
-          </button>
+        {showCarouselArrows ? (
+          <div className="relative -mx-1">
+            <button
+              type="button"
+              onClick={() => scroll("prev")}
+              disabled={!canPrev}
+              aria-label={t.home.featuredPrev}
+              className={cn(sideArrowCls(canPrev), "-left-1 lg:-left-5")}
+            >
+              <ChevronLeft size={22} />
+            </button>
 
-          <div
-            ref={scrollRef}
-            className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 md:gap-6 md:px-14 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {projects.map((project) => (
-              <div
-                key={project.id}
-                data-card
-                className="snap-start shrink-0 w-[calc((100%-1rem)/1.3)] sm:w-[380px] lg:w-[calc((100%-3rem)/3)]"
-              >
-                <FeaturedPropertyCard project={project} />
-              </div>
-            ))}
+            <div
+              ref={scrollRef}
+              className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-2 px-1 md:gap-6 md:px-14 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {cards}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => scroll("next")}
+              disabled={!canNext}
+              aria-label={t.home.featuredNext}
+              className={cn(sideArrowCls(canNext), "-right-1 lg:-right-5")}
+            >
+              <ChevronRight size={22} />
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => scroll("next")}
-            disabled={!canNext}
-            aria-label={t.home.featuredNext}
-            className={cn(sideArrowCls(canNext), "-right-1 lg:-right-5")}
-          >
-            <ChevronRight size={22} />
-          </button>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 py-2 px-1 sm:grid-cols-2 md:gap-6 lg:grid-cols-3">
+            {cards}
+          </div>
+        )}
       </Container>
     </section>
   );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Armenian, Playfair_Display } from "next/font/google";
+import { Inter, Noto_Sans_Armenian } from "next/font/google";
 import { Provider } from "@/components/provider";
 import { SiteChrome } from "@/components/SiteChrome";
 import "./globals.css";
@@ -7,12 +7,6 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
   variable: "--font-inter",
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -88,7 +82,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="hy" suppressHydrationWarning className={`${inter.variable} ${notoArmenian.variable} ${playfair.variable}`}>
+    <html lang="hy" suppressHydrationWarning className={`${inter.variable} ${notoArmenian.variable}`}>
       <body>
         <Provider>
           <SiteChrome>{children}</SiteChrome>

@@ -197,7 +197,7 @@ export function PropertySearchBar({ cities, className, variant = "default" }: Pr
               "inline-flex h-11 w-full items-center justify-center gap-2 rounded-[5px] text-sm font-semibold transition-all",
               "hover:opacity-95 active:scale-[0.98]",
               isHero
-                ? "bg-[#c9a96e] text-[#0c1428] hover:bg-[#d4b87a] xl:w-auto xl:min-w-[148px] xl:shrink-0 xl:px-5"
+                ? "bg-[#0c1428] text-white hover:bg-[#1a2744] xl:w-auto xl:min-w-[148px] xl:shrink-0 xl:px-5"
                 : "bg-[#c9a96e] text-[#0c1428] hover:bg-[#d4b87a]",
             )}
           >

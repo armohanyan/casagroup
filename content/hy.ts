@@ -22,7 +22,7 @@ export const hyTranslations: Translations = {
     partner: "Դառնալ գործընկեր",
     services: "Ծառայություններ",
     academy: "Ակադեմիա",
-    faq: "ՀՏՀ",
+    faq: "FAQ",
     inquire: "Ստանալ խորհրդատվություն",
     call: "Զանգել",
     gortsin: "ԳործIN",
@@ -1068,7 +1068,7 @@ export const hyTranslations: Translations = {
     ],
   },
   faq: {
-    eyebrow: "ՀՏՀ",
+    eyebrow: "FAQ",
     title: "Հաճախ տրվող հարցեր",
     subtitle:
       "Պարզ պատասխաններ ամրագրման, գնման, հիփոթեքի և Casa Group-ի հետ աշխատելու մասին։",
