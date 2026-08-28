@@ -2392,7 +2392,9 @@ export function AdminProjectEditor({ projectId }: Props) {
                           const status = e.target.value as ApartmentStatus;
                           updateApt(apt.id, {
                             status,
-                            ...(status === "Sold" ? { price: 0 } : {}),
+                            ...(status === "Sold"
+                              ? { price: 0, floorPlanImage: "", planPdfUrl: "", gallery: [] }
+                              : {}),
                           });
                         }}
                       >
@@ -2422,6 +2424,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                     </button>
                   </div>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    {apt.status !== "Sold" ? (
                     <BilingualField
                       label={a.viewType}
                       hy={apt.viewTypeHy ?? ""}
@@ -2438,11 +2441,13 @@ export function AdminProjectEditor({ projectId }: Props) {
                       copyEnLabel={a.copyFromOther}
                       className="md:col-span-3"
                     />
+                    ) : null}
                     {apt.status === "Sold" ? (
                       <p className="md:col-span-3 text-xs leading-relaxed text-[#6B7280]">
-                        {apt.floorPlanImage.trim() ? a.soldPlanHint : a.soldZoneOnlyHint}
+                        {a.soldZoneOnlyHint}
                       </p>
-                    ) : null}
+                    ) : (
+                      <>
                     <div className="md:col-span-2">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                         <Field label={a.floorPlanUrl}>
@@ -2486,8 +2491,10 @@ export function AdminProjectEditor({ projectId }: Props) {
                         Այո
                       </label>
                     </Field>
+                      </>
+                    )}
                   </div>
-                  {apt.status === "Sold" && !apt.floorPlanImage.trim() ? null : (
+                  {apt.status === "Sold" ? null : (
                   <>
                   <BilingualField
                     label={a.unitDescription}
