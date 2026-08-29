@@ -30,7 +30,7 @@ export function isNeighborhoodProject(
   return true;
 }
 
-/** Kind that should be persisted — always matches the admin UI mode. */
+/** Kind that should be persisted - always matches the admin UI mode. */
 export function effectiveProjectKind(
   project?: Pick<Project, "kind" | "buildings" | "sitePlanImage" | "landPlots"> | null,
 ): ProjectKind {

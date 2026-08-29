@@ -111,7 +111,7 @@ export function AdminApartmentsList() {
                 <tr key={`${project.id}-${apt.id}`} className="border-b border-[#F0F1F3] last:border-0 hover:bg-[#F9FAFB]">
                   <td className="px-4 py-3">
                     <span className="font-semibold tabular-nums text-[#0c1428]">
-                      {apt.apartmentNumber?.trim() || "—"}
+                      {apt.apartmentNumber?.trim() || "-"}
                     </span>
                     <span className="mt-0.5 block font-mono text-[10px] text-[#9CA3AF]">{apt.id.slice(0, 8)}</span>
                   </td>
@@ -124,7 +124,7 @@ export function AdminApartmentsList() {
                   <td className="px-4 py-3 tabular-nums">{apt.rooms}</td>
                   <td className="px-4 py-3 tabular-nums">{apt.area}</td>
                   <td className="px-4 py-3 tabular-nums font-medium">{formatPrice(apt.price)}</td>
-                  <td className="px-4 py-3 text-[#6B7280]">{getApartmentViewType(apt, "hy") || "—"}</td>
+                  <td className="px-4 py-3 text-[#6B7280]">{getApartmentViewType(apt, "hy") || "-"}</td>
                   <td className="px-4 py-3">
                     <span className="rounded-[5px] bg-[#F3F4F6] px-2 py-1 text-[11px] font-semibold">
                       {getStatusLabel(hyTranslations, apt.status)}

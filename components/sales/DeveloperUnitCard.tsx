@@ -55,12 +55,12 @@ export function DeveloperUnitCard({ apartment, projectSlug, entrance = 1, isHous
       </div>
       <div className="p-4">
         <p className="text-lg sm:text-xl font-bold text-[#1C1917] tabular-nums leading-tight">
-          {sold ? "—" : formatPrice(apartment.price)}
+          {sold ? "-" : formatPrice(apartment.price)}
         </p>
         <p className="mt-1 text-xs text-[#57534E]">
           {t.developerDetail.monthlyPayment}{" "}
           <span className="font-semibold text-[#1C1917] tabular-nums">
-            {sold ? "—" : formatPrice(Math.round(monthly))}
+            {sold ? "-" : formatPrice(Math.round(monthly))}
           </span>
         </p>
         <p className="mt-3 text-xs text-[#57534E] leading-relaxed">

@@ -17,7 +17,7 @@ export function OfficeMap() {
     addBasemapLayer(map);
     L.marker([OFFICE.lat, OFFICE.lng], { icon: brandMarkerIcon() })
       .addTo(map)
-      .bindPopup("CasaGroup — Սայաթ-Նովա 40");
+      .bindPopup("CasaGroup - Սայաթ-Նովա 40");
     return () => {
       map.remove();
     };

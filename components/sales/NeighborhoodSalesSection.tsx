@@ -179,7 +179,7 @@ export function NeighborhoodSalesSection({ project }: Props) {
         )}
       </section>
 
-      {/* Below md: Defanse hides the mapped image — show plot picker instead. */}
+      {/* Below md: Defanse hides the mapped image - show plot picker instead. */}
       <section className="border-t border-[#E5E7EB] bg-white pt-header md:hidden">
         <Container className="py-8">
           <h2 className="mb-2 text-xl font-semibold text-[#0c1428]">{t.developerDetail.siteMapTitle}</h2>
@@ -327,7 +327,7 @@ function PlotPlanRow({
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-base font-bold tabular-nums text-[#0c1428]">
-          {sold ? "—" : formatPrice(apartment.price)}
+          {sold ? "-" : formatPrice(apartment.price)}
         </p>
         <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-[#6B7280]">
           <span className="inline-flex items-center gap-1">

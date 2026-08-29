@@ -17,7 +17,7 @@ async function proxy(path: string, init?: RequestInit) {
   });
 }
 
-/** POST /api/views — record a project view */
+/** POST /api/views - record a project view */
 export async function POST(request: Request) {
   try {
     const raw = await request.text();

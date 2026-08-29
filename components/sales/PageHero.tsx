@@ -44,11 +44,11 @@ export function PageHero({
 
         <div className="relative z-10 pt-header h-full">
           <div
-            className={`max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center ${
-              overlap
-                ? "min-h-[min(62vh,580px)] sm:min-h-[min(58vh,540px)] lg:min-h-[min(55vh,600px)] py-12 sm:py-16"
-                : "min-h-[min(34vh,300px)] sm:min-h-[min(32vh,340px)] py-10 sm:py-12 pb-16 sm:pb-20"
-            }`}
+            className={`max-w-[1320px] mx-auto px-4 sm:px-0 flex flex-col justify-center ${
+ overlap
+ ? "min-h-[min(62vh,580px)] sm:min-h-[min(58vh,540px)] lg:min-h-[min(55vh,600px)] py-12 sm:py-16"
+ : "min-h-[min(34vh,300px)] sm:min-h-[min(32vh,340px)] py-10 sm:py-12 pb-16 sm:pb-20"
+ }`}
           >
             <h1 className="type-hero text-white max-w-3xl drop-shadow-sm">
               {title}

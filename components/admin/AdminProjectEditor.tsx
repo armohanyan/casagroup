@@ -454,7 +454,7 @@ export function AdminProjectEditor({ projectId }: Props) {
 
     void (async () => {
       try {
-        // List endpoint omits floors / hotspots / map stages — always load full project for editing.
+        // List endpoint omits floors / hotspots / map stages - always load full project for editing.
         const full = await adminGetProject(projectId);
         if (cancelled) return;
         upsertProject(full);
@@ -2074,7 +2074,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                           key={floor.id}
                           open={floorOpen}
                           onToggle={() => setOpenFloorIds((ids) => toggleId(ids, floor.id))}
-                          title={`${a.floorLabelField}: ${floor.label.trim() || "—"}`}
+                          title={`${a.floorLabelField}: ${floor.label.trim() || "-"}`}
                           meta={
                             <>
                               {floor.imageUrl.trim() ? a.hasFloorImage : a.noFloorImage}
@@ -2561,7 +2561,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                   </div>
                   {apt.planPdfUrl ? (
                     <p className="text-xs text-[#6B7280]">
-                      PDF կցված է —{" "}
+                      PDF կցված է-{" "}
                       <a href={apt.planPdfUrl} target="_blank" rel="noopener noreferrer" className="text-[#c9a96e] hover:underline">
                         բացել
                       </a>
@@ -2677,7 +2677,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                 <option value="">{a.copyFromFloorNone}</option>
                 {floorModalSourceFloors.map((f) => (
                   <option key={f.id} value={f.id}>
-                    {a.floorLabelField}: {f.label.trim() || "—"}
+                    {a.floorLabelField}: {f.label.trim() || "-"}
                     {f.imageUrl.trim() ? ` · ${a.hasFloorImage}` : ` · ${a.noFloorImage}`}
                   </option>
                 ))}

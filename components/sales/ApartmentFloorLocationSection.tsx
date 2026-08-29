@@ -66,7 +66,7 @@ export function ApartmentFloorLocationSection({ project, apartment }: Props) {
             {/* Stretch like building maps so overlay % coords match the bitmap (no object-contain). */}
             <img
               src={floor.imageUrl}
-              alt={`${t.aptDetail.floorLocationTitle} — ${building.name}, ${floor.label}`}
+              alt={`${t.aptDetail.floorLocationTitle} - ${building.name}, ${floor.label}`}
               className="h-auto w-full"
               draggable={false}
             />

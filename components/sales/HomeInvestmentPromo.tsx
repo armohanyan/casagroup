@@ -9,7 +9,7 @@ export function HomeInvestmentPromo() {
 
   return (
     <section className="py-12 bg-white">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0">
         <div className="rounded-2xl border border-[#E7E0D5] bg-[#FAF8F5] overflow-hidden brand-surface-top">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
             <div>

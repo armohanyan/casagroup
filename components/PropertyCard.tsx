@@ -30,7 +30,7 @@ export function PropertyCard({ listing }: { listing: PropertyListing }) {
           {image ? (
             <Image
               src={image}
-              alt={`${title} — ${apartment.rooms} bedroom apartment`}
+              alt={`${title} - ${apartment.rooms} bedroom apartment`}
               fill
               unoptimized
               sizes="(max-width: 768px) 100vw, 33vw"

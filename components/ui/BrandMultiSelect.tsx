@@ -17,6 +17,7 @@ interface Props {
   triggerClassName?: string;
   allLabel?: string;
   emptyLabel?: string;
+  resetLabel?: string;
 }
 
 function formatSummary(
@@ -39,7 +40,8 @@ export function BrandMultiSelect({
   className = "",
   triggerClassName = "",
   allLabel = "All",
-  emptyLabel = "—",
+  emptyLabel = "-",
+  resetLabel,
 }: Props) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -92,6 +94,17 @@ export function BrandMultiSelect({
           aria-multiselectable="true"
           className="absolute left-0 right-0 z-30 mt-1.5 max-h-60 min-w-[10rem] overflow-auto rounded-lg border border-[#E7E0D5] bg-white py-1 shadow-lg"
         >
+          {resetLabel && values.length > 0 ? (
+            <li className="border-b border-[#E7E0D5]">
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="flex w-full px-3 py-2 text-left text-xs font-medium text-[#57534E] transition-colors hover:bg-[#F5F0E8] hover:text-[#0c1428]"
+              >
+                {resetLabel}
+              </button>
+            </li>
+          ) : null}
           {options.map((option) => {
             const active = values.includes(option.value);
             return (

@@ -26,7 +26,7 @@ export function TrustSection() {
 
   return (
     <section className="py-14 sm:py-16 bg-white border-y border-[#E7E0D5]">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <div>
             <p className="brand-eyebrow">{t.trust.eyebrow}</p>

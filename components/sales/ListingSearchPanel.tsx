@@ -19,7 +19,7 @@ const selectCls = "field-select";
 
 function ListingSearchPanelSkeleton() {
   return (
-    <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-[1320px] px-4 sm:px-0">
       <div className="bg-white rounded-xl border border-[#E7E0D5] h-[168px] sm:h-[152px] skeleton" />
     </div>
   );
@@ -58,7 +58,7 @@ function ListingSearchPanelInner({ cities, projects, variant = "grid" }: Props) 
   }
 
   return (
-    <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-[1320px] px-4 sm:px-0">
       <div className="bg-white rounded-xl shadow-lg shadow-black/10 border border-[#E7E0D5] overflow-hidden brand-surface-top">
         <div className="flex flex-wrap items-center gap-2 px-4 pt-4 pb-2 border-b border-[#E7E0D5] bg-[#FAF8F5]">
           <button

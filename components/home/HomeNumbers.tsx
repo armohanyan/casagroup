@@ -10,7 +10,7 @@ export function HomeNumbers() {
 
   return (
     <section className="py-16 md:py-24 bg-[#F8FAFC]">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0">
         <SectionHeader
           eyebrow={t.home.numbersEyebrow}
           title={t.home.numbersTitle}

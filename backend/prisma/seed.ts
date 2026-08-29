@@ -324,7 +324,7 @@ const MOCK_PROJECTS: SeedProject[] = [
         floorPlanImage: PLAN_3BR,
         gallery: GALLERY_INTERIOR,
         balcony: true,
-        description: "Sold — 3-bedroom with Cascade outlook.",
+        description: "Sold - 3-bedroom with Cascade outlook.",
       },
       {
         id: "apt-2-6",
@@ -384,7 +384,7 @@ const MOCK_PROJECTS: SeedProject[] = [
         floorPlanImage: PLAN_3BR,
         gallery: GALLERY_INTERIOR,
         balcony: true,
-        description: "Corner 3-bedroom reserved — mountain glimpse on clear days.",
+        description: "Corner 3-bedroom reserved - mountain glimpse on clear days.",
       },
     ],
   },
@@ -630,7 +630,7 @@ const MOCK_PROJECTS: SeedProject[] = [
         floorPlanImage: PLAN_3BR,
         gallery: GALLERY_INTERIOR,
         balcony: true,
-        description: "Sold — mountain-view 3-bedroom.",
+        description: "Sold - mountain-view 3-bedroom.",
       },
     ],
   },
@@ -822,7 +822,7 @@ const MOCK_PROJECTS: SeedProject[] = [
     descriptionHy: "Բացառիկ բլրային նախագիծ՝ Հաղթանակի այգու և Արարատ լեռան տեսարանով։",
     descriptionRu: "Эксклюзивный проект на склоне с видом на Парк Победы и гору Арарат.",
     longDescription:
-      "Victory Park Estates represents the pinnacle of Casa Group's portfolio — limited collection residences with unmatched views and bespoke interiors.",
+      "Victory Park Estates represents the pinnacle of Casa Group's portfolio - limited collection residences with unmatched views and bespoke interiors.",
     longDescriptionHy:
       "Victory Park Estates-ը Casa Group-ի պորտֆելի գագաթնակետն է՝ սահմանափակ քանակությամբ բնակարաններ անզուգական տեսարաններով և անհատական ինտերիերով։",
     images: [
@@ -921,7 +921,7 @@ const MOCK_PROJECTS: SeedProject[] = [
         floorPlanImage: PLAN_4BR,
         gallery: GALLERY_INTERIOR,
         balcony: true,
-        description: "Collection residence with Ararat vista — pre-launch pricing.",
+        description: "Collection residence with Ararat vista - pre-launch pricing.",
       },
       {
         id: "apt-5-2",

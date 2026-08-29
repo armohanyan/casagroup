@@ -28,7 +28,7 @@ const projectInclude = {
 
 /**
  * Lighter payload for portfolio list / cards / filters.
- * Omits floor plates, hotspot polygons, and map stages — those are loaded via
+ * Omits floor plates, hotspot polygons, and map stages - those are loaded via
  * GET /api/projects/:slug when opening a project. Keeps nginx/upstream from
  * timing out on the giant nested JSON that previously caused intermittent 502s.
  */

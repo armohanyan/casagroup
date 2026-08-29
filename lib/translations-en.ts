@@ -1,4 +1,4 @@
-/** English UI copy — source of truth for translation shape (`Translations`). */
+/** English UI copy - source of truth for translation shape (`Translations`). */
 export const en = {
   nav: {
     home: "Home",
@@ -41,7 +41,7 @@ export const en = {
     urgentListings: "Featured Listings",
     calculatorTitle: "Mortgage Calculator",
     calculatorDesc:
-      "Estimate your monthly payment — adjust price, down payment, loan term, and interest rate for new apartments in Yerevan.",
+      "Estimate your monthly payment - adjust price, down payment, loan term, and interest rate for new apartments in Yerevan.",
     calculatorCta: "Calculate",
     agentsTitle: "Our Specialists",
     agentRole: "Real Estate Consultant",
@@ -64,9 +64,9 @@ export const en = {
     eyebrow: "Why CasaGroup",
     title: "Trusted by buyers across Yerevan",
     subtitle:
-      "We connect you directly with verified developers — transparent pricing, professional guidance, and support from first inquiry to keys in hand.",
+      "We connect you directly with verified developers - transparent pricing, professional guidance, and support from first inquiry to keys in hand.",
     verifiedTitle: "Verified Listings",
-    verifiedDesc: "Every apartment is from a developer we represent — no resale mystery listings.",
+    verifiedDesc: "Every apartment is from a developer we represent - no resale mystery listings.",
     developerTitle: "Developer Direct",
     developerDesc: "Buy at source pricing with full project transparency and construction updates.",
     investmentTitle: "Investment Value",
@@ -83,7 +83,7 @@ export const en = {
   },
   footer: {
     tagline:
-      "We help people buy new apartments in Yerevan — directly from the developers we work with. No resale listings, no mystery fees. Just real projects, real units, and someone on your side from the first call to the keys.",
+      "We help people buy new apartments in Yerevan - directly from the developers we work with. No resale listings, no mystery fees. Just real projects, real units, and someone on your side from the first call to the keys.",
     taglineShort: "New apartments in Yerevan. Direct from developer. Sales support from first call to keys.",
     navigation: "Navigation",
     contact: "Contact",
@@ -115,7 +115,7 @@ export const en = {
     heroTitle1: "Discover your",
     heroTitle2: "new address",
     heroSubtitle:
-      "Buy new apartments directly from developers — browse projects, compare units, and get support from search to keys.",
+      "Buy new apartments directly from developers - browse projects, compare units, and get support from search to keys.",
     heroCtaSearch: "Search Properties",
     heroCtaConsultation: "Book Consultation",
     heroScroll: "Scroll",
@@ -138,12 +138,12 @@ export const en = {
     },
     featuredPropertiesEyebrow: "Available now",
     featuredPropertiesTitle: "Apartments you can buy today",
-    featuredPropertiesSubtitle: "Live listings from developments we represent — updated as units sell.",
+    featuredPropertiesSubtitle: "Live listings from developments we represent - updated as units sell.",
     featuredPropertiesAll: "See all apartments →",
     featuredEyebrow: "",
     featuredTitle: "Projects",
     featuredSubtitle: "Modern residential complexes across Yerevan's districts",
-    featuredSubtitle2: "Projects at every stage — from early sales to move-in ready apartments.",
+    featuredSubtitle2: "Projects at every stage - from early sales to move-in ready apartments.",
     featuredAll: "All projects →",
     featuredPrev: "Prev",
     featuredNext: "Next",
@@ -154,7 +154,7 @@ export const en = {
     why: [
       {
         title: "Direct from the source",
-        desc: "Every apartment here comes from a developer we work with — not scraped listings or resale ads with unclear history.",
+        desc: "Every apartment here comes from a developer we work with - not scraped listings or resale ads with unclear history.",
       },
       {
         title: "We know the buildings",
@@ -162,7 +162,7 @@ export const en = {
       },
       {
         title: "Someone stays with you",
-        desc: "Viewings, comparisons, paperwork, bank introductions — you get a named contact, not a contact form black hole.",
+        desc: "Viewings, comparisons, paperwork, bank introductions - you get a named contact, not a contact form black hole.",
       },
       {
         title: "Built for locals & diaspora",
@@ -172,20 +172,20 @@ export const en = {
     investEyebrow: "For buyers & investors",
     investTitle: "Buy early in a city still growing",
     investSubtitle:
-      "Yerevan's new construction isn't marketing hype — it's neighborhoods changing before your eyes. A primary sale, in the right district at the right time, still works for families and long-term holders.",
+      "Yerevan's new construction isn't marketing hype - it's neighborhoods changing before your eyes. A primary sale, in the right district at the right time, still works for families and long-term holders.",
     investCta: "Learn more",
     investHighlights: [
-      { stat: "0%", desc: "No middleman markup — developer price" },
-      { stat: "3+", desc: "Payment options — installment and mortgage" },
+      { stat: "0%", desc: "No middleman markup - developer price" },
+      { stat: "3+", desc: "Payment options - installment and mortgage" },
       { stat: "4", desc: "Districts with active new developments" },
     ],
     benefitsEyebrow: "What you get",
     benefitsTitle: "Buying shouldn't feel like a gamble",
     benefits: [
-      "A shortlist based on your budget, district, and timeline — not every listing on the site",
+      "A shortlist based on your budget, district, and timeline - not every listing on the site",
       "Honest talk about what's finished vs. what's still on the blueprint",
       "Help with installments, mortgages, and what banks actually ask for",
-      "Site visits arranged — or video tours if you're buying from abroad",
+      "Site visits arranged - or video tours if you're buying from abroad",
       "Paperwork and handover support through closing",
       "A direct line on WhatsApp and phone when you need a quick answer",
     ],
@@ -206,7 +206,7 @@ export const en = {
       },
       {
         quote:
-          "We sold our old place and needed something ready sooner. They were straight about which buildings were actually close to handover — that saved us months.",
+          "We sold our old place and needed something ready sooner. They were straight about which buildings were actually close to handover - that saved us months.",
         name: "Narine",
         role: "Upgrading in Yerevan",
       },
@@ -214,10 +214,10 @@ export const en = {
     contactEyebrow: "Start here",
     contactTitle: "Tell us what you're looking for",
     contactSubtitle:
-      "One short conversation — budget, district, move-in date. We'll tell you honestly what's possible and what isn't.",
+      "One short conversation - budget, district, move-in date. We'll tell you honestly what's possible and what isn't.",
     statsEyebrow: "CasaGroup at a Glance",
     heroTitle: "New apartments in Yerevan.",
-    heroSubtitleShort: "Browse projects, compare units, and talk to our sales team — no middlemen.",
+    heroSubtitleShort: "Browse projects, compare units, and talk to our sales team - no middlemen.",
     heroCtaContact: "Contact Sales",
     heroStats: [
       { value: "15+", label: "Completed Projects" },
@@ -229,7 +229,7 @@ export const en = {
     whyCardsEyebrow: "Why Casa Group",
     whyCardsTitle: "Crafted for discerning buyers",
     whyCardsSubtitle:
-      "Every residence reflects our commitment to quality, location, and lasting value — from foundation to handover.",
+      "Every residence reflects our commitment to quality, location, and lasting value - from foundation to handover.",
     whyCards: [
       { title: "Quality Construction", desc: "Premium materials and rigorous standards at every stage of development." },
       { title: "Prime Locations", desc: "Carefully selected districts with strong lifestyle and investment potential." },
@@ -318,7 +318,7 @@ export const en = {
     trustLocations: "Locations",
     whyMinimalTitle: "Why choose Casa Group",
     whyMinimal: [
-      { title: "Trusted partner", desc: "We work with developers and sell their projects — with years of market experience." },
+      { title: "Trusted partner", desc: "We work with developers and sell their projects - with years of market experience." },
       { title: "Modern residential complexes", desc: "Thoughtful layouts, quality construction, and a comfortable environment." },
       { title: "Transparent terms", desc: "Complete information with no hidden fees." },
       { title: "Personal consultation", desc: "We help you choose the apartment that fits your needs." },
@@ -331,7 +331,7 @@ export const en = {
   owner: {
     name: "Edgar Hayrapetyan",
     role: "Founder & Sales Director",
-    bio: "We help you choose a new-build apartment that matches your needs. We provide complete information on projects, apartments, and purchase terms — ensuring a simple, transparent, and trusted partnership.",
+    bio: "We help you choose a new-build apartment that matches your needs. We provide complete information on projects, apartments, and purchase terms - ensuring a simple, transparent, and trusted partnership.",
     cta: "Get in touch",
   },
   partner: {
@@ -339,14 +339,14 @@ export const en = {
     heroTitle1: "Complete Systems for",
     heroTitle2: "Development, Sales & Management",
     heroSubtitle:
-      "CasaGroup equips developers with market analysis, branding, digital tools, sales organization, and CRM — building systems that increase project efficiency, sales velocity, and market value.",
+      "CasaGroup equips developers with market analysis, branding, digital tools, sales organization, and CRM - building systems that increase project efficiency, sales velocity, and market value.",
     heroCtaServices: "Our Services",
     heroCtaContact: "Start Cooperation",
     heroCtaSubmitProject: "Submit Your Project",
     materialsEyebrow: "Our Ecosystem",
     materialsTitle: "Complete Service Ecosystem for Developers",
     materialsSubtitle:
-      "From product development and branding to sales organization and investor support — all in one platform.",
+      "From product development and branding to sales organization and investor support - all in one platform.",
     materials: [
       {
         title: "Product Development",
@@ -366,7 +366,7 @@ export const en = {
     investEyebrow: "Partnership",
     investTitle: "Collaborate with CasaGroup",
     investSubtitle:
-      "We work with developers of all formats and scales — forming an individual approach for each project.",
+      "We work with developers of all formats and scales - forming an individual approach for each project.",
     investStats: [
       { stat: "100%", desc: "End-to-end service from concept to final sale" },
       { stat: "6", desc: "Core service directions in our ecosystem" },
@@ -374,9 +374,9 @@ export const en = {
       { stat: "100%", desc: "Individual approach for each project" },
     ],
     academyEyebrow: "Casa Academy",
-    academyTitle: "Casa Academy — professional academy for the primary market",
+    academyTitle: "Casa Academy - professional academy for the primary market",
     academyLead:
-      "At CasaGroup we believe outstanding sales starts with knowledge, mindset, and a systematic approach. Our academy trains primary-market professionals — with or without prior experience.",
+      "At CasaGroup we believe outstanding sales starts with knowledge, mindset, and a systematic approach. Our academy trains primary-market professionals - with or without prior experience.",
     academyBullets: [
       "Primary market fundamentals",
       "Construction project analysis",
@@ -415,11 +415,11 @@ export const en = {
       },
       {
         q: "What services do you provide to developers?",
-        a: "We provide complete sales, marketing, and management services for construction projects — including strategy, branding, digital infrastructure, client management systems, institutional sales, and construction-process support.",
+        a: "We provide complete sales, marketing, and management services for construction projects - including strategy, branding, digital infrastructure, client management systems, institutional sales, and construction-process support.",
       },
       {
         q: "Can you organize the entire project sales cycle?",
-        a: "Yes. We design and manage the full sales system — from lead generation through deal execution and post-sale service.",
+        a: "Yes. We design and manage the full sales system - from lead generation through deal execution and post-sale service.",
       },
       {
         q: "How do you attract buyers?",
@@ -435,7 +435,7 @@ export const en = {
       },
       {
         q: "Can you support branding and positioning?",
-        a: "Yes. We develop the full brand system — naming, visual identity, sales collateral, marketing strategy, and market positioning.",
+        a: "Yes. We develop the full brand system - naming, visual identity, sales collateral, marketing strategy, and market positioning.",
       },
       {
         q: "Can you build the project website and digital tools?",
@@ -447,15 +447,15 @@ export const en = {
       },
       {
         q: "Can we engage only specific workstreams?",
-        a: "Yes. Collaboration can be full-service or focused — for example sales-only, branding-only, or digital systems-only.",
+        a: "Yes. Collaboration can be full-service or focused - for example sales-only, branding-only, or digital systems-only.",
       },
       {
         q: "What reporting formats do you provide?",
-        a: "We provide weekly and monthly reporting — including sales performance, inquiry analytics, advertising effectiveness, and market indicators.",
+        a: "We provide weekly and monthly reporting - including sales performance, inquiry analytics, advertising effectiveness, and market indicators.",
       },
       {
         q: "Do you work only on residential projects?",
-        a: "No. We work across residential formats and scales — with strategies, sales systems, and positioning tailored to each project type.",
+        a: "No. We work across residential formats and scales - with strategies, sales systems, and positioning tailored to each project type.",
       },
     ],
     contactEyebrow: "Let's Talk",
@@ -467,7 +467,7 @@ export const en = {
   properties: {
     eyebrow: "Apartments for sale",
     title: "Properties",
-    subtitle: "New-build apartments across Yerevan — filter by district, price, and size. Every listing tied to a real development.",
+    subtitle: "New-build apartments across Yerevan - filter by district, price, and size. Every listing tied to a real development.",
     showing: "Showing",
     propertyWord: "property",
     propertiesWord: "properties",
@@ -478,7 +478,7 @@ export const en = {
     listView: "List",
     mapView: "Map",
     mapTitle: "Search on map",
-    mapSubtitle: "Browse apartments by location — click a price pin or pick from the list.",
+    mapSubtitle: "Browse apartments by location - click a price pin or pick from the list.",
     mapComingSoon: "Map view coming soon",
     filters: {
       district: "District",
@@ -494,12 +494,12 @@ export const en = {
     eyebrow: "Investment",
     title: "Buy early in a city still growing",
     subtitle:
-      "New construction in Yerevan rewards patience and good timing. Here's how buyers and diaspora investors actually approach it — without the sales pitch.",
+      "New construction in Yerevan rewards patience and good timing. Here's how buyers and diaspora investors actually approach it - without the sales pitch.",
     highlightsTitle: "Why people still buy new here",
     highlights: [
       {
         title: "You buy at the source",
-        desc: "Primary sales mean developer pricing — not a resale owner marking up a unit that's five years old.",
+        desc: "Primary sales mean developer pricing - not a resale owner marking up a unit that's five years old.",
       },
       {
         title: "Payment flexibility exists",
@@ -507,7 +507,7 @@ export const en = {
       },
       {
         title: "Districts aren't interchangeable",
-        desc: "Arabkir, Cascade, Avan, Nor Nork — each has different demand, rental appeal, and entry price. Location still matters.",
+        desc: "Arabkir, Cascade, Avan, Nor Nork - each has different demand, rental appeal, and entry price. Location still matters.",
       },
       {
         title: "Demand is real, not theoretical",
@@ -517,19 +517,19 @@ export const en = {
     districtsEyebrow: "Where people look",
     districtsTitle: "Yerevan districts at a glance",
     districts: [
-      { name: "Arabkir", growth: "Established", desc: "Mature neighborhood — premium new builds, strong family demand" },
-      { name: "Cascade", growth: "Central", desc: "Walkable, visible — higher entry, steady rental interest" },
-      { name: "Avan", growth: "Growing", desc: "More new stock, more choice — popular with first-time buyers" },
-      { name: "Nor Nork", growth: "Accessible", desc: "Larger units, softer entry prices — room to grow" },
+      { name: "Arabkir", growth: "Established", desc: "Mature neighborhood - premium new builds, strong family demand" },
+      { name: "Cascade", growth: "Central", desc: "Walkable, visible - higher entry, steady rental interest" },
+      { name: "Avan", growth: "Growing", desc: "More new stock, more choice - popular with first-time buyers" },
+      { name: "Nor Nork", growth: "Accessible", desc: "Larger units, softer entry prices - room to grow" },
     ],
     ctaTitle: "Thinking long-term?",
-    ctaSubtitle: "Tell us your budget and horizon. We'll show you projects that match — and flag the ones that don't.",
+    ctaSubtitle: "Tell us your budget and horizon. We'll show you projects that match - and flag the ones that don't.",
     ctaButton: "Talk to us",
   },
   calculator: {
     eyebrow: "Mortgage Calculator",
     title: "Estimate Your Monthly Payment",
-    subtitle: "Plan your purchase with our mortgage calculator — adjust price, down payment, term, and interest rate.",
+    subtitle: "Plan your purchase with our mortgage calculator - adjust price, down payment, term, and interest rate.",
     propertyPrice: "Property Price (AMD)",
     downPayment: "Down Payment (%)",
     loanTerm: "Loan Term (years)",
@@ -696,6 +696,9 @@ export const en = {
     buildingsUpdated: "Updated {date}",
     buildingBlockLabel: "Building / neighborhood",
     floorPlansTitle: "Floor plans",
+    viewModeLabel: "Apartment view mode",
+    viewModePlans: "Floor plans",
+    viewModeVisual: "Visual search",
     housesTitle: "Houses",
     housesTotal: "Total houses",
     neighborhoodLand: "Land",
@@ -707,6 +710,7 @@ export const en = {
     floorMapEmpty: "No floor plans available yet.",
     floorMapNoHotspots: "Apartment zones will appear once configured in admin.",
     floorMapExpand: "Enlarge floor plan",
+    floorMapClose: "Close floor plan",
     floorMapExpandHint: "Hover marked areas to explore apartments",
     salesJourneyTitle: "Choose your apartment",
     salesJourneySelectBuilding: "Choose a building",
@@ -716,8 +720,8 @@ export const en = {
     salesJourneyFloor: "Floor {n}",
     salesJourneyBuilding: "Building",
     salesJourneyBack: "Back",
-    salesJourneyEmptyMap: "Site map coming soon — pick a building below.",
-    salesJourneyEmptyExterior: "Building view coming soon — pick a floor below.",
+    salesJourneyEmptyMap: "Site map coming soon - pick a building below.",
+    salesJourneyEmptyExterior: "Building view coming soon - pick a floor below.",
     siteMapTitle: "Neighborhood & land plots",
     choosePlot: "Choose a plot",
     plotPlansTitle: "Plans for this plot",
@@ -726,7 +730,7 @@ export const en = {
     plotArea: "Land",
     plotPrice: "Price",
     sold: "Sold",
-    monthlyPayment: "Monthly payment —",
+    monthlyPayment: "Monthly payment -",
     filterArea: "Area",
     filterAreaFrom: "From",
     filterAreaTo: "To",
@@ -738,6 +742,7 @@ export const en = {
     paymentInstallment: "Installment",
     filterAll: "All",
     filterNone: "Select options",
+    filterReset: "Reset",
     sortBy: "Sort by",
     sortPriceAsc: "Price: low to high",
     sortPriceDesc: "Price: high to low",
@@ -809,7 +814,7 @@ export const en = {
     trustEyebrow: "Your Purchase",
     trustTitle: "Buy with confidence",
     paymentTitle: "Flexible Payment",
-    paymentDesc: "Developer payment plans — installment schedules tailored to your timeline.",
+    paymentDesc: "Developer payment plans - installment schedules tailored to your timeline.",
     mortgageTitle: "Mortgage Options",
     mortgageDesc: "Partner bank programs with competitive rates for new construction purchases.",
     progressTitle: "Construction Progress",
@@ -839,7 +844,7 @@ export const en = {
     modalWhatsApp: {
       eyebrow: "WhatsApp",
       title: "Contact us on WhatsApp",
-      subtitle: "Chat with our team directly — your message will include this listing.",
+      subtitle: "Chat with our team directly - your message will include this listing.",
       openButton: "Open WhatsApp",
     },
   },
@@ -854,12 +859,12 @@ export const en = {
     overviewEyebrow: "What We Do",
     overviewTitle: "Six Directions. One Ecosystem.",
     overviewSubtitle:
-      "Each service is a standalone discipline — or combine them for full-spectrum support from concept through final sale.",
+      "Each service is a standalone discipline - or combine them for full-spectrum support from concept through final sale.",
     service1Title: "Strategy & Market Analysis",
     service1Eyebrow: "Project Strategy",
     service1Tagline: "Know your market before you build.",
     service1Desc:
-      "We study the market, demand, competitive environment, and project potential — forming long-term effective strategies for your development.",
+      "We study the market, demand, competitive environment, and project potential - forming long-term effective strategies for your development.",
     service1Points: [
       "Market research",
       "Competitor analysis",
@@ -872,7 +877,7 @@ export const en = {
     service2Eyebrow: "Brand & Media",
     service2Tagline: "Build trust, recognition, and demand.",
     service2Desc:
-      "We create a complete brand and media system for your project — from naming and visual identity through 3D visualizations, promo videos, and full digital presence.",
+      "We create a complete brand and media system for your project - from naming and visual identity through 3D visualizations, promo videos, and full digital presence.",
     service2Points: [
       "Naming development",
       "Brand identity",
@@ -890,7 +895,7 @@ export const en = {
     service3Eyebrow: "Sales Systems",
     service3Tagline: "From client acquisition to deal closure.",
     service3Desc:
-      "We build the complete sales system for your project — including sales team setup, broker management, B2B partnerships, and full reporting.",
+      "We build the complete sales system for your project - including sales team setup, broker management, B2B partnerships, and full reporting.",
     service3Points: [
       "Sales department setup",
       "Sales scripts",
@@ -919,7 +924,7 @@ export const en = {
     ],
     service5Title: "Construction product development & design solutions",
     service5Eyebrow: "Product",
-    service5Tagline: "A sellable product — not only a facade.",
+    service5Tagline: "A sellable product - not only a facade.",
     service5Desc:
       "We shape the full construction product by aligning architecture, functionality, market demand, and buyer expectations. We support developers in creating competitive, market-ready residential and commercial environments.",
     service5Points: [
@@ -937,7 +942,7 @@ export const en = {
     service6Eyebrow: "Capital",
     service6Tagline: "Stronger models, clearer investor conversations.",
     service6Desc:
-      "We support developers in investment and financing processes — helping shape credible, efficient financial models and presentations.",
+      "We support developers in investment and financing processes - helping shape credible, efficient financial models and presentations.",
     service6Points: [
       "Financial modeling",
       "Investment decks",
@@ -976,7 +981,7 @@ export const en = {
     whyEyebrow: "Why CasaGroup",
     whyTitle: "Built for Developers.",
     whySubtitle:
-      "We understand what matters to developers, investors, construction companies, and end buyers — because we operate at every level of the market.",
+      "We understand what matters to developers, investors, construction companies, and end buyers - because we operate at every level of the market.",
     whyPoints: [
       { stat: "100%", label: "End-to-end project development support" },
       { stat: "6", label: "Core service directions in our ecosystem" },
@@ -991,11 +996,11 @@ export const en = {
   },
   about: {
     pageTitle: "About CASA GROUP",
-    pageSubtitle: "CASA GROUP specializes in sales and consultation for new-build residential projects. We help families and investors choose an apartment that fits their goals — with a simple, transparent, and trusted process.",
+    pageSubtitle: "CASA GROUP specializes in sales and consultation for new-build residential projects. We help families and investors choose an apartment that fits their goals - with a simple, transparent, and trusted process.",
     whyEyebrow: "Why CasaGroup?",
     whyTitle: "We put buyers first",
     whyBody:
-      "From property selection to purchase — we offer transparent pricing, verified new construction, and a direct line to someone who answers quickly.",
+      "From property selection to purchase - we offer transparent pricing, verified new construction, and a direct line to someone who answers quickly.",
     stats: [
       { value: "25+", label: "Years experience" },
       { value: "4", label: "Active projects" },
@@ -1005,26 +1010,26 @@ export const en = {
     heroTitle1: "Institutional Platform for",
     heroTitle2: "Development & Sales",
     storyEyebrow: "Who We Are",
-    storyTitle: "CasaGroup — Development Ecosystem",
+    storyTitle: "CasaGroup - Development Ecosystem",
     storyP1:
       "CasaGroup specialists have a clear picture of what matters to developers, investors, construction companies, and end buyers in the field of real estate project development, management, and sales.",
     storyP2:
-      "We create complete development systems for construction projects — from ideation and strategic formation through sales organization, client management, and market positioning.",
+      "We create complete development systems for construction projects - from ideation and strategic formation through sales organization, client management, and market positioning.",
     storyP3:
-      "CasaGroup provides a complete chain of consulting, operational, organizational, and sales services for residential, commercial, and investment projects — including multi-apartment complexes, villas, townhouses, business centers, hotels, and mixed-use developments.",
+      "CasaGroup provides a complete chain of consulting, operational, organizational, and sales services for residential, commercial, and investment projects - including multi-apartment complexes, villas, townhouses, business centers, hotels, and mixed-use developments.",
     storyP4:
-      "In short, CasaGroup is a new ecosystem for construction project development, management, and sales — focused on maximizing project value from concept through final realization.",
+      "In short, CasaGroup is a new ecosystem for construction project development, management, and sales - focused on maximizing project value from concept through final realization.",
     storyCta: "Explore Our Projects",
     principlesEyebrow: "Our Mission",
     principlesTitle: "A New Ecosystem for Development",
     values: [
       {
         title: "Maximize Project Value",
-        desc: "From concept to final sale — we form systems that raise project efficiency, sales velocity, and market value.",
+        desc: "From concept to final sale - we form systems that raise project efficiency, sales velocity, and market value.",
       },
       {
         title: "Developer-First Approach",
-        desc: "We don't just support developers — we become their operational partner, building systems that work.",
+        desc: "We don't just support developers - we become their operational partner, building systems that work.",
       },
       {
         title: "Market Intelligence",
@@ -1069,7 +1074,7 @@ export const en = {
     items: [
       {
         q: "How do I reserve an apartment?",
-        a: "After choosing an apartment, you can reserve it through Casa Group. Reservation requires an identity document and the reservation fee set by the developer. Terms and timelines may vary by project — our specialists will explain every detail in advance.",
+        a: "After choosing an apartment, you can reserve it through Casa Group. Reservation requires an identity document and the reservation fee set by the developer. Terms and timelines may vary by project - our specialists will explain every detail in advance.",
       },
       {
         q: "In what condition is the apartment handed over?",
@@ -1105,7 +1110,7 @@ export const en = {
       },
       {
         q: "Why buy through Casa Group?",
-        a: "Casa Group brings many developers' projects onto one platform. We compare offers, help you pick the best option, review documents, support mortgage processing, and accompany you at every stage — saving time and ensuring a trusted process.",
+        a: "Casa Group brings many developers' projects onto one platform. We compare offers, help you pick the best option, review documents, support mortgage processing, and accompany you at every stage - saving time and ensuring a trusted process.",
       },
     ],
   },
@@ -1163,7 +1168,7 @@ export const en = {
     { value: 15, suffix: "+", label: "Active developments" },
     { value: 200, suffix: "+", label: "Apartments listed" },
     { value: 8, suffix: "+", label: "Yerevan districts" },
-    { value: 3, suffix: "", label: "Languages — HY, RU & EN" },
+    { value: 3, suffix: "", label: "Languages - HY, RU & EN" },
   ],
   notFound: "Page not found",
   backHome: "← Back Home",
@@ -1172,7 +1177,7 @@ export const en = {
   backProjects: "← Back to Projects",
   schema: {
     organizationDescription:
-      "CasaGroup helps people buy new apartments in Yerevan — working directly with developers on sales, viewings, and buyer support.",
+      "CasaGroup helps people buy new apartments in Yerevan - working directly with developers on sales, viewings, and buyer support.",
   },
   admin: {
     brandAdmin: "Admin",
@@ -1214,13 +1219,13 @@ export const en = {
     viewType: "View Type",
     viewTypePlaceholder: "City, Mountain…",
     galleryImages: "Gallery Photos",
-    aptGalleryEmpty: "No apartment photos yet — upload images for the Photos section",
+    aptGalleryEmpty: "No apartment photos yet - upload images for the Photos section",
     aptGalleryHint: "These photos appear under “Photos” on the apartment page.",
-    urlHintHttps: "HTTPS image URLs only — paste links; files are not uploaded here.",
+    urlHintHttps: "HTTPS image URLs only - paste links; files are not uploaded here.",
     floorPlanUrl: "Floor Plan Image URL",
     floorPlanUrlPlaceholder: "Upload an image or paste a URL",
     coverBadge: "Cover",
-    imagesEmpty: "No photos yet — upload or paste a URL below",
+    imagesEmpty: "No photos yet - upload or paste a URL below",
     addImageUrl: "Add URL",
     addImageUrlPlaceholder: "https://… then click Add URL",
     uploadImages: "Upload photos",
@@ -1245,7 +1250,7 @@ export const en = {
     balcony: "Balcony",
     yes: "Yes",
     no: "No",
-    noApartments: 'No apartments yet — click "Add apartment" to add listings',
+    noApartments: 'No apartments yet - click "Add apartment" to add listings',
     droneVideos: "Drone Videos",
     droneVideosHint:
       "Upload a video file (mp4/webm/mov) or paste a YouTube embed HTTPS URL.",
@@ -1255,7 +1260,7 @@ export const en = {
     aerialOverview: "Aerial Overview",
     youtubeEmbed: "YouTube Embed URL",
     thumbnailOptional: "Thumbnail URL (optional)",
-    noDroneVideos: 'No drone videos — click "Add Video"',
+    noDroneVideos: 'No drone videos - click "Add Video"',
     amenities: "Amenities",
     amenityPool: "Pool",
     amenityGym: "Gym",
@@ -1334,11 +1339,11 @@ export const en = {
     landAreaSqm: "Land area (m²)",
     neighborhoodPrice: "Price (AMD)",
     neighborhoodImages: "Neighborhood photos",
-    neighborhoodImagesEmpty: "No neighborhood photos yet — upload or paste a URL",
+    neighborhoodImagesEmpty: "No neighborhood photos yet - upload or paste a URL",
     addHouse: "Add house",
     housesTitle: "Houses",
     housesCount: "{count} houses",
-    noHouses: "No houses yet — click “Add house”.",
+    noHouses: "No houses yet - click “Add house”.",
     newHouseTitle: "New house",
     houseNumber: "House number",
     houseNumberPlaceholder: "e.g. 12, A-3",
@@ -1354,7 +1359,7 @@ export const en = {
     salesModePlans: "Apartment plans only",
     sectionSalesMaps: "Site map (buildings)",
     salesMapsHint:
-      "Use ONE image of the whole site. Draw a zone on each building (Branch 1, Branch 2…), set Target = that building. Do not add a second map for this — only the first map is shown on the site.",
+      "Use ONE image of the whole site. Draw a zone on each building (Branch 1, Branch 2…), set Target = that building. Do not add a second map for this - only the first map is shown on the site.",
     salesMapAddRoot: "Add site map",
     salesMapAddChild: "Add nested map (optional)",
     salesMapMultiRootWarning:
@@ -1387,7 +1392,7 @@ export const en = {
       "Click the image to place points around the land plot. Existing zones won't block drawing. Zoom for precision. Double-click to finish.",
     landPlotsTitle: "Land plots",
     addLandPlot: "Add land plot",
-    noLandPlots: "No land plots yet — click “Add land plot”.",
+    noLandPlots: "No land plots yet - click “Add land plot”.",
     unnamedLandPlot: "Unnamed plot",
     landPlotLabel: "Plot label",
     landPlotLabelPlaceholder: "e.g. A1, 12",
@@ -1410,7 +1415,7 @@ export const en = {
     noFloorImage: "no image",
     expandAll: "Expand all",
     collapseAll: "Collapse all",
-    noBuildings: 'No buildings or neighborhoods yet — click "Add plan"',
+    noBuildings: 'No buildings or neighborhoods yet - click "Add plan"',
     noBuildingAssigned: "Unassigned",
     plansAttached: "plans",
     buildingFloorsTitle: "Floor plates",
@@ -1422,7 +1427,7 @@ export const en = {
     floorImageUrl: "Floor plan image URL",
     uploadFloorImage: "Upload image",
     removeFloorPlate: "Remove floor",
-    noFloorPlates: "No floor plates yet — add floors and upload the building floor plan image.",
+    noFloorPlates: "No floor plates yet - add floors and upload the building floor plan image.",
     hotspotSelectApartment: "Apartment to map",
     hotspotDrawHint:
       "Select an apartment, then click to place points. Drag points to adjust. Existing zones won't block drawing. Zoom for precision. Double-click to finish.",
@@ -1440,9 +1445,9 @@ export const en = {
     addApartmentOnFloor: "+ Apartment on this floor",
     markAsSold: "Sold",
     soldZoneHint:
-      "Sold — no floor zone needed. Save the project to apply.",
+      "Sold - no floor zone needed. Save the project to apply.",
     soldZoneOnlyHint:
-      "Sold unit — no floor plan needed. Save the project to apply.",
+      "Sold unit - no floor plan needed. Save the project to apply.",
     switchToNeighborhoodConfirm:
       "Switch to Neighborhood? Building floors and mapped zones will be removed from this project.",
     switchToBuildingConfirm:
@@ -1453,15 +1458,15 @@ export const en = {
     toastPublished: "Project published successfully",
     toastUpdated: "Project updated",
     toastZoneSaved: "Zone saved",
-    toastZoneMarkedSaveProject: "Zone marked — save the project",
-    toastZoneSaveFailed: "Zone was not saved — try again",
+    toastZoneMarkedSaveProject: "Zone marked - save the project",
+    toastZoneSaveFailed: "Zone was not saved - try again",
     toastDeleted: "Project deleted",
     deleteTitle: "Delete Project?",
     deleteBody: "This cannot be undone.",
     delete: "Delete",
     seoList: "Listings manager",
     seoNew: "New project",
-    seoEdit: "Edit — {title}",
+    seoEdit: "Edit - {title}",
     seoEditFallback: "Project",
     seoDescription:
       "CasaGroup internal tool to manage featured projects and apartment listings. This area is not intended for search indexing.",
@@ -1474,7 +1479,7 @@ export const en = {
     totalCount: "{count} total",
     availShort: "avail",
     newProjectTitle: "New Project",
-    editProjectTitle: "Edit — {title}",
+    editProjectTitle: "Edit - {title}",
     newProjectSubtitle: "Fill in the details to publish a new property listing.",
     editProjectSubtitle: "Update project information.",
     rooms: "Rooms",
@@ -1482,7 +1487,7 @@ export const en = {
     langEn: "English",
     langRu: "Russian",
     bilingualHint:
-      "Visitors see Armenian, Russian, or English based on the language they choose. Fill all columns — empty fields fall back to another language.",
+      "Visitors see Armenian, Russian, or English based on the language they choose. Fill all columns - empty fields fall back to another language.",
     copyFromOther: "Copy",
     fillEmptyFromEn: "Fill empty fields from English",
     fillEmptyFromHy: "Fill empty fields from Armenian",
@@ -1498,69 +1503,69 @@ export const en = {
   },
   seo: {
     home: {
-      title: "New apartments in Yerevan — buy direct from developers",
+      title: "New apartments in Yerevan - buy direct from developers",
       description:
-        "Search new-build apartments across Yerevan. CasaGroup connects buyers with real developments — floor plans, prices, viewings, and support through closing.",
+        "Search new-build apartments across Yerevan. CasaGroup connects buyers with real developments - floor plans, prices, viewings, and support through closing.",
     },
     properties: {
-      title: "Apartments for sale in Yerevan — new construction",
+      title: "Apartments for sale in Yerevan - new construction",
       description:
-        "Browse available apartments in Yerevan's new developments. Filter by district, price, and bedrooms — every listing from a project we represent.",
+        "Browse available apartments in Yerevan's new developments. Filter by district, price, and bedrooms - every listing from a project we represent.",
     },
     propertiesMap: {
-      title: "Map search — apartments for sale in Yerevan",
+      title: "Map search - apartments for sale in Yerevan",
       description:
-        "Find new-build apartments on an interactive map. Filter by district, price, and size — see listings by location across Yerevan.",
+        "Find new-build apartments on an interactive map. Filter by district, price, and size - see listings by location across Yerevan.",
     },
     investment: {
-      title: "Invest in Yerevan new construction — districts & projects",
+      title: "Invest in Yerevan new construction - districts & projects",
       description:
-        "How buyers and diaspora investors approach new construction in Yerevan — developer pricing, payment plans, and districts worth knowing.",
+        "How buyers and diaspora investors approach new construction in Yerevan - developer pricing, payment plans, and districts worth knowing.",
     },
     calculator: {
-      title: "Mortgage calculator — estimate monthly payments",
+      title: "Mortgage calculator - estimate monthly payments",
       description:
         "Calculate estimated monthly mortgage payments for new construction apartments in Armenia. Adjust price, down payment, term, and interest rate.",
     },
     blog: {
-      title: "Blog & market insights — Armenia real estate",
+      title: "Blog & market insights - Armenia real estate",
       description:
         "Buying guides, investment tips, market trends, and legal information for Armenia's primary real estate market.",
     },
     partner: {
-      title: "Partner portal — developer services & collaboration",
+      title: "Partner portal - developer services & collaboration",
       description:
         "CasaGroup partner portal for developers and construction companies. Strategy, branding, sales systems, CRM, and complete development support.",
     },
     projects: {
       title: "New developments & residential complexes in Armenia",
       description:
-        "Browse CasaGroup curated new-build residential projects across Armenia — filter by location, budget, and layout to find premium apartments and modern complexes.",
+        "Browse CasaGroup curated new-build residential projects across Armenia - filter by location, budget, and layout to find premium apartments and modern complexes.",
     },
     services: {
       title: "Developer services for new construction sales",
       description:
-        "CasaGroup helps developers and buyers with strategy, branding, sales systems, and CRM for residential and mixed-use projects — from market analysis through premium apartment sales.",
+        "CasaGroup helps developers and buyers with strategy, branding, sales systems, and CRM for residential and mixed-use projects - from market analysis through premium apartment sales.",
     },
     about: {
-      title: "About us — new construction sales & buyer consultation",
+      title: "About us - new construction sales & buyer consultation",
       description:
-        "CasaGroup specializes in selling new-build apartments in Yerevan — helping families and investors choose the right apartment through a clear, transparent, and trusted process.",
+        "CasaGroup specializes in selling new-build apartments in Yerevan - helping families and investors choose the right apartment through a clear, transparent, and trusted process.",
     },
     faq: {
-      title: "FAQ — buying new apartments with Casa Group",
+      title: "FAQ - buying new apartments with Casa Group",
       description:
         "Answers about reserving apartments, handover condition, bank guarantees, income tax refund, mortgages, documents, and why buy through Casa Group.",
     },
     contact: {
-      title: "Contact us — schedule a new construction consultation",
+      title: "Contact us - schedule a new construction consultation",
       description:
-        "Reach CasaGroup in Yerevan for premium apartments and new-build projects. Call, email, or send a message — our team responds quickly to buyer and developer inquiries.",
+        "Reach CasaGroup in Yerevan for premium apartments and new-build projects. Call, email, or send a message - our team responds quickly to buyer and developer inquiries.",
     },
     owner: {
       title: "Meet the founder",
       description:
-        "A direct contact for new apartments in Yerevan. Call, WhatsApp, or message — no corporate runaround.",
+        "A direct contact for new apartments in Yerevan. Call, WhatsApp, or message - no corporate runaround.",
     },
     notFound: {
       title: "Page not found",

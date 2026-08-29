@@ -126,7 +126,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
             >
               <Image
                 src={active.url}
-                alt={`${title} — ${categoryLabel(active.category)}`}
+                alt={`${title} - ${categoryLabel(active.category)}`}
                 fill
                 priority
                 unoptimized
@@ -177,7 +177,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
           <Expand size={18} />
         </button>
 
-        <div className="absolute inset-x-0 bottom-0 z-20 px-4 sm:px-6 lg:px-8 pb-5 md:pb-6 pt-20 pointer-events-none">
+        <div className="absolute inset-x-0 bottom-0 z-20 px-4 sm:px-0 pb-5 md:pb-6 pt-20 pointer-events-none">
           <div className="mx-auto w-full max-w-[1600px] 2xl:max-w-[1760px]">
             <p className="text-sm font-medium text-[#c9a96e]">{getStatusLabel(t, project.status)}</p>
             <h1 className="mt-1 font-display text-3xl md:text-5xl text-white tracking-tight">{title}</h1>
@@ -200,7 +200,7 @@ export function ProjectMediaShowcase({ project, items }: Props) {
       </div>
 
       {items.length > 1 && (
-        <div className="shrink-0 border-t border-white/10 bg-[#0B1220] px-4 py-3 sm:px-6 lg:px-8">
+        <div className="shrink-0 border-t border-white/10 bg-[#0B1220] px-4 sm:px-0 py-3">
           <div className="mx-auto flex max-w-[1600px] gap-2 overflow-x-auto 2xl:max-w-[1760px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {items.map((item, i) => (
               <button
@@ -237,9 +237,6 @@ export function ProjectMediaShowcase({ project, items }: Props) {
             <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-white/10">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-white truncate">{title}</p>
-                <p className="text-xs text-white/60 mt-0.5">
-                  {categoryLabel(active.category)} · {safeIndex + 1} / {items.length}
-                </p>
               </div>
               <button
                 type="button"

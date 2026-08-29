@@ -44,7 +44,7 @@ export async function recordProjectView(projectId: string): Promise<number | nul
       return fetchProjectViewCount(projectId);
     }
   } catch {
-    /* sessionStorage unavailable — still attempt record */
+    /* sessionStorage unavailable - still attempt record */
   }
 
   const inflight = pendingRecords.get(projectId);

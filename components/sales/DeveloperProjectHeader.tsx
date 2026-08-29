@@ -20,7 +20,7 @@ export function DeveloperProjectHeader({ project }: Props) {
 
   const metaRows = [
     { label: t.developerDetail.developer, value: project.developer },
-    { label: t.developerDetail.architect, value: project.architect ?? "—" },
+    { label: t.developerDetail.architect, value: project.architect ?? "-" },
     {
       label: t.developerDetail.management,
       value: project.managementCompany ?? project.developer,
@@ -95,7 +95,7 @@ export function DeveloperProjectHeader({ project }: Props) {
             {metaRows.map((row) => (
               <li key={row.label} className="text-sm text-[#57534E] leading-relaxed">
                 <span className="text-[#1C1917] font-medium">{row.label}</span>
-                {" — "}
+                {" - "}
                 {row.value}
               </li>
             ))}
@@ -110,7 +110,7 @@ export function DeveloperProjectHeader({ project }: Props) {
                 ) : null}
                 <span>
                   <span className="text-[#1C1917] font-medium">{row.label}</span>
-                  {" — "}
+                  {" - "}
                   {row.href ? (
                     <a href={row.href} className="text-[#c9a96e] hover:text-[#a88a52] font-medium">
                       {row.value}

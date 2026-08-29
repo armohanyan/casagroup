@@ -4,9 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Phone, MessageCircle, BadgeCheck } from "lucide-react";
-import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
-import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
-import { ApartmentSalesJourney } from "@/components/sales/ApartmentSalesJourney";
+import { ProjectApartmentsSection } from "@/components/sales/ProjectApartmentsSection";
 import { NeighborhoodSalesSection } from "@/components/sales/NeighborhoodSalesSection";
 import { DroneVideoSection } from "@/components/DroneVideoSection";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
@@ -17,16 +15,17 @@ import { Seo } from "@/components/seo/Seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getProjectGallery } from "@/lib/project-gallery";
 import { getAmenityLabel, getProjectCity, getProjectDescription, getProjectLongDescription, getProjectTitle } from "@/lib/project-i18n";
+import { formatProjectSeoTitle } from "@/lib/seo-meta";
 import { recordProjectView } from "@/lib/project-views";
 import { useI18n } from "@/lib/i18n";
 import { useProjects } from "@/lib/projects-context";
 import { isNeighborhoodProject } from "@/lib/project-kind";
-import { projectSalesMode } from "@/lib/sales-mode";
 import { breadcrumbListSchema } from "@/lib/schema-breadcrumbs";
 import { prepareRichTextForDisplay } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 import { ProjectKeyFacts } from "@/components/site/ProjectKeyFacts";
 import { fetchProjectBySlug } from "@/lib/api-client";
+import { getCheapestAvailablePlanPrice } from "@/lib/properties";
 import type { Project } from "@/types";
 
 const WHATSAPP = "https://wa.me/37496799733";
@@ -147,6 +146,10 @@ export default function ProjectDetailPage() {
   // Prefer full slug response; fall back to list summary only after fetch fails/settles.
   const project = fetched ?? (fetchFailed || !fetching ? fromList : undefined);
   const galleryItems = useMemo(() => (project ? getProjectGallery(project) : []), [project]);
+  const calculatorPrice = useMemo(
+    () => (project ? getCheapestAvailablePlanPrice(project) : 0),
+    [project],
+  );
 
   useEffect(() => {
     if (!project?.id) return;
@@ -254,7 +257,7 @@ export default function ProjectDetailPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <Seo title={`${title} — ${city}`} description={description} path={path} image={heroImage} lang={lang} ogType="article" />
+      <Seo title={formatProjectSeoTitle(title, city)} description={description} path={path} image={heroImage} lang={lang} ogType="article" />
       <JsonLd
         data={breadcrumbListSchema([
           { name: t.projectDetail.breadHome, path: "/" },
@@ -286,30 +289,8 @@ export default function ProjectDetailPage() {
 
       {isNeighborhoodProject(project) ? (
         <NeighborhoodSalesSection project={project} />
-      ) : projectSalesMode(project) === "plans" ? (
-        <>
-          <section id="apartments" className="border-t border-[#E5E7EB]">
-            <Container className="py-10 md:py-14">
-              <DeveloperFloorPlanSection project={project} />
-            </Container>
-          </section>
-          <div className="hidden md:block">
-            <BuildingFloorMapSection project={project} />
-          </div>
-        </>
       ) : (
-        <>
-          <div className="md:hidden">
-            <section id="apartments" className="border-t border-[#E5E7EB]">
-              <Container className="py-10 md:py-14">
-                <DeveloperFloorPlanSection project={project} />
-              </Container>
-            </section>
-          </div>
-          <div className="hidden md:block">
-            <ApartmentSalesJourney project={project} />
-          </div>
-        </>
+        <ProjectApartmentsSection project={project} />
       )}
 
       <section id="mortgage" className="border-t border-[#E5E7EB] bg-[#F9FAFB]">
@@ -326,7 +307,7 @@ export default function ProjectDetailPage() {
             </p>
           </div>
           <div className="rounded-2xl bg-white p-5 shadow-sm sm:p-8">
-            <MortgageCalculator key={project.id} initialPrice={project.startingPrice} />
+            <MortgageCalculator key={project.id} initialPrice={calculatorPrice} />
           </div>
         </Container>
       </section>

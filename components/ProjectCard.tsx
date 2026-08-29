@@ -59,7 +59,7 @@ export function ProjectCard({ project }: { project: Project }) {
           {project.images[0] ? (
             <Image
               src={project.images[0]}
-              alt={`${title} — ${location} new construction preview`}
+              alt={`${title} - ${location} new construction preview`}
               fill
               unoptimized
               sizes="(max-width: 768px) 100vw, 33vw"

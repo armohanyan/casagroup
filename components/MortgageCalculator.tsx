@@ -47,8 +47,8 @@ export function MortgageCalculator({ initialPrice, compact }: MortgageCalculator
   const yearsLabel = lang === "hy" ? "տարի" : lang === "ru" ? "лет" : "years";
 
   return (
-    <div className={`grid grid-cols-1 ${compact ? "gap-6" : "lg:grid-cols-2 gap-10"}`}>
-      <div className="space-y-6">
+    <div className={`grid grid-cols-1 ${compact ? "gap-6" : "gap-8 lg:grid-cols-2 lg:gap-10 lg:items-start"}`}>
+      <div className="space-y-5 sm:space-y-6">
         <div>
           <label className="field-label">{t.calculator.propertyPrice}</label>
           <BrandSlider
@@ -73,7 +73,7 @@ export function MortgageCalculator({ initialPrice, compact }: MortgageCalculator
             aria-label={t.calculator.downPayment}
           />
           <p className="mt-1.5 text-[#1C1917]">
-            {downPct}% — {formatPrice(result.down)}
+            {downPct}% - {formatPrice(result.down)}
           </p>
         </div>
 
@@ -107,14 +107,14 @@ export function MortgageCalculator({ initialPrice, compact }: MortgageCalculator
       </div>
 
       <motion.div
-        className={`bg-[#F3EFE8] border border-[#E7E0D5] rounded-xl space-y-6 ${compact ? "p-5" : "p-8"}`}
+        className={`bg-[#F3EFE8] border border-[#E7E0D5] rounded-xl space-y-5 sm:space-y-6 ${compact ? "p-5" : "p-6 sm:p-8 lg:sticky lg:top-24"}`}
         initial={compact ? false : { opacity: 0, x: 20 }}
         whileInView={compact ? undefined : { opacity: 1, x: 0 }}
         viewport={compact ? undefined : { once: true }}
       >
         <div>
           <p className="text-xs tracking-widest uppercase text-[#A8A29E] mb-2">{t.calculator.monthlyPayment}</p>
-          <p className="font-sans font-semibold text-4xl text-[#c9a96e]">
+          <p className={`font-sans font-semibold text-[#c9a96e] ${compact ? "text-3xl" : "text-3xl sm:text-4xl"}`}>
             {formatPrice(Math.round(result.monthly))}
           </p>
         </div>

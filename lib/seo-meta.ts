@@ -3,6 +3,19 @@ import { SITE_NAME } from "@/lib/site-config";
 
 export const DEFAULT_OG_IMAGE = "/yerevan.png";
 
+/** Join SEO title segments with a spaced hyphen separator. */
+export function joinSeoTitleParts(...parts: Array<string | null | undefined>): string {
+  return parts
+    .map((part) => part?.trim().replace(/\s*-\s*$/, "").trim())
+    .filter((part): part is string => Boolean(part))
+    .join(" - ");
+}
+
+/** Project detail pages: "Arabkir Heights - Yerevan" */
+export function formatProjectSeoTitle(title: string, city: string): string {
+  return joinSeoTitleParts(title, city);
+}
+
 interface PageMetaInput {
   title: string;
   description: string;

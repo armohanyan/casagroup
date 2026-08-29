@@ -60,7 +60,7 @@ export default function PartnerHomePage() {
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1920&q=70"
-            alt="Construction site — CasaGroup partner portal"
+            alt="Construction site - CasaGroup partner portal"
             fill
             sizes="100vw"
             className="object-cover opacity-20"

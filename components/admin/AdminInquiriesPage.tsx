@@ -375,8 +375,8 @@ export function AdminInquiriesPage() {
                         {item.phone}
                       </a>
                     </td>
-                    <td className="px-4 py-3 text-[#6B7280]">{item.interestedProject || "—"}</td>
-                    <td className="px-4 py-3 text-[#6B7280]">{item.kind || "—"}</td>
+                    <td className="px-4 py-3 text-[#6B7280]">{item.interestedProject || "-"}</td>
+                    <td className="px-4 py-3 text-[#6B7280]">{item.kind || "-"}</td>
                     <td className="px-4 py-3">
                       <select
                         className={cn(adminSelectCls, "h-9 min-w-[120px]")}
@@ -394,7 +394,7 @@ export function AdminInquiriesPage() {
                       </select>
                     </td>
                     <td className="max-w-[280px] px-4 py-3 text-[#6B7280]">
-                      <p className="line-clamp-3 whitespace-pre-wrap">{item.message || "—"}</p>
+                      <p className="line-clamp-3 whitespace-pre-wrap">{item.message || "-"}</p>
                     </td>
                     <td className="px-4 py-3">
                       <button

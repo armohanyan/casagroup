@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { ApartmentInquiryModal } from "@/components/ApartmentInquiryModal";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
@@ -38,25 +39,39 @@ import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-numb
 import { isHouseUnit } from "@/lib/building-kind";
 import type { Apartment, Project } from "@/types";
 
-function SpecItem({
-  icon: Icon,
-  label,
-  value,
+function SidebarSpecList({
+  items,
 }: {
-  icon: typeof Layers;
-  label: string;
-  value: React.ReactNode;
+  items: { icon: LucideIcon; label: string; value: React.ReactNode; stacked?: boolean }[];
 }) {
   return (
-    <div className="flex min-w-0 items-start gap-3 rounded-[5px] border border-[#E8EAED] bg-[#F9FAFB] px-4 py-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[5px] bg-[#F5F0E8] text-[#8B6A33]">
-        <Icon size={16} strokeWidth={2} aria-hidden />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">{label}</p>
-        <p className="mt-1 break-words text-sm font-semibold leading-snug text-[#0c1428]">{value}</p>
-      </div>
-    </div>
+    <dl className="divide-y divide-[#E8EAED] overflow-hidden rounded-[5px] border border-[#E8EAED] bg-white">
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <div
+            key={item.label}
+            className={item.stacked ? "px-3 py-2" : "flex items-center justify-between gap-3 px-3 py-2"}
+          >
+            <dt className="flex min-w-0 items-center gap-2 text-xs text-[#6B7280]">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[4px] bg-[#F5F0E8] text-[#8B6A33]">
+                <Icon size={13} strokeWidth={2} aria-hidden />
+              </span>
+              <span className="min-w-0 leading-snug">{item.label}</span>
+            </dt>
+            <dd
+              className={
+                item.stacked
+                  ? "mt-1 pl-8 text-sm font-semibold leading-snug text-[#0c1428]"
+                  : "shrink-0 text-right text-sm font-semibold tabular-nums text-[#0c1428]"
+              }
+            >
+              {item.value}
+            </dd>
+          </div>
+        );
+      })}
+    </dl>
   );
 }
 
@@ -213,7 +228,7 @@ export default function ApartmentDetailPage() {
   const planPdfUrl = apt.planPdfUrl?.trim() || "";
   const pricePerSqm = apt.area > 0 ? Math.round(apt.price / apt.area) : 0;
   const address = `${location}${city ? `, ${city}` : ""}`;
-  const priceLabel = sold ? "—" : formatPrice(apt.price);
+  const priceLabel = sold ? "-" : formatPrice(apt.price);
   const whatsappMessage =
     lang === "hy"
       ? `Բարև, հետաքրքրված եմ ${title} նախագծի №${aptNumber} բնակարանով։\nՀասցե՝ ${address}\nՄակերես՝ ${apt.area} մ²\nԳին՝ ${priceLabel}`
@@ -259,41 +274,7 @@ export default function ApartmentDetailPage() {
           </span>
         </nav>
 
-        {showUnitPlaque ? (
-          <div className="mb-8 overflow-hidden rounded-[5px] border border-[#E8EAED] bg-gradient-to-br from-[#0c1428] via-[#152038] to-[#1a2744] px-5 py-6 sm:px-8 sm:py-7">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c9a96e]">
-                  {isHouse ? t.aptDetail.houseNumberLabel : t.aptDetail.apartmentNumberLabel}
-                </p>
-                <p className="mt-2 font-display text-5xl font-semibold tracking-tight text-white sm:text-6xl">
-                  <span className="mr-1 text-3xl font-medium text-[#c9a96e] sm:text-4xl">№</span>
-                  {aptNumber}
-                </p>
-                <p className="mt-3 text-sm text-white/55">
-                  {apt.rooms} BR · {apt.area} m²
-                  {isHouse
-                    ? apt.landArea && apt.landArea > 0
-                      ? ` · ${t.aptDetail.landSpec} ${apt.landArea} m²`
-                      : ""
-                    : ` · ${t.aptDetail.floorLabel} ${apt.floor}`}
-                </p>
-              </div>
-              <div className="hidden h-16 w-px bg-white/10 sm:block" aria-hidden />
-              <div className="sm:text-right">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">
-                  {title}
-                </p>
-                <p className="mt-1 text-sm text-white/70">
-                  {location}
-                  {city ? `, ${city}` : ""}
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-6">
             {apt.floorPlanImage ? (
               <div className="rounded-[5px] border border-[#E5E7EB] bg-white p-4 shadow-sm sm:p-5">
@@ -359,32 +340,6 @@ export default function ApartmentDetailPage() {
                 <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[#4B5563]">{description}</p>
               </section>
             ) : null}
-
-            <section className="rounded-[5px] border border-[#E5E7EB] bg-white p-5 sm:p-6">
-              <h2 className="text-lg font-semibold text-[#0c1428]">
-                {isHouse ? t.aptDetail.specsTitleHouse : t.aptDetail.specsTitle}
-              </h2>
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <SpecItem icon={BedDouble} label={t.aptDetail.bedrooms} value={apt.rooms} />
-                <SpecItem icon={Maximize2} label={t.aptDetail.area} value={`${apt.area} m²`} />
-                {isHouse ? (
-                  apt.landArea && apt.landArea > 0 ? (
-                    <SpecItem icon={Layers} label={t.aptDetail.landSpec} value={`${apt.landArea} m²`} />
-                  ) : null
-                ) : (
-                  <SpecItem icon={Layers} label={t.aptDetail.floorSpec} value={apt.floor} />
-                )}
-                <SpecItem icon={Eye} label={t.aptDetail.viewSpec} value={getApartmentViewType(apt, lang) || "—"} />
-                <SpecItem
-                  icon={MapPin}
-                  label={t.aptDetail.locationSpec}
-                  value={address}
-                />
-                {apt.balcony ? (
-                  <SpecItem icon={Sun} label={t.aptDetail.balcony} value={t.aptDetail.yes} />
-                ) : null}
-              </div>
-            </section>
           </div>
 
           <aside className="min-w-0 overflow-hidden rounded-[5px] border border-[#E8EAED] bg-[#F9FAFB] p-5 lg:sticky lg:top-24 sm:p-6">
@@ -400,7 +355,7 @@ export default function ApartmentDetailPage() {
                 {t.aptDetail.priceLabel}
               </p>
               <p className="mt-1 break-words text-3xl font-semibold tabular-nums leading-tight text-[#0c1428]">
-                {sold ? "—" : formatPrice(apt.price)}
+                {sold ? "-" : formatPrice(apt.price)}
               </p>
             </div>
 
@@ -416,7 +371,29 @@ export default function ApartmentDetailPage() {
               </div>
             ) : null}
 
-            <div className="mt-6 space-y-2">
+            <div className="mt-5 border-t border-[#E8EAED] pt-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
+                {isHouse ? t.aptDetail.specsTitleHouse : t.aptDetail.specsTitle}
+              </p>
+              <div className="mt-2.5">
+                <SidebarSpecList
+                  items={[
+                    { icon: BedDouble, label: t.aptDetail.bedrooms, value: apt.rooms },
+                    { icon: Maximize2, label: t.aptDetail.area, value: `${apt.area} m²` },
+                    ...(isHouse
+                      ? apt.landArea && apt.landArea > 0
+                        ? [{ icon: Layers, label: t.aptDetail.landSpec, value: `${apt.landArea} m²` }]
+                        : []
+                      : [{ icon: Layers, label: t.aptDetail.floorSpec, value: apt.floor }]),
+                    { icon: Eye, label: t.aptDetail.viewSpec, value: getApartmentViewType(apt, lang) || "-" },
+                    ...(apt.balcony ? [{ icon: Sun, label: t.aptDetail.balcony, value: t.aptDetail.yes }] : []),
+                    { icon: MapPin, label: t.aptDetail.locationSpec, value: address, stacked: true },
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-2">
               {!sold && (
                 <>
                   <button

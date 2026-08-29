@@ -40,8 +40,8 @@ export function PartnerNavbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#E7E0D5] shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <Link href="/partners" className="shrink-0 font-bold text-xl text-[#1C1917]">
+      <div className="max-w-7xl mx-auto h-16 flex items-center justify-between gap-4">
+        <Link href="/partners" className="font-brand shrink-0 font-bold text-xl text-[#1C1917]">
           Casa<span className="text-[#c9a96e]">Group</span>
           <span className="ml-2 text-[10px] sm:text-xs text-[#A8A29E] font-semibold uppercase tracking-wide">
             Partner

@@ -16,7 +16,7 @@ interface Props {
 
 /**
  * Live project view count (unique browser sessions).
- * Used in the admin panel — not shown on the public site.
+ * Used in the admin panel - not shown on the public site.
  */
 export function ProjectViewCount({
   projectId,
@@ -53,7 +53,7 @@ export function ProjectViewCount({
         aria-hidden
       >
         <Eye size={14} strokeWidth={2} className="shrink-0 opacity-70" />
-        —
+       -
       </span>
     );
   }

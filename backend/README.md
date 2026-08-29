@@ -40,10 +40,10 @@ Default admin: `admin` / `admin123`
 
 ## Scripts
 
-- `npm run dev` — start API with hot reload
-- `npm run db:push` — sync Prisma schema
-- `npm run db:seed` — seed projects from mock data
-- `npm run db:studio` — Prisma Studio
+- `npm run dev` - start API with hot reload
+- `npm run db:push` - sync Prisma schema
+- `npm run db:seed` - seed projects from mock data
+- `npm run db:studio` - Prisma Studio
 
 ## Frontend
 

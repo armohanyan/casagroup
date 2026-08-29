@@ -42,9 +42,9 @@ type Plan = {
   floorPlanImage: string;
 };
 
-/** Parsed from apartment cards HTML (entrance 1) — all pages. */
+/** Parsed from apartment cards HTML (entrance 1) - all pages. */
 const PLANS: Plan[] = [
-  // —— page 1 (missed earlier): 58 / 59.2 m² ——
+  // --- page 1 (missed earlier): 58 / 59.2 m² ---
   { id: "cms0bktlq00157t8ck79fokz7", floor: 1, rooms: 2, area: 58, price: 35_960_000, status: "Available", floorPlanImage: IMG.s58 },
   { id: "cms0c05wq001n7t8ctjqlzy9e", floor: 2, rooms: 2, area: 58, price: 36_540_000, status: "Available", floorPlanImage: IMG.s58 },
   { id: "cms0a2gba000p7t8cbnvziyqa", floor: 1, rooms: 2, area: 59.2, price: 36_890_000, status: "Available", floorPlanImage: IMG.a },
@@ -55,7 +55,7 @@ const PLANS: Plan[] = [
   { id: "cms-sold-58-f5", floor: 5, rooms: 2, area: 58, price: 0, status: "Sold", floorPlanImage: IMG.s58 },
   { id: "cms0d1lpe00277t8ciu9jjm26", floor: 4, rooms: 2, area: 59.2, price: 39_270_000, status: "Available", floorPlanImage: IMG.a },
 
-  // —— page 2+ ——
+  // --- page 2+ ---
   { id: "cms-sold-59-5-f5", floor: 5, rooms: 2, area: 59.5, price: 0, status: "Sold", floorPlanImage: IMG.a },
 
   { id: "cms0b81qr000v7t8c9d4h0ct5", floor: 1, rooms: 2, area: 75.9, price: 46_299_000, status: "Available", floorPlanImage: IMG.b },
@@ -116,9 +116,9 @@ const PROJECT = {
   descriptionHy:
     "ԱՎԱՆՈՒՄ ԱՎԱՐՏՎԱԾ ՇԵՆՔՈՒՄ ԲՆԱԿԱՐԱՆՆԵՐ՝ ՍԿՍԱԾ ԸՆԴԱՄԵՆԸ 610,000 ԴՐԱՄԻՑ",
   longDescription:
-    "ROYAL AVAN RESIDENCE — apartments in a completed building in Avan, Yerevan.",
+    "ROYAL AVAN RESIDENCE - apartments in a completed building in Avan, Yerevan.",
   longDescriptionHy:
-    "ROYAL AVAN RESIDENCE — Ավանում ավարտված շենքում բնակարաններ։ Սկսած ընդամենը 610,000 դրամից։",
+    "ROYAL AVAN RESIDENCE - Ավանում ավարտված շենքում բնակարաններ։ Սկսած ընդամենը 610,000 դրամից։",
   images: [COVER],
   gallery: [{ url: COVER, category: "exterior" }],
   startingPrice,
@@ -251,7 +251,7 @@ async function main() {
       },
     });
     console.log(
-      `  ✓ ${p.id}  F${p.floor}  ${p.rooms}BR  ${p.area}m²  ${p.price || "—"}  ${p.status}`,
+      `  ✓ ${p.id}  F${p.floor}  ${p.rooms}BR  ${p.area}m²  ${p.price || "-"}  ${p.status}`,
     );
   }
 

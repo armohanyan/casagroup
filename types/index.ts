@@ -3,9 +3,9 @@ export type ApartmentStatus = "Available" | "Reserved" | "Sold";
 export type ProjectKind = "building" | "neighborhood";
 /**
  * Public apartment sales flow for a building project:
- * - `plans` — apartment plans only
- * - `floors` — single building: exterior → floors → apartments
- * - `buildings` — several buildings on a site map, then the floors flow
+ * - `plans` - apartment plans only
+ * - `floors` - single building: exterior → floors → apartments
+ * - `buildings` - several buildings on a site map, then the floors flow
  *
  * Legacy DB values `master` / `complex` are normalized to `buildings`.
  */

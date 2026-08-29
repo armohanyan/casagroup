@@ -23,7 +23,7 @@ export function HomeCTA() {
       />
       <div className="absolute inset-0 bg-[#0F172A]/75" />
 
-      <div className="relative z-10 max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="relative z-10 max-w-[1320px] mx-auto px-4 sm:px-0 text-center">
         <Reveal>
           <h2 className="font-display text-3xl md:text-5xl text-white leading-tight max-w-2xl mx-auto">
             {t.home.ctaTitle}

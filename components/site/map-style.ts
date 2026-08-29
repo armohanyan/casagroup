@@ -1,6 +1,10 @@
 import L from "leaflet";
+import { ACCENT_COLOR, BRAND_COLOR } from "@/lib/site-config";
 
-/** Free OpenStreetMap basemap — no API key required. */
+/**
+ * OpenStreetMap raster tiles - free, no API key. Brand tint is applied via
+ * `.leaflet-tile-pane` CSS filter in globals.css (navy/gold palette).
+ */
 export const TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 export const TILE_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -19,8 +23,8 @@ export function brandMarkerIcon(): L.DivIcon {
   return L.divIcon({
     className: "",
     html: `<svg width="38" height="48" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 3px 6px rgba(12,20,40,0.35))">
-      <path d="M19 2C10.16 2 3 9.16 3 18c0 11.25 16 28 16 28s16-16.75 16-28C35 9.16 27.84 2 19 2z" fill="#0c1428" stroke="#ffffff" stroke-width="2"/>
-      <circle cx="19" cy="18" r="6.5" fill="#c9a96e"/>
+      <path d="M19 2C10.16 2 3 9.16 3 18c0 11.25 16 28 16 28s16-16.75 16-28C35 9.16 27.84 2 19 2z" fill="${BRAND_COLOR}" stroke="#ffffff" stroke-width="2"/>
+      <circle cx="19" cy="18" r="6.5" fill="${ACCENT_COLOR}"/>
     </svg>`,
     iconSize: [38, 48],
     iconAnchor: [19, 46],

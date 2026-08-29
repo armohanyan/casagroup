@@ -1,0 +1,45 @@
+---
+description: Use hyphens instead of em dashes in all project text
+alwaysApply: true
+---
+
+# Typography: hyphens only
+
+Always use a plain hyphen `-` (U+002D). Never use em dash `—` (U+2014) or en dash `–` (U+2013).
+
+## Spacing
+
+When a hyphen separates phrases or clauses, always put a space on both sides: ` - `
+
+```
+// BAD
+"Arabkir Heights- Yerevan"
+"developers- transparent pricing"
+
+// GOOD
+"Arabkir Heights - Yerevan"
+"developers - transparent pricing"
+```
+
+Empty or missing values use a single hyphen with no spaces: `"-"`.
+
+## Applies to
+
+- User-facing copy in translations (`content/`, `lib/translations-*.ts`)
+- UI strings, labels, alt text, meta titles, and SEO titles
+- Comments and documentation when separating clauses or list items
+
+## Examples
+
+```
+// BAD
+"CASA GROUP — new apartments in Yerevan"
+"Monthly payment —"
+
+// GOOD
+"CASA GROUP - new apartments in Yerevan"
+"Monthly payment -"
+emptyLabel = "-"
+```
+
+Do not change hyphens inside code identifiers, CSS classes, slugs, URLs, or compound words (e.g. `next-intl`, `line-clamp-3`, `Arabkir Heights-ը`).

@@ -50,8 +50,8 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
     { label: labels.city, value: getProjectCity(project, lang) },
     { label: labels.status, value: statusLabel },
     { label: labels.developer, value: project.developer },
-    { label: labels.completion, value: getProjectCompletionDate(project, lang) || "—" },
-    { label: labels.floors, value: String(project.floors || "—") },
+    { label: labels.completion, value: getProjectCompletionDate(project, lang) || "-" },
+    { label: labels.floors, value: String(project.floors || "-") },
   ];
 
   if (apartment) {
@@ -59,12 +59,12 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
       { label: labels.apartment, value: `#${apartment.id}` },
       {
         label: labels.price,
-        value: apartment.status === "Sold" ? "—" : formatPrice(apartment.price),
+        value: apartment.status === "Sold" ? "-" : formatPrice(apartment.price),
       },
       { label: labels.bedrooms, value: String(apartment.rooms) },
       { label: labels.area, value: `${apartment.area} m²` },
       { label: labels.floor, value: String(apartment.floor) },
-      { label: labels.view, value: getApartmentViewType(apartment, lang) || "—" },
+      { label: labels.view, value: getApartmentViewType(apartment, lang) || "-" },
     );
   }
 
@@ -72,7 +72,7 @@ export function downloadProjectInfoPdf(input: ProjectInfoPdfInput): void {
 <html lang="${htmlLang}">
 <head>
   <meta charset="utf-8" />
-  <title>${esc(labels.title)} — ${esc(title)}</title>
+  <title>${esc(labels.title)} - ${esc(title)}</title>
   <style>
     @page { margin: 18mm; }
     body {

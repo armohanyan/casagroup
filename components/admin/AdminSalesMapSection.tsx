@@ -327,7 +327,7 @@ function StageCard({
                   {stage.hotspots.map((h) => (
                     <li key={h.id} className="flex items-center justify-between gap-2">
                       <span>
-                        {h.label || "—"} → {h.targetType}:{h.targetId.slice(0, 8)}
+                        {h.label || "-"} → {h.targetType}:{h.targetId.slice(0, 8)}
                       </span>
                       <button
                         type="button"
@@ -491,7 +491,7 @@ export function AdminSalesMapSection({
     setDraftByStage((d) => ({ ...d, [stageId]: [] }));
 
     if (!onPersistZone) {
-      onToast("Գոտին նշվեց — պահպանեք նախագիծը", "info");
+      onToast("Գոտին նշվեց - պահպանեք նախագիծը", "info");
       return;
     }
     setPersistingStageId(stageId);

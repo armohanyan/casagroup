@@ -111,7 +111,7 @@ export function FloorHotspotEditor({
     }
 
     if (!onPersistZone) {
-      onToast?.("Բնակարանի գոտին նշվեց — պահպանեք նախագիծը", "info");
+      onToast?.("Բնակարանի գոտին նշվեց - պահպանեք նախագիծը", "info");
       return;
     }
     setPersisting(true);
@@ -135,7 +135,7 @@ export function FloorHotspotEditor({
     if (!apt) return id;
     const num = apt.apartmentNumber?.trim();
     const base = num ? `№ ${num}` : `${apt.rooms}ր · ${apt.area} մ²`;
-    const unassigned = !apt.buildingId ? " · —" : "";
+    const unassigned = !apt.buildingId ? " · -" : "";
     return `${base} · հարկ ${apt.floor}${unassigned}`;
   };
 

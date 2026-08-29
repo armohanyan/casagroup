@@ -79,11 +79,11 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
       <div className={cn("flex h-16 items-center border-b border-[#E8EAED] px-4", collapsed ? "justify-center" : "justify-between")}>
         <Link href={ADMIN_BASE} className="min-w-0">
           {collapsed ? (
-            <span className="font-display text-lg text-[#0c1428]">
+            <span className="font-brand text-lg text-[#0c1428]">
               C<span className="text-[#c9a96e]">G</span>
             </span>
           ) : (
-            <span className="font-display text-xl tracking-tight text-[#0c1428]">
+            <span className="font-brand text-xl tracking-tight text-[#0c1428]">
               Casa<span className="text-[#c9a96e]">Group</span>
               <span className="ml-2 font-sans text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">
                 Admin

@@ -123,7 +123,7 @@ export function ApartmentGrid({ apartments, projectSlug }: Props) {
                   <SpecItem
                     icon={Eye}
                     label={t.table.view}
-                    value={getApartmentViewType(apt, lang) || "—"}
+                    value={getApartmentViewType(apt, lang) || "-"}
                   />
                 </div>
 

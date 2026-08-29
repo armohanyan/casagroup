@@ -8,7 +8,7 @@ function parseLang(value: string | null): Lang {
   return value === "en" ? "en" : "hy";
 }
 
-/** GET — team sections from seed copy. */
+/** GET - team sections from seed copy. */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

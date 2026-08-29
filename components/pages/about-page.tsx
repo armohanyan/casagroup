@@ -39,7 +39,7 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      {/* Why CasaGroup — Liam two-column */}
+      {/* Why CasaGroup - Liam two-column */}
       <section className="py-16 md:py-24">
         <Container>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">

@@ -115,7 +115,7 @@ function CardImageSlider({ images, title }: { images: string[]; title: string })
         >
           <Image
             src={images[index]}
-            alt={`${title} — ${index + 1}`}
+            alt={`${title} - ${index + 1}`}
             fill
             unoptimized
             draggable={false}
@@ -195,7 +195,7 @@ export function ProjectCard({
   return (
     <article
       data-card
-      className="group/card relative flex flex-col h-full bg-white rounded-[5px] overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
+      className="group/card relative flex flex-col h-full w-full bg-white rounded-[5px] overflow-hidden border border-[#E8EAED] shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_40px_rgba(15,23,42,0.12)] hover:border-[#c9a96e]/30 transition-all duration-300"
     >
       <Link
         href={`/projects/${project.slug}`}
@@ -203,7 +203,7 @@ export function ProjectCard({
         aria-label={title}
       />
 
-      <div className="relative aspect-[4/3] bg-[#E5E7EB] overflow-hidden group">
+      <div className="relative w-full aspect-[4/3] shrink-0 bg-[#E5E7EB] overflow-hidden group">
         <CardImageSlider images={images} title={title} />
       </div>
 
@@ -214,7 +214,7 @@ export function ProjectCard({
         <h3 className="font-sans font-semibold text-xl text-[#0c1428] leading-snug line-clamp-2 group-hover/card:text-[#c9a96e] transition-colors">
           {title}
         </h3>
-        <p className="mt-2 flex items-center gap-1.5 text-sm text-[#6B7280]">
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-[#6B7280]">
           <MapPin size={14} className="shrink-0 text-[#c9a96e]" strokeWidth={2} />
           <span className="truncate">{location}</span>
         </p>

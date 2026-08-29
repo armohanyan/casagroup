@@ -35,7 +35,7 @@ type Labels = {
   panMode: string;
   drawMode: string;
   editImage?: string;
-  /** Cropper UI copy — same shape as useAdminImagePicker labels. */
+  /** Cropper UI copy - same shape as useAdminImagePicker labels. */
   imageEditor?: {
     title?: string;
     zoom?: string;
@@ -156,7 +156,7 @@ export function BuildingExteriorEditor({
     setDraft([]);
 
     if (!onPersistZone) {
-      onToast("Հարկի գոտին նշվեց — պահպանեք նախագիծը", "info");
+      onToast("Հարկի գոտին նշվեց - պահպանեք նախագիծը", "info");
       return;
     }
     setPersisting(true);

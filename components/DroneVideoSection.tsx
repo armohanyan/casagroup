@@ -340,7 +340,7 @@ export function DroneVideoSection({ videos: rawVideos, projectTitle, embedded = 
               playing={playing && !expanded}
               onPlay={() => setPlaying(true)}
               onStop={() => setPlaying(false)}
-              playLabel={`${t.projectDetail.dronePlay} — ${active.title}`}
+              playLabel={`${t.projectDetail.dronePlay} - ${active.title}`}
               stopLabel={t.projectDetail.droneStop}
               expandLabel={t.projectDetail.droneExpand}
               onExpand={() => {
@@ -371,7 +371,7 @@ export function DroneVideoSection({ videos: rawVideos, projectTitle, embedded = 
 
       <p className="mt-2.5 text-[11px] text-[#6B7280] sm:mt-3">
         {projectTitle}
-        {active?.title ? ` — ${active.title}` : ""}
+        {active?.title ? ` - ${active.title}` : ""}
         {videos.length > 1 ? (
           <span className="text-[#9CA3AF]">
             {" "}
@@ -419,7 +419,7 @@ export function DroneVideoSection({ videos: rawVideos, projectTitle, embedded = 
               onPlay={() => setPlaying(true)}
               onStop={() => setPlaying(false)}
               expanded
-              playLabel={`${t.projectDetail.dronePlay} — ${active.title}`}
+              playLabel={`${t.projectDetail.dronePlay} - ${active.title}`}
               stopLabel={t.projectDetail.droneStop}
               className="absolute inset-0 h-full w-full"
             />

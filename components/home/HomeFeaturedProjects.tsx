@@ -25,7 +25,7 @@ export function HomeFeaturedProjects({ projects }: Props) {
 
   return (
     <section className="py-16 md:py-24 bg-[#F8FAFC]">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12 md:mb-16">
           <SectionHeader
             eyebrow={t.home.featuredEyebrow}

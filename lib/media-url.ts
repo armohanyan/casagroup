@@ -12,7 +12,7 @@ export function toBrowserMediaUrl(url: string): string {
 
   try {
     const parsed = new URL(trimmed, API_URL);
-    // All CasaGroup media lives under /uploads — always load via same-origin proxy.
+    // All CasaGroup media lives under /uploads - always load via same-origin proxy.
     if (parsed.pathname.startsWith("/uploads/")) {
       return `${parsed.pathname}${parsed.search}`;
     }

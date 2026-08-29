@@ -31,7 +31,7 @@ backup_database() {
 
   # Load DATABASE_URL without sourcing the whole .env (avoids side effects).
   local database_url
-  database_url="$(grep -E '^DATABASE_URL=' "$ENV_FILE" | head -1 | cut -d= -f2- | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+  database_url="$(grep -E '^DATABASE_URL=' "$ENV_FILE" | head -1 | cut -d= -f2 - | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
   [[ -n "$database_url" ]] || die "DATABASE_URL not set in $ENV_FILE"
 
   # Parse mysql://user:pass@host:port/db with Node (handles special chars / URL encoding).
@@ -109,7 +109,7 @@ build_apps() {
     npx prisma generate
 
     if [[ "${SKIP_DB_PUSH:-0}" != "1" ]]; then
-      log "Prisma db push (schema sync — does not seed)"
+      log "Prisma db push (schema sync - does not seed)"
       npx prisma db push
     else
       log "Skipping prisma db push (SKIP_DB_PUSH=1)"
@@ -127,7 +127,7 @@ restart_apps() {
     pm2 restart all
     pm2 status
   else
-    die "pm2 not found — start/restart the apps manually"
+    die "pm2 not found - start/restart the apps manually"
   fi
 }
 

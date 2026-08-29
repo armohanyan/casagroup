@@ -1,4 +1,4 @@
-import type { Project, SalesMode } from "@/types";
+import type { Apartment, Project, SalesMode } from "@/types";
 import { hasBuildingFloorPlates, projectKind } from "@/lib/project-kind";
 
 /** The three supported public sales flows. */
@@ -36,4 +36,44 @@ export function usesBuildingExterior(mode: SalesMode): boolean {
 
 export function usesFloorJourney(mode: SalesMode): boolean {
   return mode !== "plans";
+}
+
+/** User-facing toggle between filtered plan grid and map-based search. */
+export type PlansViewMode = "plans" | "visual";
+
+/** Site map, building exterior, or floor plates configured in admin. */
+export function hasVisualPlanSearch(
+  project?: Pick<Project, "buildings" | "mapStages"> | null,
+): boolean {
+  if (hasBuildingFloorPlates(project)) return true;
+  if ((project?.mapStages ?? []).some((s) => Boolean(s.imageUrl?.trim()))) return true;
+  if ((project?.buildings ?? []).some((b) => Boolean(b.exteriorImageUrl?.trim()))) return true;
+  return false;
+}
+
+function isMarketApartment(a: Apartment): boolean {
+  if (a.status === "Reserved") return false;
+  if (a.status === "Sold" && !a.floorPlanImage?.trim()) return false;
+  return true;
+}
+
+/** Apartments available in the filtered plan grid. */
+export function hasFilteredPlanSearch(
+  project?: Pick<Project, "apartments"> | null,
+): boolean {
+  return (project?.apartments ?? []).some(isMarketApartment);
+}
+
+export function defaultPlansViewMode(
+  project?: Pick<Project, "kind" | "salesMode" | "buildings"> | null,
+): PlansViewMode {
+  return "plans";
+}
+
+export function parsePlansViewMode(
+  raw: string | null | undefined,
+  project?: Pick<Project, "kind" | "salesMode" | "buildings"> | null,
+): PlansViewMode {
+  if (raw === "plans" || raw === "visual") return raw;
+  return defaultPlansViewMode(project);
 }

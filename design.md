@@ -1,7 +1,7 @@
 # CasaGroup Design System
 
 ## Inspiration
-Editorial dark luxury — large typography, full-bleed photography, generous whitespace,
+Editorial dark luxury - large typography, full-bleed photography, generous whitespace,
 warm earthy accent tones. Inspired by high-end architecture/interior magazines.
 
 ## Color Palette
@@ -20,8 +20,8 @@ warm earthy accent tones. Inspired by high-end architecture/interior magazines.
 - Status Red: `#8b3a3a`
 
 ## Typography
-- Display: 'Cormorant Garamond' — serif, editorial, used for large headings
-- Body/UI: 'DM Sans' — clean, modern sans-serif
+- Display: 'Cormorant Garamond' - serif, editorial, used for large headings
+- Body/UI: 'DM Sans' - clean, modern sans-serif
 - Mono: 'DM Mono' for numbers/stats
 
 ## Spacing

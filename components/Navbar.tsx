@@ -162,7 +162,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 grid grid-cols-[auto_1fr_auto] items-center gap-3">
         <Link
           href="/"
-          className={cn("shrink-0 text-lg font-semibold", headerDark ? "text-white" : "text-[#0c1428]")}
+          className={cn("font-brand shrink-0 text-[24px] font-semibold", headerDark ? "text-white" : "text-[#0c1428]")}
         >
           Casa<span className="text-[#c9a96e]">Group</span>
         </Link>

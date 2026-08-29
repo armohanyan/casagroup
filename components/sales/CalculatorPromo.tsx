@@ -9,7 +9,7 @@ export function CalculatorPromo() {
 
   return (
     <section className="bg-[#F3EFE8] border-y border-[#E7E0D5]">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0 py-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 bg-white rounded-xl border border-[#E7E0D5] p-6 sm:p-8 shadow-sm brand-surface-top">
           <div className="flex items-start gap-4">
             <div className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-brand/8 text-brand border border-brand/10">

@@ -55,7 +55,7 @@ export function HomeHero() {
       </motion.div>
 
       <motion.div
-        className="relative z-10 flex h-full max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16"
+        className="relative z-10 flex h-full max-w-[1320px] mx-auto px-4 sm:px-0 pt-24 pb-16"
         style={{ y: contentY, opacity }}
       >
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between w-full gap-12 lg:gap-8">

@@ -11,14 +11,20 @@ export function Footer() {
       <Container>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-8">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="text-lg font-semibold text-[#0c1428]">
+            <Link href="/" className="font-brand text-[24px] font-semibold text-[#0c1428]">
               Casa<span className="text-[#c9a96e]">Group</span>
             </Link>
             <div className="flex gap-3 mt-4">
-              {[Instagram, Facebook].map((Icon, i) => (
+              {[
+                { Icon: Instagram, href: "https://www.instagram.com/casaestate_/", label: "Instagram" },
+                { Icon: Facebook, href: "https://www.facebook.com/profile.php?id=61568184149352", label: "Facebook" },
+              ].map(({ Icon, href, label }) => (
                 <a
-                  key={i}
-                  href="#"
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
                   className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#E5E7EB] text-[#6B7280] hover:text-[#0c1428]"
                 >
                   <Icon size={16} />

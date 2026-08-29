@@ -1,14 +1,23 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
-import { Inter, Noto_Sans_Armenian } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans, Noto_Sans_Armenian } from "next/font/google";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { Provider } from "@/components/provider";
 import { SiteChrome } from "@/components/SiteChrome";
 import { LANG_COOKIE, resolveLang } from "@/lib/i18n-config";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-inter",
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dm-sans",
   display: "swap",
 });
 
@@ -21,7 +30,7 @@ const notoArmenian = Noto_Sans_Armenian({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://casagroup.am";
 
-const DEFAULT_TITLE = "CASA GROUP — նոր բնակարաններ Երևանում կառուցապատողից";
+const DEFAULT_TITLE = "CASA GROUP - նոր բնակարաններ Երևանում կառուցապատողից";
 const DEFAULT_DESCRIPTION =
   "CASA GROUP-ը օգնում է գնել նորակառույց բնակարան Երևանում՝ ստուգված նախագծեր, թափանցիկ գներ, դիտումներ և մասնագիտական աջակցություն՝ ընտրությունից մինչև գործարքի ավարտ։";
 
@@ -63,7 +72,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "hy_AM",
     url: "/",
-    images: [{ url: "/yerevan.png", width: 1536, height: 1024, alt: "CasaGroup — Yerevan" }],
+    images: [{ url: "/yerevan.png", width: 1536, height: 1024, alt: "CasaGroup - Yerevan" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -87,8 +96,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const lang = resolveLang(cookieStore.get(LANG_COOKIE)?.value);
 
   return (
-    <html lang={lang} suppressHydrationWarning className={`${inter.variable} ${notoArmenian.variable}`}>
+    <html
+      lang={lang}
+      suppressHydrationWarning
+      className={`${cormorant.variable} ${dmSans.variable} ${notoArmenian.variable}`}
+    >
       <body>
+        <GoogleAnalytics />
         <Provider initialLang={lang}>
           <SiteChrome>{children}</SiteChrome>
         </Provider>

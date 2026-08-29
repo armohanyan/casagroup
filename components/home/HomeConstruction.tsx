@@ -42,7 +42,7 @@ export function HomeConstruction({ projects }: Props) {
 
   return (
     <section className="py-16 md:py-24 bg-white">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0">
         <SectionHeader
           eyebrow={t.home.constructionEyebrow}
           title={t.home.constructionTitle}

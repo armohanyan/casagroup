@@ -36,7 +36,7 @@ export function ProjectGallery({ images, title }: Props) {
             >
               <Image
                 src={img}
-                alt={`${title} — interior photo ${i + 1}`}
+                alt={`${title} - interior photo ${i + 1}`}
                 fill
                 unoptimized
                 sizes={i === 0 ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 50vw, 33vw"}
@@ -90,7 +90,7 @@ export function ProjectGallery({ images, title }: Props) {
             >
               <Image
                 src={images[lightbox]}
-                alt={`${title} — enlarged view ${lightbox + 1}`}
+                alt={`${title} - enlarged view ${lightbox + 1}`}
                 fill
                 unoptimized
                 sizes="100vw"

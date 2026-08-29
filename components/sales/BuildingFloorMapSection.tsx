@@ -121,12 +121,10 @@ function FloorPlanCanvas({
         {/* Match building/exterior maps: stretch image to the frame so % hotspots stay aligned (no object-contain). */}
         <img
           src={floor.imageUrl}
-          alt={`${title} — ${floor.label}`}
+          alt={`${title} - ${floor.label}`}
           className={cn(
             "pointer-events-none block w-full select-none",
-            expanded
-              ? "h-full min-h-screen"
-              : "h-auto max-h-screen md:min-h-[80vh]",
+            expanded ? "h-auto w-full" : "h-auto max-h-screen md:min-h-[80vh]",
           )}
           draggable={false}
         />
@@ -147,7 +145,7 @@ function FloorPlanCanvas({
                 points={pointsToSvg(h.points)}
                 role={sold ? undefined : "link"}
                 tabIndex={sold ? undefined : 0}
-                aria-label={`${hasApartmentNumber(apt) ? `№ ${apartmentDisplayNumber(apt)}, ` : ""}${apt.rooms} ${t.aptDetail.bedrooms}, ${apt.area} m²${sold ? ` — ${t.developerDetail.sold}` : ""}`}
+                aria-label={`${hasApartmentNumber(apt) ? `№ ${apartmentDisplayNumber(apt)}, ` : ""}${apt.rooms} ${t.aptDetail.bedrooms}, ${apt.area} m²${sold ? ` - ${t.developerDetail.sold}` : ""}`}
                 className={cn(
                   "outline-none",
                   sold ? "pointer-events-none cursor-default" : "cursor-pointer transition-all duration-150",
@@ -216,6 +214,70 @@ function FloorPlanCanvas({
         </button>
       ) : null}
     </div>
+  );
+}
+
+function FloorMapExpandedOverlay({
+  floor,
+  aptById,
+  title,
+  hoveredAptId,
+  tooltip,
+  onHover,
+  onLeave,
+  onAptClick,
+  onClose,
+}: {
+  floor: BuildingFloor;
+  aptById: Map<string, Apartment>;
+  title: string;
+  hoveredAptId: string | null;
+  tooltip: { aptId: string; x: number; y: number } | null;
+  onHover: (aptId: string, x: number, y: number) => void;
+  onLeave: () => void;
+  onAptClick: (aptId: string) => void;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[1200] flex flex-col bg-black/95"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.developerDetail.floorMapExpand}
+    >
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-5">
+        <p className="min-w-0 truncate text-sm font-medium text-white">
+          {title} - {floor.label}
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          aria-label={t.developerDetail.floorMapClose}
+        >
+          <X size={20} aria-hidden />
+        </button>
+      </div>
+
+      <div className="relative min-h-0 flex-1 overflow-auto">
+        <FloorPlanCanvas
+          expanded
+          floor={floor}
+          aptById={aptById}
+          title={title}
+          hoveredAptId={hoveredAptId}
+          tooltip={tooltip}
+          onHover={onHover}
+          onLeave={onLeave}
+          onAptClick={onAptClick}
+        />
+      </div>
+    </motion.div>
   );
 }
 
@@ -333,7 +395,7 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
           className={cn(
             "mt-3 text-center text-xs text-[#9CA3AF]",
             !locked && "lg:text-left",
-            locked && "px-4 sm:px-6 lg:px-8",
+            locked && "px-4 sm:px-0",
           )}
         >
           {t.developerDetail.floorMapNoHotspots}
@@ -359,47 +421,26 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
 
         <AnimatePresence>
           {expanded && selectedFloor ? (
-            <motion.div
-              className="fixed inset-0 z-[1200] bg-black/95"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              role="dialog"
-              aria-modal="true"
-              aria-label={t.developerDetail.floorMapExpand}
-            >
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="absolute right-3 top-3 z-50 rounded-full p-2 text-white hover:bg-white/10 sm:right-4 sm:top-4"
-                aria-label="Close"
-              >
-                <X size={22} />
-              </button>
-
-              <div className="h-full w-full">
-                <FloorPlanCanvas
-                  expanded
-                  floor={selectedFloor}
-                  aptById={aptById}
-                  title={t.developerDetail.floorMapTitle}
-                  hoveredAptId={expandedHoveredAptId}
-                  tooltip={expandedTooltip}
-                  onHover={(aptId, x, y) => {
-                    setExpandedHoveredAptId(aptId);
-                    setExpandedTooltip({ aptId, x, y });
-                  }}
-                  onLeave={() => {
-                    setExpandedHoveredAptId(null);
-                    setExpandedTooltip(null);
-                  }}
-                  onAptClick={(aptId) => {
-                    setExpanded(false);
-                    goToApt(aptId);
-                  }}
-                />
-              </div>
-            </motion.div>
+            <FloorMapExpandedOverlay
+              floor={selectedFloor}
+              aptById={aptById}
+              title={t.developerDetail.floorMapTitle}
+              hoveredAptId={expandedHoveredAptId}
+              tooltip={expandedTooltip}
+              onHover={(aptId, x, y) => {
+                setExpandedHoveredAptId(aptId);
+                setExpandedTooltip({ aptId, x, y });
+              }}
+              onLeave={() => {
+                setExpandedHoveredAptId(null);
+                setExpandedTooltip(null);
+              }}
+              onAptClick={(aptId) => {
+                setExpanded(false);
+                goToApt(aptId);
+              }}
+              onClose={() => setExpanded(false)}
+            />
           ) : null}
         </AnimatePresence>
       </section>
@@ -482,47 +523,26 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
 
       <AnimatePresence>
         {expanded && selectedFloor ? (
-          <motion.div
-            className="fixed inset-0 z-[1200] bg-black/95"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.developerDetail.floorMapExpand}
-          >
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              className="absolute right-3 top-3 z-50 rounded-full p-2 text-white hover:bg-white/10 sm:right-4 sm:top-4"
-              aria-label="Close"
-            >
-              <X size={22} />
-            </button>
-
-            <div className="h-full w-full">
-              <FloorPlanCanvas
-                expanded
-                floor={selectedFloor}
-                aptById={aptById}
-                title={t.developerDetail.floorMapTitle}
-                hoveredAptId={expandedHoveredAptId}
-                tooltip={expandedTooltip}
-                onHover={(aptId, x, y) => {
-                  setExpandedHoveredAptId(aptId);
-                  setExpandedTooltip({ aptId, x, y });
-                }}
-                onLeave={() => {
-                  setExpandedHoveredAptId(null);
-                  setExpandedTooltip(null);
-                }}
-                onAptClick={(aptId) => {
-                  setExpanded(false);
-                  goToApt(aptId);
-                }}
-              />
-            </div>
-          </motion.div>
+          <FloorMapExpandedOverlay
+            floor={selectedFloor}
+            aptById={aptById}
+            title={t.developerDetail.floorMapTitle}
+            hoveredAptId={expandedHoveredAptId}
+            tooltip={expandedTooltip}
+            onHover={(aptId, x, y) => {
+              setExpandedHoveredAptId(aptId);
+              setExpandedTooltip({ aptId, x, y });
+            }}
+            onLeave={() => {
+              setExpandedHoveredAptId(null);
+              setExpandedTooltip(null);
+            }}
+            onAptClick={(aptId) => {
+              setExpanded(false);
+              goToApt(aptId);
+            }}
+            onClose={() => setExpanded(false)}
+          />
         ) : null}
       </AnimatePresence>
     </section>

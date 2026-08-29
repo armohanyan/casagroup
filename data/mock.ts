@@ -1,6 +1,6 @@
 import type { Project } from "@/types";
 
-// ─── Mock data — replace with API calls when backend is ready ───────────────
+// ─── Mock data - replace with API calls when backend is ready ───────────────
 
 export const MOCK_PROJECTS: Project[] = [
   {
@@ -379,7 +379,7 @@ export const MOCK_PROJECTS: Project[] = [
     longDescriptionHy:
       "Northern Residences-ը տրամադրում է պատրաստ շքեղություն Երևանի ամենակենսունակ թաղամասի սրտում։ Քայլելու հեռավորության վրա՝ սրճարաններ, պատկերասրահներ և քաղաքի լավագույն ռեստորաններ։",
     longDescriptionRu:
-      "Northern Residences — готовая роскошь в самом оживлённом районе Еревана. Кафе, галереи и рестораны в шаговой доступности.",
+      "Northern Residences - готовая роскошь в самом оживлённом районе Еревана. Кафе, галереи и рестораны в шаговой доступности.",
     images: [
       "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=1200&q=80",
       "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=80",
@@ -460,11 +460,11 @@ export const MOCK_PROJECTS: Project[] = [
     descriptionHy: "Բացառիկ բլրային նախագիծ՝ Հաղթանակի այգու և Արարատ լեռան տեսարանով։",
     descriptionRu: "Эксклюзивный проект на склоне с видом на Парк Победы и гору Арарат.",
     longDescription:
-      "Victory Park Estates represents the pinnacle of Casa Group's portfolio — limited collection residences with unmatched views and bespoke interiors.",
+      "Victory Park Estates represents the pinnacle of Casa Group's portfolio - limited collection residences with unmatched views and bespoke interiors.",
     longDescriptionHy:
       "Victory Park Estates-ը Casa Group-ի պորտֆելի գագաթնակետն է՝ սահմանափակ քանակությամբ բնակարաններ անզուգական տեսարաններով և անհատական ինտերիերով։",
     longDescriptionRu:
-      "Victory Park Estates — вершина портфеля Casa Group: ограниченная коллекция резиденций с видами и индивидуальными интерьерами.",
+      "Victory Park Estates - вершина портфеля Casa Group: ограниченная коллекция резиденций с видами и индивидуальными интерьерами.",
     images: [
       "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&q=80",
       "https://images.unsplash.com/photo-1600047509807-ba8f64d4e676?w=1200&q=80",

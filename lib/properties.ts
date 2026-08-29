@@ -21,6 +21,15 @@ export function getAvailableProperties(projects: Project[]): PropertyListing[] {
   return getAllProperties(projects).filter(({ apartment }) => apartment.status === "Available");
 }
 
+/** Lowest total apartment price among available plans in a project. */
+export function getCheapestAvailablePlanPrice(project: Project): number {
+  const prices = project.apartments
+    .filter((a) => a.status === "Available" && a.price > 0)
+    .map((a) => a.price);
+  if (prices.length === 0) return project.startingPrice;
+  return Math.min(...prices);
+}
+
 export interface PropertySearchParams {
   city?: string;
   maxPrice?: number;

@@ -252,7 +252,7 @@ export type HeroSlide = {
 };
 
 export async function fetchHeroSlides() {
-  // Public, no auth. Prefer /api/projects/hero-slides — production nginx already
+  // Public, no auth. Prefer /api/projects/hero-slides - production nginx already
   // proxies /api/projects → Express. Fall back to Next's public /api/hero-slides proxy.
   try {
     return await apiFetch<HeroSlide[]>("/api/projects/hero-slides");

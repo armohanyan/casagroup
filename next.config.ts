@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import { getInternalBackendUrl } from "./lib/backend-url";
 
-// Rewrites must target the local Express process — never the public site origin
+// Rewrites must target the local Express process - never the public site origin
 // (that creates nginx↔Next loops → "400 Request Header Or Cookie Too Large").
 const API_ORIGIN = getInternalBackendUrl();
 const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "");

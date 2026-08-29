@@ -257,6 +257,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
             options={roomOptions.map((r) => ({ value: String(r), label: String(r) }))}
             allLabel={t.developerDetail.filterAll}
             emptyLabel={t.developerDetail.filterNone}
+            resetLabel={t.developerDetail.filterReset}
             triggerClassName="!h-9"
           />
 
@@ -268,6 +269,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
             options={floorOptions.map((f) => ({ value: String(f), label: String(f) }))}
             allLabel={t.developerDetail.filterAll}
             emptyLabel={t.developerDetail.filterNone}
+            resetLabel={t.developerDetail.filterReset}
             triggerClassName="!h-9"
           />
 
@@ -279,6 +281,7 @@ export function DeveloperFloorPlanSection({ project }: Props) {
             options={paymentOptions}
             allLabel={t.developerDetail.filterAll}
             emptyLabel={t.developerDetail.filterNone}
+            resetLabel={t.developerDetail.filterReset}
             triggerClassName="!h-9"
           />
 

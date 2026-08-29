@@ -14,7 +14,7 @@ function isMockHeroUrl(imageUrl: string) {
   return imageUrl.includes(LEGACY_MOCK_HOST);
 }
 
-/** Public + admin listing — real admin uploads only (no stock mock URLs). */
+/** Public + admin listing - real admin uploads only (no stock mock URLs). */
 export async function listHeroSlides() {
   const slides = await prisma.heroSlide.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],

@@ -33,7 +33,7 @@ type TipPos = { x: number; y: number };
 /** Defanse-style map shell (visibility controlled by page wrappers). */
 const MAPPED_SECTION = "mapped-section relative w-full";
 const MAP_FRAME = "map relative mb-1 h-full w-full";
-/** Exact Defanse image classes — min-height only applies ≥768px so small windows scale naturally. */
+/** Exact Defanse image classes - min-height only applies ≥768px so small windows scale naturally. */
 const MAP_IMG = "w-full md:min-h-[80vh] h-auto max-h-screen";
 const MAP_SVG = "absolute left-0 top-0 z-10 h-full w-full";
 
@@ -331,7 +331,7 @@ function BuildingExteriorView({
   if (!exterior) {
     return (
       <section id="sales-journey" className={MAPPED_SECTION}>
-        <div className="space-y-5 px-4 py-8 sm:px-6 lg:px-8">
+        <div className="space-y-5 px-4 sm:px-0 py-8">
           <p className="text-center text-sm text-[#6B7280]">{emptyLabel}</p>
           <div className="flex flex-wrap justify-center gap-2">
             {floors.map((f) => (
@@ -450,7 +450,7 @@ function BuildingPicker({
   onSelect: (b: Building) => void;
 }) {
   return (
-    <div className="px-4 py-8 sm:px-6 lg:px-8">
+    <div className="px-4 sm:px-0 py-8">
       <h2 className="mb-4 text-lg font-semibold tracking-tight text-[#0c1428] sm:text-xl">{title}</h2>
       <div className="flex flex-wrap gap-2">
         {buildings.map((b) => (
@@ -469,10 +469,10 @@ function BuildingPicker({
 }
 
 /**
- * Public apartment sales journey — three flows:
- * 1. plans — apartment plan list (+ floor map if plates exist)
- * 2. floors — single building exterior → floor → apartments
- * 3. buildings — site map → pick building → then floors flow
+ * Public apartment sales journey - three flows:
+ * 1. plans - apartment plan list (+ floor map if plates exist)
+ * 2. floors - single building exterior → floor → apartments
+ * 3. buildings - site map → pick building → then floors flow
  *
  * Building / stage / floor selection is stored in the URL (`?stage=&building=&floor=`)
  * so refresh and browser back/forward restore the same step.
@@ -544,18 +544,9 @@ function ApartmentSalesJourneyInner({ project }: Props) {
   const currentStage = stageStack[stageStack.length - 1] ?? null;
   const root = useMemo(() => rootStage(stages), [stages]);
 
-  // ——— Case 1: plans only ———
+  // --- Case 1: plans sales mode - visual floor map only (plan grid is on project page) ---
   if (mode === "plans") {
-    return (
-      <>
-        <section id="apartments" className="border-t border-[#E5E7EB]">
-          <Container className="py-10 md:py-14">
-            <DeveloperFloorPlanSection project={project} />
-          </Container>
-        </section>
-        <BuildingFloorMapSection project={project} />
-      </>
-    );
+    return <BuildingFloorMapSection project={project} />;
   }
 
   function selectBuilding(b: Building) {
@@ -587,7 +578,7 @@ function ApartmentSalesJourneyInner({ project }: Props) {
     });
   }
 
-  // ——— Floor plate (apartments) ———
+  // --- Floor plate (apartments) ---
   if (building && floor) {
     return (
       <BuildingFloorMapSection
@@ -597,7 +588,7 @@ function ApartmentSalesJourneyInner({ project }: Props) {
     );
   }
 
-  // ——— Building exterior (choose floor) ———
+  // --- Building exterior (choose floor) ---
   if (building && !floor) {
     return (
       <BuildingExteriorView
@@ -612,7 +603,7 @@ function ApartmentSalesJourneyInner({ project }: Props) {
     );
   }
 
-  // ——— Case 2: floors — multi-building picker (rare) ———
+  // --- Case 2: floors - multi-building picker (rare) ---
   if (mode === "floors") {
     if (buildings.length === 0) {
       return <BuildingFloorMapSection project={project} />;
@@ -628,7 +619,7 @@ function ApartmentSalesJourneyInner({ project }: Props) {
     );
   }
 
-  // ——— Case 3: buildings — site map ———
+  // --- Case 3: buildings - site map ---
   if (currentStage?.imageUrl.trim()) {
     return (
       <MapStageView
@@ -644,11 +635,11 @@ function ApartmentSalesJourneyInner({ project }: Props) {
     );
   }
 
-  // Map missing — building buttons
+  // Map missing - building buttons
   if (buildings.length > 0) {
     return (
       <section id="sales-journey">
-        <p className="px-4 pt-6 text-sm text-[#6B7280] sm:px-6 lg:px-8">{d.salesJourneyEmptyMap}</p>
+        <p className="px-4 sm:px-0 pt-6 text-sm text-[#6B7280]">{d.salesJourneyEmptyMap}</p>
         <BuildingPicker
           buildings={buildings}
           title={d.salesJourneySelectBuilding}

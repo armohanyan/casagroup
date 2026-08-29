@@ -39,7 +39,7 @@ export function CompactListingCard({ listing, className, fullWidth }: CompactLis
         {image ? (
           <Image
             src={image}
-            alt={`${title} — ${apartment.rooms} ${t.table.rooms}`}
+            alt={`${title} - ${apartment.rooms} ${t.table.rooms}`}
             fill
             sizes="(max-width: 640px) 100vw, 300px"
             className="object-cover zoom-target"

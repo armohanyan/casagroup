@@ -11,10 +11,10 @@ export function getSiteUrl(): string {
 export const SITE_NAME = "CasaGroup";
 
 export const SITE_TAGLINE =
-  "New construction sales, modern residential complexes, and premium apartments in Armenia — a trusted property buying experience.";
+  "New construction sales, modern residential complexes, and premium apartments in Armenia - a trusted property buying experience.";
 
 export const DEFAULT_META_DESCRIPTION =
-  "CasaGroup connects buyers with curated new-build residential projects across Armenia — premium apartments, transparent sales, and developer-direct new construction.";
+  "CasaGroup connects buyers with curated new-build residential projects across Armenia - premium apartments, transparent sales, and developer-direct new construction.";
 
 export const META_KEYWORDS = [
   "CasaGroup",
@@ -33,12 +33,12 @@ export const SITE_AUTHOR = "CasaGroup";
 
 export const THEME_COLOR = "#FAF8F5";
 
-/** Primary brand navy — use for accents, focus states, dark bands (not full-page backgrounds). */
+/** Primary brand navy - use for accents, focus states, dark bands (not full-page backgrounds). */
 export const BRAND_COLOR = "#0C1428";
 
 export const ACCENT_COLOR = "#c9a96e";
 
-/** Partner portal URL — set `NEXT_PUBLIC_PARTNER_PORTAL_URL` for subdomain (e.g. partners.casagroup.am). */
+/** Partner portal URL - set `NEXT_PUBLIC_PARTNER_PORTAL_URL` for subdomain (e.g. partners.casagroup.am). */
 export function getPartnerPortalUrl(): string {
   const raw = process.env.NEXT_PUBLIC_PARTNER_PORTAL_URL?.trim();
   if (raw) return raw.replace(/\/$/, "");

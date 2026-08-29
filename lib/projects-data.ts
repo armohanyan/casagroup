@@ -28,7 +28,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
   }
 }
 
-/** @deprecated Prefer getProjects() — seed fallback only. */
+/** @deprecated Prefer getProjects() - seed fallback only. */
 export function getSeedProjects(): Project[] {
   return MOCK_PROJECTS;
 }

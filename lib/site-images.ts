@@ -1,4 +1,4 @@
-/** Curated real-estate imagery — premium, non-generic stock. */
+/** Curated real-estate imagery - premium, non-generic stock. */
 export const siteImages = {
   hero: {
     home: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1920&q=90&auto=format&fit=crop",
@@ -25,7 +25,7 @@ export const siteImages = {
 } as const;
 
 export function getHeroImage(pathname: string): string {
-  // Homepage carousel uses admin-uploaded slides from the API — not stock mock images.
+  // Homepage carousel uses admin-uploaded slides from the API - not stock mock images.
   if (pathname === "/") return siteImages.hero.default;
   if (pathname.startsWith("/properties")) return siteImages.hero.properties;
   if (pathname.startsWith("/projects")) return siteImages.hero.projects;

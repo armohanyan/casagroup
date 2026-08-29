@@ -115,32 +115,32 @@ export function AdminDashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <AdminStatCard
           label="Նախագծեր"
-          value={projectsLoading ? "—" : formatStat(kpi.projects)}
+          value={projectsLoading ? "-" : formatStat(kpi.projects)}
           icon={Building2}
           accent
           delay={0}
         />
         <AdminStatCard
           label="Հասանելի"
-          value={projectsLoading ? "—" : formatStat(kpi.available)}
+          value={projectsLoading ? "-" : formatStat(kpi.available)}
           icon={Home}
           delay={0.05}
         />
         <AdminStatCard
           label="Վաճառված"
-          value={projectsLoading ? "—" : formatStat(kpi.sold)}
+          value={projectsLoading ? "-" : formatStat(kpi.sold)}
           icon={ShoppingBag}
           delay={0.1}
         />
         <AdminStatCard
           label="Հարցումներ"
-          value={statsLoading ? "—" : formatStat(kpi.inquiries ?? 0)}
+          value={statsLoading ? "-" : formatStat(kpi.inquiries ?? 0)}
           icon={MessageSquare}
           delay={0.15}
         />
         <AdminStatCard
           label="Դիտումներ"
-          value={projectsLoading && statsLoading ? "—" : formatStat(kpi.views)}
+          value={projectsLoading && statsLoading ? "-" : formatStat(kpi.views)}
           icon={Eye}
           delay={0.2}
         />

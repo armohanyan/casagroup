@@ -21,7 +21,7 @@ projectsRouter.get("/", async (req, res, next) => {
 });
 
 /**
- * Public homepage slides — no auth.
+ * Public homepage slides - no auth.
  * Mounted under /api/projects so production nginx → Express covers it
  * (unlike /api/hero-slides which often hits Next only).
  * Must stay before /:slug or Express treats the path as a project slug → 404.

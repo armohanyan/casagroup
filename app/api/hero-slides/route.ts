@@ -4,7 +4,7 @@ import { getInternalBackendUrl } from "@/lib/backend-url";
 export const dynamic = "force-dynamic";
 
 /**
- * Public homepage hero slides — no admin auth.
+ * Public homepage hero slides - no admin auth.
  * Proxies Express /api/hero-slides on loopback (never the public site origin).
  */
 export async function GET() {
@@ -24,7 +24,7 @@ export async function GET() {
     }
 
     const body = await res.text();
-    // Never forward auth challenges — this endpoint is public.
+    // Never forward auth challenges - this endpoint is public.
     if (res.status === 401 || res.status === 403) {
       console.error("[api/hero-slides] unexpected auth status from", url, body.slice(0, 200));
       return NextResponse.json({ error: "Hero slides backend misconfigured" }, { status: 502 });

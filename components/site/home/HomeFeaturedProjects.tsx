@@ -61,9 +61,9 @@ export function HomeFeaturedProjects({ projects }: { projects: Project[] }) {
       key={project.id}
       data-card
       className={cn(
-        "h-full",
-        showCarouselArrows &&
-          "snap-start shrink-0 w-[calc((100%-1rem)/1.3)] sm:w-[380px] lg:w-[calc((100%-3rem)/3)]",
+        showCarouselArrows
+          ? "flex flex-col self-stretch snap-start shrink-0 w-[calc((100%-1rem)/1.3)] sm:w-[380px] lg:w-[calc((100%-3rem)/3)] [&>article]:h-full [&>article]:w-full"
+          : "h-full",
       )}
     >
       <ProjectCard project={project} showAvailableUnits={false} />

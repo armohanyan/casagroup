@@ -3,7 +3,7 @@ import { getInternalBackendUrl } from "@/lib/backend-url";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/views/:projectId — view count */
+/** GET /api/views/:projectId - view count */
 export async function GET(
   _request: Request,
   context: { params: Promise<{ projectId: string }> }

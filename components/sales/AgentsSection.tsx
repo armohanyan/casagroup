@@ -19,7 +19,7 @@ export function AgentsSection() {
 
   return (
     <section className="py-12 bg-white">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-[#1C1917] section-heading">{t.sales.agentsTitle}</h2>
           <Link href="/contact" className="text-sm font-semibold text-[#c9a96e] hover:text-[#a88a52]">

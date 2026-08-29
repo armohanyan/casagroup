@@ -3,7 +3,7 @@ import * as heroSlideService from "../services/heroSlideService.js";
 
 export const heroRouter = Router();
 
-/** Public homepage hero slides — no auth. */
+/** Public homepage hero slides - no auth. */
 heroRouter.get("/", async (_req, res, next) => {
   try {
     const slides = await heroSlideService.listHeroSlides();

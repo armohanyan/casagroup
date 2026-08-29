@@ -44,7 +44,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       setLoadError(null);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : String(e));
-      // Keep whatever we already have — never swap real projects for mock seed data.
+      // Keep whatever we already have - never swap real projects for mock seed data.
       // Detail pages fetch by slug independently when the list fails.
     } finally {
       setLoading(false);

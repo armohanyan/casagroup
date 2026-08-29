@@ -16,7 +16,7 @@ export function RecentlyViewedSection() {
 
   return (
     <section className="py-10 bg-[#F6F7FB]">
-      <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1320px] mx-auto px-4 sm:px-0">
         <div className="flex items-center gap-2 mb-5">
           <Clock size={18} className="text-[#c9a96e]" />
           <h2 className="type-section-heading text-[#1C1917]">{t.sales.recentlyViewed}</h2>
