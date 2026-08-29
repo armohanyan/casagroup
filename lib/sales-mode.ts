@@ -65,7 +65,7 @@ export function hasFilteredPlanSearch(
 }
 
 export function defaultPlansViewMode(
-  project?: Pick<Project, "kind" | "salesMode" | "buildings"> | null,
+  _project?: Pick<Project, "kind" | "salesMode" | "buildings"> | null,
 ): PlansViewMode {
   return "plans";
 }
