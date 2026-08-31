@@ -27,11 +27,11 @@ function ProjectPlansViewToggleInner({ view }: Props) {
   );
 
   const tabBase =
-    "flex flex-1 items-center justify-center gap-2 py-3.5 px-4 text-sm font-semibold transition-all duration-200 min-h-[52px]";
+    "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold leading-tight transition-all duration-200 sm:gap-2 sm:px-3 sm:text-sm";
 
   return (
     <div
-      className="flex w-full overflow-hidden rounded-xl border border-[#E5E7EB] bg-[#F3F4F6] p-1"
+      className="flex w-full overflow-hidden rounded-lg border border-[#E5E7EB] bg-[#F3F4F6] p-0.5 sm:rounded-xl sm:p-1"
       role="group"
       aria-label={t.developerDetail.viewModeLabel}
     >
@@ -41,13 +41,13 @@ function ProjectPlansViewToggleInner({ view }: Props) {
         className={cn(
           tabBase,
           view === "plans"
-            ? "rounded-lg bg-[#0c1428] text-white shadow-sm"
-            : "rounded-lg text-[#6B7280] hover:bg-white/70 hover:text-[#0c1428]",
+            ? "bg-[#0c1428] text-white shadow-sm"
+            : "text-[#6B7280] hover:bg-white/70 hover:text-[#0c1428]",
         )}
         aria-pressed={view === "plans"}
       >
-        <LayoutGrid size={18} strokeWidth={2} className="shrink-0" />
-        <span>{t.developerDetail.viewModePlans}</span>
+        <LayoutGrid size={16} strokeWidth={2} className="shrink-0" />
+        <span className="whitespace-nowrap">{t.developerDetail.viewModePlans}</span>
       </button>
       <button
         type="button"
@@ -55,20 +55,20 @@ function ProjectPlansViewToggleInner({ view }: Props) {
         className={cn(
           tabBase,
           view === "visual"
-            ? "rounded-lg bg-[#0c1428] text-white shadow-sm"
-            : "rounded-lg text-[#6B7280] hover:bg-white/70 hover:text-[#0c1428]",
+            ? "bg-[#0c1428] text-white shadow-sm"
+            : "text-[#6B7280] hover:bg-white/70 hover:text-[#0c1428]",
         )}
         aria-pressed={view === "visual"}
       >
-        <Map size={18} strokeWidth={2} className="shrink-0" />
-        <span>{t.developerDetail.viewModeVisual}</span>
+        <Map size={16} strokeWidth={2} className="shrink-0" />
+        <span className="whitespace-nowrap">{t.developerDetail.viewModeVisual}</span>
       </button>
     </div>
   );
 }
 
 function ProjectPlansViewToggleSkeleton() {
-  return <div className="h-[52px] w-full rounded-xl border border-[#E5E7EB] skeleton" />;
+  return <div className="h-10 w-full rounded-lg border border-[#E5E7EB] skeleton sm:h-11" />;
 }
 
 export function ProjectPlansViewToggle(props: Props) {

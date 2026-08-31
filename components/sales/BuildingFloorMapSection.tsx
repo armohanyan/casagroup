@@ -124,7 +124,7 @@ function FloorPlanCanvas({
           alt={`${title} - ${floor.label}`}
           className={cn(
             "pointer-events-none block w-full select-none",
-            expanded ? "h-auto w-full" : "h-auto max-h-screen md:min-h-[80vh]",
+            expanded ? "h-auto w-full" : "h-auto max-h-[52vh] object-contain sm:max-h-[60vh] md:max-h-screen md:min-h-[80vh] md:object-cover",
           )}
           draggable={false}
         />
@@ -482,15 +482,15 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
           </div>
         )}
 
-        <h2 className="mb-6 text-2xl font-semibold leading-snug tracking-tight text-[#0c1428] sm:mb-8 sm:text-3xl">
+        <h2 className="mb-4 text-xl font-semibold leading-snug tracking-tight text-[#0c1428] sm:mb-6 sm:text-2xl md:mb-8 md:text-3xl">
           {title ?? t.developerDetail.floorMapTitle}
         </h2>
 
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 xl:gap-10">
           <div className="w-full shrink-0 lg:w-[140px] xl:w-[160px]">
-            <p className="mb-2.5 text-sm font-medium text-[#6B7280]">{t.developerDetail.chooseFloor}</p>
+            <p className="mb-2 text-xs font-medium text-[#6B7280] sm:mb-2.5 sm:text-sm">{t.developerDetail.chooseFloor}</p>
             <div
-              className="flex flex-wrap gap-2.5 lg:flex-col"
+              className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:flex-col lg:gap-2.5 lg:overflow-visible lg:pb-0"
               role="listbox"
               aria-label={t.developerDetail.chooseFloor}
             >
@@ -504,7 +504,7 @@ export function BuildingFloorMapSection({ project, lockedFloorId, title }: Props
                     aria-selected={active}
                     onClick={() => setSelectedFloorId(floor.id)}
                     className={cn(
-                      "box-border flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
+                      "box-border flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-xs font-semibold transition-colors sm:h-9 sm:w-9 sm:text-sm lg:h-10 lg:w-10",
                       active
                         ? "border-[#c9a96e] bg-transparent text-[#0c1428]"
                         : "border-transparent bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB] hover:text-[#0c1428]",

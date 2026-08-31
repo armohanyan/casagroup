@@ -33,8 +33,9 @@ type TipPos = { x: number; y: number };
 /** Defanse-style map shell (visibility controlled by page wrappers). */
 const MAPPED_SECTION = "mapped-section relative w-full";
 const MAP_FRAME = "map relative mb-1 h-full w-full";
-/** Exact Defanse image classes - min-height only applies ≥768px so small windows scale naturally. */
-const MAP_IMG = "w-full md:min-h-[80vh] h-auto max-h-screen";
+/** Exact Defanse image classes — capped height on phones so maps stay readable. */
+const MAP_IMG =
+  "h-auto w-full max-h-[52vh] object-contain sm:max-h-[60vh] md:max-h-screen md:min-h-[80vh] md:object-cover";
 const MAP_SVG = "absolute left-0 top-0 z-10 h-full w-full";
 
 function stageLabel(stage: ProjectMapStage, lang: Lang): string {
@@ -251,6 +252,7 @@ function MapStageView({
               x={m.x}
               y={m.y}
               label={hotspotDisplayLabel(h, buildingsById, stagesById, lang)}
+              className="hidden md:flex"
             />
           );
         })}
@@ -265,6 +267,28 @@ function MapStageView({
           </div>
         ) : null}
       </div>
+      {stripHotspots.length > 0 ? (
+        <div className="border-t border-[#E5E7EB] bg-white px-4 py-3 md:hidden">
+          <p className="mb-2 text-xs font-medium text-[#6B7280]">{buildingsLabel}</p>
+          <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {stripHotspots.map((h) => {
+              const label = hotspotDisplayLabel(h, buildingsById, stagesById, lang);
+              return (
+                <button
+                  key={`mobile-strip-${h.id}`}
+                  type="button"
+                  title={label}
+                  aria-label={label}
+                  onClick={() => activate(h)}
+                  className="shrink-0 rounded-[5px] border border-[#E5E7EB] bg-[#F3F4F6] px-3 py-1.5 text-xs font-semibold text-[#0c1428] transition-colors hover:border-[#c9a96e] hover:bg-[#0c1428] hover:text-white"
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
       {stripHotspots.length > 0 ? (
         <div className="mb-4 hidden items-center justify-end z-20 lg:mr-10 lg:flex">
           <div className="flex max-w-full flex-wrap items-center text-sm text-[#0c1428]">
@@ -397,7 +421,15 @@ function BuildingExteriorView({
           const pts = f.exteriorHotspot as [number, number][];
           const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
           const y = pts.reduce((s, p) => s + p[1], 0) / pts.length;
-          return <MapPinMarker key={`pin-${f.id}`} x={x} y={y} label={f.label} />;
+          return (
+            <MapPinMarker
+              key={`pin-${f.id}`}
+              x={x}
+              y={y}
+              label={f.label}
+              className="hidden md:flex"
+            />
+          );
         })}
         {hovered && tip ? (
           <div className="popovers pointer-events-none absolute left-0 top-0 z-20 hidden h-full w-full md:block">
@@ -410,6 +442,30 @@ function BuildingExteriorView({
           </div>
         ) : null}
       </div>
+      {floors.length > 0 ? (
+        <div className="border-t border-[#E5E7EB] bg-white px-4 py-3 lg:hidden">
+          <p className="mb-2 text-xs font-medium text-[#6B7280]">{floorsLabel}</p>
+          <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {floors.map((f) => (
+              <button
+                key={`mobile-floor-${f.id}`}
+                type="button"
+                title={floorLabelTemplate.replace("{n}", f.label)}
+                aria-label={floorLabelTemplate.replace("{n}", f.label)}
+                onClick={() => onSelectFloor(f)}
+                className={cn(
+                  "flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full border-2 px-2 text-xs font-semibold transition-colors",
+                  hoveredId === f.id
+                    ? "border-[#c9a96e] bg-[#0c1428] text-white"
+                    : "border-transparent bg-[#F3F4F6] text-[#0c1428] hover:border-[#c9a96e]",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       {floors.length > 0 ? (
         <div className="mb-4 hidden items-center justify-end z-20 lg:mr-10 lg:flex">
           <div className="flex max-w-full flex-wrap items-center text-sm text-[#0c1428]">

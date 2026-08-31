@@ -65,9 +65,9 @@ export function hasFilteredPlanSearch(
 }
 
 export function defaultPlansViewMode(
-  _project?: Pick<Project, "kind" | "salesMode" | "buildings"> | null,
+  project?: Pick<Project, "kind" | "salesMode" | "buildings"> | null,
 ): PlansViewMode {
-  return "plans";
+  return usesFloorJourney(projectSalesMode(project)) ? "visual" : "plans";
 }
 
 export function parsePlansViewMode(
