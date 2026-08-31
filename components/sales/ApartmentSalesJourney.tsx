@@ -7,12 +7,17 @@ import {
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
+  type ReactNode,
 } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Container } from "@/components/site/Container";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { MapPinMarker } from "@/components/sales/MapPinMarker";
+import {
+  SalesJourneyBreadcrumb,
+  type SalesJourneyCrumb,
+} from "@/components/sales/SalesJourneyBreadcrumb";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { projectSalesMode, usesMapStages } from "@/lib/sales-mode";
 import { cn } from "@/lib/utils";
@@ -600,6 +605,98 @@ function ApartmentSalesJourneyInner({ project }: Props) {
   const currentStage = stageStack[stageStack.length - 1] ?? null;
   const root = useMemo(() => rootStage(stages), [stages]);
 
+  const keepStage = useCallback((): string | null => {
+    return currentStage && root && currentStage.id !== root.id ? currentStage.id : null;
+  }, [currentStage, root]);
+
+  const goToStage = useCallback(
+    (stage: ProjectMapStage) => {
+      setJourneyParams({
+        stage: root && stage.id === root.id ? null : stage.id,
+        building: null,
+        floor: null,
+      });
+    },
+    [setJourneyParams, root],
+  );
+
+  const goToBuilding = useCallback(() => {
+    if (!building) return;
+    setJourneyParams({
+      stage: keepStage(),
+      building: building.id,
+      floor: null,
+    });
+  }, [building, keepStage, setJourneyParams]);
+
+  const goBack = useCallback(() => {
+    if (floor) {
+      goToBuilding();
+      return;
+    }
+    if (building) {
+      setJourneyParams({ stage: keepStage(), building: null, floor: null });
+      return;
+    }
+    if (stageStack.length > 1) {
+      goToStage(stageStack[stageStack.length - 2]);
+    }
+  }, [floor, building, goToBuilding, keepStage, setJourneyParams, stageStack, goToStage]);
+
+  const journeyNav = useMemo(() => {
+    const items: SalesJourneyCrumb[] = [];
+
+    if (usesMapStages(mode) && stageStack.length > 0) {
+      stageStack.forEach((stage, i) => {
+        const hasMoreAfterStage = Boolean(building) || i < stageStack.length - 1;
+        items.push({
+          label: stageLabel(stage, lang),
+          onClick: hasMoreAfterStage ? () => goToStage(stage) : undefined,
+        });
+      });
+    }
+
+    if (building) {
+      items.push({
+        label: building.name,
+        onClick: floor ? goToBuilding : undefined,
+      });
+    }
+
+    if (floor) {
+      items.push({
+        label: d.salesJourneyFloor.replace("{n}", floor.label),
+      });
+    }
+
+    const canGoBack = Boolean(
+      floor ||
+        (building && (mode === "buildings" || buildings.length > 1)) ||
+        (stageStack.length > 1 && !building),
+    );
+
+    return { items, canGoBack };
+  }, [mode, stageStack, building, floor, lang, d.salesJourneyFloor, goToStage, goToBuilding, buildings.length]);
+
+  function wrapJourneyNav(content: ReactNode) {
+    const showBar =
+      journeyNav.canGoBack ||
+      Boolean(building) ||
+      (usesMapStages(mode) && stageStack.length > 1);
+    if (!showBar) return content;
+    return (
+      <>
+        <SalesJourneyBreadcrumb
+          items={journeyNav.items}
+          onBack={journeyNav.canGoBack ? goBack : undefined}
+          backLabel={d.salesJourneyBack}
+          ariaLabel={d.viewModeLabel}
+        />
+        {content}
+      </>
+    );
+  }
+
   // --- Case 1: plans sales mode - visual floor map only (plan grid is on project page) ---
   if (mode === "plans") {
     return <BuildingFloorMapSection project={project} />;
@@ -636,17 +733,17 @@ function ApartmentSalesJourneyInner({ project }: Props) {
 
   // --- Floor plate (apartments) ---
   if (building && floor) {
-    return (
+    return wrapJourneyNav(
       <BuildingFloorMapSection
         project={{ ...project, buildings: [building] }}
         lockedFloorId={floor.id}
-      />
+      />,
     );
   }
 
   // --- Building exterior (choose floor) ---
   if (building && !floor) {
-    return (
+    return wrapJourneyNav(
       <BuildingExteriorView
         building={building}
         floors={sortedFloors(building.floors)}
@@ -655,7 +752,7 @@ function ApartmentSalesJourneyInner({ project }: Props) {
         floorLabelTemplate={d.salesJourneyFloor}
         emptyLabel={d.salesJourneyEmptyExterior}
         floorsLabel={t.projectDetail.floors}
-      />
+      />,
     );
   }
 
@@ -677,7 +774,7 @@ function ApartmentSalesJourneyInner({ project }: Props) {
 
   // --- Case 3: buildings - site map ---
   if (currentStage?.imageUrl.trim()) {
-    return (
+    return wrapJourneyNav(
       <MapStageView
         stage={currentStage}
         stagesById={stagesById}
@@ -687,7 +784,7 @@ function ApartmentSalesJourneyInner({ project }: Props) {
         onSelectBuilding={selectBuilding}
         moreLabel={d.salesJourneyMore}
         buildingsLabel={d.salesJourneyBuilding}
-      />
+      />,
     );
   }
 
