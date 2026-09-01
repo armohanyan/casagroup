@@ -1447,9 +1447,23 @@ export const ru: Translations = {
     addApartmentOnFloor: "+ Квартира на этот этаж",
     markAsSold: "Продано",
     soldZoneHint:
-      "Продано - зона на этаже не нужна. Сохраните проект.",
+      "Продано - зона на этаже не нужна. Используйте раздел «Текст на плане» для метки SOLD. Сохраните проект.",
     soldZoneOnlyHint:
       "Проданная квартира - планировка не нужна. Сохраните проект для применения.",
+    textLabelsTitle: "Текст на плане этажа",
+    textLabelAdd: "+ Добавить текст",
+    textLabelText: "Текст",
+    textLabelColor: "Цвет",
+    textLabelBgColor: "Фон",
+    textLabelPlace: "Разместить",
+    textLabelRemove: "Удалить",
+    textLabelCount: "{count} меток",
+    textLabelHint:
+      "Добавьте текст (напр. SOLD), выберите цвет, нажмите «Разместить» и кликните по плану. Можно перетаскивать.",
+    hotspotLabelText: "Метка зоны",
+    hotspotLabelColor: "Цвет текста",
+    hotspotLabelBgColor: "Фон",
+    hotspotLabelPlace: "Разместить",
     switchToNeighborhoodConfirm:
       "Переключить на квартал? Этажи корпуса и зоны на планах будут удалены из этого проекта.",
     switchToBuildingConfirm:

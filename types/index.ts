@@ -60,6 +60,22 @@ export interface PaymentOption {
 export interface FloorHotspot {
   apartmentId: string;
   points: [number, number][];
+  /** Optional label on the zone (e.g. SOLD). Position defaults to polygon centroid. */
+  label?: string;
+  labelColor?: string;
+  labelBgColor?: string;
+  labelX?: number;
+  labelY?: number;
+}
+
+/** Free-floating text label on a floor plate image (% coords 0–100). */
+export interface FloorTextLabel {
+  id: string;
+  text: string;
+  color: string;
+  backgroundColor?: string;
+  x: number;
+  y: number;
 }
 
 /** One floor plate for a building (image + apartment hotspots). */
@@ -71,6 +87,8 @@ export interface BuildingFloor {
   sortOrder: number;
   imageUrl: string;
   hotspots: FloorHotspot[];
+  /** Free-floating text labels (e.g. SOLD badges) on the floor plan image. */
+  textLabels?: FloorTextLabel[];
   /** Floor band on the building exterior image (% coords). */
   exteriorHotspot?: [number, number][];
 }

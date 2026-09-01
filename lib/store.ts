@@ -87,6 +87,7 @@ export function emptyBuildingFloor(buildingId: string, sortOrder = 0): BuildingF
     sortOrder,
     imageUrl: "",
     hotspots: [],
+    textLabels: [],
     exteriorHotspot: [],
   };
 }

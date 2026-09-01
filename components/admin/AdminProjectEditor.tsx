@@ -2151,6 +2151,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                                 updateBuildingFloor(building.id, floor.id, {
                                   imageUrl: "",
                                   hotspots: [],
+                                  textLabels: [],
                                 })
                               }
                             />
@@ -2232,6 +2233,19 @@ export function AdminProjectEditor({ projectId }: Props) {
                               addApartmentOnFloor: a.addApartmentOnFloor,
                               markAsSold: a.markAsSold,
                               soldZoneHint: a.soldZoneHint,
+                              textLabelsTitle: a.textLabelsTitle,
+                              textLabelAdd: a.textLabelAdd,
+                              textLabelText: a.textLabelText,
+                              textLabelColor: a.textLabelColor,
+                              textLabelBgColor: a.textLabelBgColor,
+                              textLabelPlace: a.textLabelPlace,
+                              textLabelRemove: a.textLabelRemove,
+                              textLabelCount: a.textLabelCount,
+                              textLabelHint: a.textLabelHint,
+                              hotspotLabelText: a.hotspotLabelText,
+                              hotspotLabelColor: a.hotspotLabelColor,
+                              hotspotLabelBgColor: a.hotspotLabelBgColor,
+                              hotspotLabelPlace: a.hotspotLabelPlace,
                             }}
                           />
                         </AccordionItem>

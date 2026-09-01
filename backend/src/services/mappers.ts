@@ -78,9 +78,51 @@ function mapFloorHotspots(raw: unknown) {
       if (!apartmentId) return null;
       const points = parsePoints(item.points);
       if (points.length < 3) return null;
-      return { apartmentId, points };
+      const label = typeof item.label === "string" && item.label.trim() ? item.label.trim() : undefined;
+      const labelColor =
+        typeof item.labelColor === "string" && item.labelColor.trim() ? item.labelColor.trim() : undefined;
+      const labelBgColor =
+        typeof item.labelBgColor === "string" && item.labelBgColor.trim()
+          ? item.labelBgColor.trim()
+          : undefined;
+      const labelX = typeof item.labelX === "number" && Number.isFinite(item.labelX) ? item.labelX : undefined;
+      const labelY = typeof item.labelY === "number" && Number.isFinite(item.labelY) ? item.labelY : undefined;
+      return {
+        apartmentId,
+        points,
+        ...(label ? { label } : {}),
+        ...(labelColor ? { labelColor } : {}),
+        ...(labelBgColor ? { labelBgColor } : {}),
+        ...(labelX !== undefined ? { labelX } : {}),
+        ...(labelY !== undefined ? { labelY } : {}),
+      };
     })
-    .filter((h): h is { apartmentId: string; points: [number, number][] } => h !== null);
+    .filter((h): h is NonNullable<typeof h> => h !== null);
+}
+
+function mapFloorTextLabels(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const id = typeof row.id === "string" ? row.id : "";
+      const text = typeof row.text === "string" ? row.text : "";
+      const color = typeof row.color === "string" ? row.color : "#ffffff";
+      const backgroundColor = typeof row.backgroundColor === "string" ? row.backgroundColor : undefined;
+      const x = Number(row.x);
+      const y = Number(row.y);
+      if (!id || !text.trim() || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+      return {
+        id,
+        text: text.trim(),
+        color,
+        x,
+        y,
+        ...(backgroundColor ? { backgroundColor } : {}),
+      };
+    })
+    .filter((l): l is NonNullable<typeof l> => l !== null);
 }
 
 export function mapBuildingFloor(floor: BuildingFloor) {
@@ -92,6 +134,7 @@ export function mapBuildingFloor(floor: BuildingFloor) {
     sortOrder: floor.sortOrder,
     imageUrl: floor.imageUrl,
     hotspots: mapFloorHotspots(floor.hotspots),
+    textLabels: mapFloorTextLabels(floor.textLabels),
     exteriorHotspot: exteriorHotspot.length >= 3 ? exteriorHotspot : undefined,
   };
 }

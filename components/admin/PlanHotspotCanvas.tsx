@@ -13,6 +13,16 @@ export type PlanPolygon = {
   dimmed?: boolean;
 };
 
+export type PlanTextLabel = {
+  id: string;
+  text: string;
+  color: string;
+  backgroundColor?: string;
+  x: number;
+  y: number;
+  active?: boolean;
+};
+
 type Props = {
   imageUrl: string;
   polygons: PlanPolygon[];
@@ -24,6 +34,14 @@ type Props = {
   onMovePoint?: (index: number, pt: PlanPoint) => void;
   onSelectPolygon?: (id: string) => void;
   onFinishDraft?: () => void;
+  /** Free-floating text labels on the plan image. */
+  textLabels?: PlanTextLabel[];
+  /** When true, clicks place/move text labels instead of polygon points. */
+  labelPlacementMode?: boolean;
+  selectedLabelId?: string | null;
+  onPlaceLabel?: (pt: PlanPoint) => void;
+  onMoveLabel?: (id: string, pt: PlanPoint) => void;
+  onSelectLabel?: (id: string) => void;
   labels: {
     zoomIn: string;
     zoomOut: string;
@@ -53,6 +71,12 @@ export function PlanHotspotCanvas({
   onMovePoint,
   onSelectPolygon,
   onFinishDraft,
+  textLabels = [],
+  labelPlacementMode = false,
+  selectedLabelId = null,
+  onPlaceLabel,
+  onMoveLabel,
+  onSelectLabel,
   labels,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,6 +94,11 @@ export function PlanHotspotCanvas({
   });
   const pointDragRef = useRef<{
     index: number;
+    pointerId: number;
+    moved: boolean;
+  } | null>(null);
+  const labelDragRef = useRef<{
+    id: string;
     pointerId: number;
     moved: boolean;
   } | null>(null);
@@ -184,7 +213,7 @@ export function PlanHotspotCanvas({
   }
 
   function onPointerDown(e: React.PointerEvent) {
-    if (pointDragRef.current) return;
+    if (pointDragRef.current || labelDragRef.current) return;
     if (e.button === 1 || (e.button === 0 && panning)) {
       e.preventDefault();
       dragRef.current = { active: true, x: e.clientX, y: e.clientY };
@@ -193,6 +222,14 @@ export function PlanHotspotCanvas({
   }
 
   function onPointerMove(e: React.PointerEvent) {
+    const labelDrag = labelDragRef.current;
+    if (labelDrag && onMoveLabel) {
+      const pt = pointerToPercent(e.clientX, e.clientY);
+      if (!pt) return;
+      labelDrag.moved = true;
+      onMoveLabel(labelDrag.id, pt);
+      return;
+    }
     const pointDrag = pointDragRef.current;
     if (pointDrag && onMovePoint) {
       const pt = pointerToPercent(e.clientX, e.clientY);
@@ -210,6 +247,17 @@ export function PlanHotspotCanvas({
   }
 
   function onPointerUp(e: React.PointerEvent) {
+    const labelDrag = labelDragRef.current;
+    if (labelDrag && labelDrag.pointerId === e.pointerId) {
+      if (labelDrag.moved) suppressClickRef.current = true;
+      labelDragRef.current = null;
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
     const pointDrag = pointDragRef.current;
     if (pointDrag && pointDrag.pointerId === e.pointerId) {
       if (pointDrag.moved) suppressClickRef.current = true;
@@ -232,7 +280,7 @@ export function PlanHotspotCanvas({
   }
 
   function onSvgClick(e: React.MouseEvent<SVGSVGElement>) {
-    if (panning || dragRef.current.active || pointDragRef.current) return;
+    if (panning || dragRef.current.active || pointDragRef.current || labelDragRef.current) return;
     if (suppressClickRef.current) {
       suppressClickRef.current = false;
       return;
@@ -240,6 +288,10 @@ export function PlanHotspotCanvas({
     if (e.detail > 1) return;
     const pt = pointerToPercent(e.clientX, e.clientY);
     if (!pt) return;
+    if (labelPlacementMode && onPlaceLabel) {
+      onPlaceLabel(pt);
+      return;
+    }
     onAddPoint(pt);
   }
 
@@ -247,6 +299,15 @@ export function PlanHotspotCanvas({
     e.preventDefault();
     e.stopPropagation();
     onFinishDraft?.();
+  }
+
+  function startLabelDrag(id: string, e: React.PointerEvent) {
+    if (panning || !onMoveLabel) return;
+    e.preventDefault();
+    e.stopPropagation();
+    labelDragRef.current = { id, pointerId: e.pointerId, moved: false };
+    onSelectLabel?.(id);
+    (containerRef.current as HTMLElement | null)?.setPointerCapture(e.pointerId);
   }
 
   function startPointDrag(index: number, e: React.PointerEvent) {
@@ -315,7 +376,7 @@ export function PlanHotspotCanvas({
         ref={containerRef}
         className={cn(
           "relative h-[min(70vh,560px)] overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-[#FAFAF8]",
-          panning ? "cursor-grab active:cursor-grabbing" : "cursor-crosshair",
+          panning ? "cursor-grab active:cursor-grabbing" : labelPlacementMode ? "cursor-cell" : "cursor-crosshair",
         )}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -406,6 +467,29 @@ export function PlanHotspotCanvas({
               </>
             )}
           </svg>
+          {textLabels.map((lbl) => (
+            <div
+              key={lbl.id}
+              className={cn(
+                "absolute z-[6] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]",
+                onMoveLabel && !panning ? "cursor-move" : "pointer-events-none",
+                lbl.active || selectedLabelId === lbl.id ? "ring-2 ring-[#c9a96e] ring-offset-1" : "",
+              )}
+              style={{
+                left: `${lbl.x}%`,
+                top: `${lbl.y}%`,
+                color: lbl.color,
+                backgroundColor: lbl.backgroundColor ?? "rgba(12, 20, 40, 0.7)",
+              }}
+              onPointerDown={(e) => startLabelDrag(lbl.id, e)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectLabel?.(lbl.id);
+              }}
+            >
+              {lbl.text}
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -1445,9 +1445,23 @@ export const en = {
     addApartmentOnFloor: "+ Apartment on this floor",
     markAsSold: "Sold",
     soldZoneHint:
-      "Sold - no floor zone needed. Save the project to apply.",
+      "Sold - no floor zone needed. Use the \"Text on floor plan\" section to place a SOLD label. Save the project to apply.",
     soldZoneOnlyHint:
       "Sold unit - no floor plan needed. Save the project to apply.",
+    textLabelsTitle: "Text on floor plan",
+    textLabelAdd: "+ Add text",
+    textLabelText: "Text",
+    textLabelColor: "Color",
+    textLabelBgColor: "Background",
+    textLabelPlace: "Place on map",
+    textLabelRemove: "Remove",
+    textLabelCount: "{count} labels",
+    textLabelHint:
+      "Add text (e.g. SOLD), pick colors, click Place on map, then click the floor plan. Drag to reposition.",
+    hotspotLabelText: "Zone label",
+    hotspotLabelColor: "Text color",
+    hotspotLabelBgColor: "Background",
+    hotspotLabelPlace: "Place on map",
     switchToNeighborhoodConfirm:
       "Switch to Neighborhood? Building floors and mapped zones will be removed from this project.",
     switchToBuildingConfirm:

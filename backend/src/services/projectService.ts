@@ -67,9 +67,54 @@ function normalizeHotspots(raw: unknown) {
             .filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]))
         : [];
       if (points.length < 3) return null;
-      return { apartmentId, points };
+      const label = typeof item.label === "string" && item.label.trim() ? item.label.trim() : undefined;
+      const labelColor =
+        typeof item.labelColor === "string" && item.labelColor.trim() ? item.labelColor.trim() : undefined;
+      const labelBgColor =
+        typeof item.labelBgColor === "string" && item.labelBgColor.trim()
+          ? item.labelBgColor.trim()
+          : undefined;
+      const labelX = typeof item.labelX === "number" && Number.isFinite(item.labelX) ? item.labelX : undefined;
+      const labelY = typeof item.labelY === "number" && Number.isFinite(item.labelY) ? item.labelY : undefined;
+      return {
+        apartmentId,
+        points,
+        ...(label ? { label } : {}),
+        ...(labelColor ? { labelColor } : {}),
+        ...(labelBgColor ? { labelBgColor } : {}),
+        ...(labelX !== undefined ? { labelX } : {}),
+        ...(labelY !== undefined ? { labelY } : {}),
+      };
     })
-    .filter((h): h is { apartmentId: string; points: [number, number][] } => h !== null);
+    .filter((h): h is NonNullable<typeof h> => h !== null);
+}
+
+function normalizeTextLabels(raw: unknown) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const id = typeof row.id === "string" && row.id.trim() ? row.id.trim() : "";
+      const text = typeof row.text === "string" ? row.text : "";
+      const color = typeof row.color === "string" && row.color.trim() ? row.color.trim() : "#ffffff";
+      const backgroundColor =
+        typeof row.backgroundColor === "string" && row.backgroundColor.trim()
+          ? row.backgroundColor.trim()
+          : undefined;
+      const x = Number(row.x);
+      const y = Number(row.y);
+      if (!id || !text.trim() || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+      return {
+        id,
+        text: text.trim(),
+        color,
+        x: Math.min(100, Math.max(0, x)),
+        y: Math.min(100, Math.max(0, y)),
+        ...(backgroundColor ? { backgroundColor } : {}),
+      };
+    })
+    .filter((l): l is NonNullable<typeof l> => l !== null);
 }
 
 function parseProjectKind(raw: unknown): "building" | "neighborhood" {
@@ -195,6 +240,7 @@ function floorCreateData(raw: Record<string, unknown>, sortOrder: number) {
     sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
     imageUrl: String(raw.imageUrl || ""),
     hotspots: normalizeHotspots(raw.hotspots),
+    textLabels: normalizeTextLabels(raw.textLabels),
     exteriorHotspot: exteriorHotspot.length >= 3 ? exteriorHotspot : Prisma.JsonNull,
   };
 }

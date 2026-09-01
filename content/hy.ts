@@ -1453,9 +1453,23 @@ export const hyTranslations: Translations = {
     addApartmentOnFloor: "+ Բնակարան այս հարկին",
     markAsSold: "Վաճառված",
     soldZoneHint:
-      "Վաճառված - հարկի գոտի պետք չէ։ Պահպանեք նախագիծը։",
+      "Վաճառված - հարկի գոտի պետք չէ։ Օգտագործեք «Տեքստ հատակագծի վրա» բաժինը՝ SOLD նշանը տեղադրելու համար։ Պահպանեք նախագիծը։",
     soldZoneOnlyHint:
       "Վաճառված բնակարան - հատակագիծ պետք չէ։ Պահպանեք նախագիծը՝ կիրառելու համար։",
+    textLabelsTitle: "Տեքստ հատակագծի վրա",
+    textLabelAdd: "+ Ավելացնել տեքստ",
+    textLabelText: "Տեքստ",
+    textLabelColor: "Գույն",
+    textLabelBgColor: "Ֆոն",
+    textLabelPlace: "Տեղադրել",
+    textLabelRemove: "Ջնջել",
+    textLabelCount: "{count} տեքստ",
+    textLabelHint:
+      "Ավելացրեք տեքստ (օր. SOLD), ընտրեք գույնը, ապա սեղմեք «Տեղադրել» և կտտացրեք հատակագծի վրա։ Կարելի է քաշել տեղում։",
+    hotspotLabelText: "Գոտու պիտակ",
+    hotspotLabelColor: "Տեքստի գույն",
+    hotspotLabelBgColor: "Ֆոն",
+    hotspotLabelPlace: "Տեղադրել",
     switchToNeighborhoodConfirm:
       "Անցնել թաղամասի՞։ Շենքերի հարկերն ու գոտիները կջնջվեն այս նախագծից։",
     switchToBuildingConfirm:

@@ -149,6 +149,8 @@ model BuildingFloor {
   imageUrl        String   @default("")
   /** Array of { apartmentId, points: [x,y][] } with x/y as % of image (0–100). */
   hotspots        Json
+  /** Free-floating text labels on the floor plan image (% coords). */
+  textLabels      Json     @default("[]")
   /** Floor band polygon on the building exterior image (% coords). */
   exteriorHotspot Json?
   createdAt       DateTime @default(now())

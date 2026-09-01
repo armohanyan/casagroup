@@ -44,6 +44,87 @@ function pointsToSvg(points: [number, number][]) {
   return points.map(([x, y]) => `${x},${y}`).join(" ");
 }
 
+function hotspotLabelPosition(h: { points: [number, number][]; labelX?: number; labelY?: number }) {
+  if (h.labelX !== undefined && h.labelY !== undefined) return { x: h.labelX, y: h.labelY };
+  const cx = h.points.reduce((s, p) => s + p[0], 0) / h.points.length;
+  const cy = h.points.reduce((s, p) => s + p[1], 0) / h.points.length;
+  return { x: cx, y: cy };
+}
+
+function FloorPlanTextLabels({
+  floor,
+  aptById,
+  soldFallback,
+}: {
+  floor: BuildingFloor;
+  aptById: Map<string, Apartment>;
+  soldFallback: string;
+}) {
+  const labels: {
+    key: string;
+    text: string;
+    color: string;
+    backgroundColor?: string;
+    x: number;
+    y: number;
+  }[] = [];
+
+  for (const lbl of floor.textLabels ?? []) {
+    labels.push({
+      key: lbl.id,
+      text: lbl.text,
+      color: lbl.color,
+      backgroundColor: lbl.backgroundColor,
+      x: lbl.x,
+      y: lbl.y,
+    });
+  }
+
+  for (const h of floor.hotspots) {
+    const apt = aptById.get(h.apartmentId);
+    if (h.label?.trim()) {
+      const pos = hotspotLabelPosition(h);
+      labels.push({
+        key: `hotspot-${h.apartmentId}`,
+        text: h.label.trim(),
+        color: h.labelColor ?? "#ffffff",
+        backgroundColor: h.labelBgColor ?? "rgba(12, 20, 40, 0.7)",
+        x: pos.x,
+        y: pos.y,
+      });
+    } else if (apt?.status === "Sold") {
+      const pos = hotspotLabelPosition(h);
+      labels.push({
+        key: `sold-${h.apartmentId}`,
+        text: soldFallback,
+        color: "#ffffff",
+        backgroundColor: "rgba(12, 20, 40, 0.7)",
+        x: pos.x,
+        y: pos.y,
+      });
+    }
+  }
+
+  return (
+    <>
+      {labels.map((lbl) => (
+        <span
+          key={lbl.key}
+          className="pointer-events-none absolute z-[5] -translate-x-1/2 -translate-y-1/2 rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]"
+          style={{
+            left: `${lbl.x}%`,
+            top: `${lbl.y}%`,
+            color: lbl.color,
+            backgroundColor: lbl.backgroundColor ?? "rgba(12, 20, 40, 0.7)",
+          }}
+        >
+          {lbl.text}
+        </span>
+      ))}
+    </>
+  );
+}
+
 function HotspotTooltip({
   apartment,
   x,
@@ -181,21 +262,11 @@ function FloorPlanCanvas({
             );
           })}
         </svg>
-        {floor.hotspots.map((h) => {
-          const apt = aptById.get(h.apartmentId);
-          if (!apt || apt.status !== "Sold") return null;
-          const cx = h.points.reduce((s, p) => s + p[0], 0) / h.points.length;
-          const cy = h.points.reduce((s, p) => s + p[1], 0) / h.points.length;
-          return (
-            <span
-              key={`sold-${h.apartmentId}`}
-              className="pointer-events-none absolute z-[5] -translate-x-1/2 -translate-y-1/2 rounded-sm bg-[#0c1428]/70 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white sm:text-[10px]"
-              style={{ left: `${cx}%`, top: `${cy}%` }}
-            >
-              {t.developerDetail.sold}
-            </span>
-          );
-        })}
+        <FloorPlanTextLabels
+          floor={floor}
+          aptById={aptById}
+          soldFallback={t.developerDetail.sold}
+        />
         {tooltip && hoveredApt && hoveredApt.status !== "Sold" && (
           <HotspotTooltip apartment={hoveredApt} x={tooltip.x} y={tooltip.y} />
         )}
