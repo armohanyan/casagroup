@@ -76,12 +76,17 @@ function normalizeHotspots(raw: unknown) {
           : undefined;
       const labelX = typeof item.labelX === "number" && Number.isFinite(item.labelX) ? item.labelX : undefined;
       const labelY = typeof item.labelY === "number" && Number.isFinite(item.labelY) ? item.labelY : undefined;
+      const labelFontSize =
+        typeof item.labelFontSize === "number" && Number.isFinite(item.labelFontSize) && item.labelFontSize > 0
+          ? item.labelFontSize
+          : undefined;
       return {
         apartmentId,
         points,
         ...(label ? { label } : {}),
         ...(labelColor ? { labelColor } : {}),
         ...(labelBgColor ? { labelBgColor } : {}),
+        ...(labelFontSize !== undefined ? { labelFontSize } : {}),
         ...(labelX !== undefined ? { labelX } : {}),
         ...(labelY !== undefined ? { labelY } : {}),
       };
@@ -104,6 +109,7 @@ function normalizeTextLabels(raw: unknown) {
           : undefined;
       const x = Number(row.x);
       const y = Number(row.y);
+      const fontSize = Number(row.fontSize);
       if (!id || !text.trim() || !Number.isFinite(x) || !Number.isFinite(y)) return null;
       return {
         id,
@@ -112,6 +118,7 @@ function normalizeTextLabels(raw: unknown) {
         x: Math.min(100, Math.max(0, x)),
         y: Math.min(100, Math.max(0, y)),
         ...(backgroundColor ? { backgroundColor } : {}),
+        ...(Number.isFinite(fontSize) && fontSize > 0 ? { fontSize } : {}),
       };
     })
     .filter((l): l is NonNullable<typeof l> => l !== null);
@@ -178,6 +185,7 @@ function buildingScalarData(raw: Record<string, unknown>, sortOrder: number) {
     /** Neighborhood is project-level; buildings always keep floor plates. */
     kind: "building",
     exteriorImageUrl: String(raw.exteriorImageUrl || ""),
+    textLabels: normalizeTextLabels(raw.textLabels),
     landArea: null,
     price: null,
     images: [],

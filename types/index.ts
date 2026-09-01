@@ -64,16 +64,19 @@ export interface FloorHotspot {
   label?: string;
   labelColor?: string;
   labelBgColor?: string;
+  labelFontSize?: number;
   labelX?: number;
   labelY?: number;
 }
 
-/** Free-floating text label on a floor plate image (% coords 0–100). */
+/** Free-floating text label on a plan image (% coords 0–100). */
 export interface FloorTextLabel {
   id: string;
   text: string;
   color: string;
   backgroundColor?: string;
+  /** Font size in px (default 10). */
+  fontSize?: number;
   x: number;
   y: number;
 }
@@ -104,6 +107,8 @@ export interface Building {
   kind?: BuildingKind;
   /** Step-4 exterior render of the building. */
   exteriorImageUrl?: string;
+  /** Text labels on the building exterior image (e.g. SOLD). */
+  textLabels?: FloorTextLabel[];
   /** Neighborhood land area in m². */
   landArea?: number;
   /** Neighborhood listing / starting price (AMD). */

@@ -72,6 +72,7 @@ export function emptyBuilding(
     sortOrder,
     kind,
     exteriorImageUrl: "",
+    textLabels: [],
     landArea: kind === "neighborhood" ? 0 : undefined,
     price: kind === "neighborhood" ? 0 : undefined,
     images: kind === "neighborhood" ? [] : undefined,

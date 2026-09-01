@@ -1455,14 +1455,19 @@ export const ru: Translations = {
     textLabelText: "Текст",
     textLabelColor: "Цвет",
     textLabelBgColor: "Фон",
+    textLabelSize: "Размер (px)",
     textLabelPlace: "Разместить",
     textLabelRemove: "Удалить",
     textLabelCount: "{count} меток",
     textLabelHint:
-      "Добавьте текст (напр. SOLD), выберите цвет, нажмите «Разместить» и кликните по плану. Можно перетаскивать.",
+      "Добавьте текст (напр. SOLD), выберите размер и цвет, нажмите «Разместить» и кликните по плану. Можно перетаскивать.",
+    buildingTextLabelsTitle: "Текст на изображении корпуса",
+    buildingTextLabelHint:
+      "Добавьте текст (напр. SOLD) на внешнее изображение корпуса. Выберите размер и цвет, нажмите «Разместить» и кликните по изображению.",
     hotspotLabelText: "Метка зоны",
     hotspotLabelColor: "Цвет текста",
     hotspotLabelBgColor: "Фон",
+    hotspotLabelSize: "Размер (px)",
     hotspotLabelPlace: "Разместить",
     switchToNeighborhoodConfirm:
       "Переключить на квартал? Этажи корпуса и зоны на планах будут удалены из этого проекта.",

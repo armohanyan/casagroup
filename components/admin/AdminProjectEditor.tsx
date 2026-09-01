@@ -109,6 +109,7 @@ function projectToForm(project: Project): EditorForm {
       ...b,
       kind: "building" as const,
       exteriorImageUrl: b.exteriorImageUrl ?? "",
+      textLabels: b.textLabels ?? [],
       floors: (b.floors ?? []).map((f) => ({
         ...f,
         hotspots: f.hotspots ?? [],
@@ -2044,6 +2045,16 @@ export function AdminProjectEditor({ projectId }: Props) {
                           drawMode: a.hotspotDrawMode,
                           editImage: a.editImage,
                           imageEditor: imageEditorLabels,
+                          textLabelsTitle: a.buildingTextLabelsTitle,
+                          textLabelAdd: a.textLabelAdd,
+                          textLabelText: a.textLabelText,
+                          textLabelColor: a.textLabelColor,
+                          textLabelBgColor: a.textLabelBgColor,
+                          textLabelSize: a.textLabelSize,
+                          textLabelPlace: a.textLabelPlace,
+                          textLabelRemove: a.textLabelRemove,
+                          textLabelCount: a.textLabelCount,
+                          textLabelHint: a.buildingTextLabelHint,
                         }}
                       />
                     </div>
@@ -2238,6 +2249,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                               textLabelText: a.textLabelText,
                               textLabelColor: a.textLabelColor,
                               textLabelBgColor: a.textLabelBgColor,
+                              textLabelSize: a.textLabelSize,
                               textLabelPlace: a.textLabelPlace,
                               textLabelRemove: a.textLabelRemove,
                               textLabelCount: a.textLabelCount,
@@ -2245,6 +2257,7 @@ export function AdminProjectEditor({ projectId }: Props) {
                               hotspotLabelText: a.hotspotLabelText,
                               hotspotLabelColor: a.hotspotLabelColor,
                               hotspotLabelBgColor: a.hotspotLabelBgColor,
+                              hotspotLabelSize: a.hotspotLabelSize,
                               hotspotLabelPlace: a.hotspotLabelPlace,
                             }}
                           />

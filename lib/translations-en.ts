@@ -1453,14 +1453,19 @@ export const en = {
     textLabelText: "Text",
     textLabelColor: "Color",
     textLabelBgColor: "Background",
+    textLabelSize: "Size (px)",
     textLabelPlace: "Place on map",
     textLabelRemove: "Remove",
     textLabelCount: "{count} labels",
     textLabelHint:
-      "Add text (e.g. SOLD), pick colors, click Place on map, then click the floor plan. Drag to reposition.",
+      "Add text (e.g. SOLD), pick size and colors, click Place on map, then click the floor plan. Drag to reposition.",
+    buildingTextLabelsTitle: "Text on building image",
+    buildingTextLabelHint:
+      "Add text (e.g. SOLD) on the building exterior image. Pick size and colors, click Place on map, then click the image.",
     hotspotLabelText: "Zone label",
     hotspotLabelColor: "Text color",
     hotspotLabelBgColor: "Background",
+    hotspotLabelSize: "Size (px)",
     hotspotLabelPlace: "Place on map",
     switchToNeighborhoodConfirm:
       "Switch to Neighborhood? Building floors and mapped zones will be removed from this project.",

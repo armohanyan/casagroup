@@ -6,6 +6,8 @@ import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
 import { useAdminImagePicker } from "@/components/admin/useAdminImagePicker";
 import { adminBtnSecondary, adminInputCls, adminSelectCls } from "@/components/admin/admin-config";
 import type { Building, BuildingFloor } from "@/types";
+import { PlanTextLabelSection } from "@/components/admin/PlanTextLabelSection";
+import { usePlanTextLabels } from "@/components/admin/usePlanTextLabels";
 import { cn } from "@/lib/utils";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -35,6 +37,16 @@ type Labels = {
   panMode: string;
   drawMode: string;
   editImage?: string;
+  textLabelsTitle?: string;
+  textLabelAdd?: string;
+  textLabelText?: string;
+  textLabelColor?: string;
+  textLabelBgColor?: string;
+  textLabelSize?: string;
+  textLabelPlace?: string;
+  textLabelRemove?: string;
+  textLabelCount?: string;
+  textLabelHint?: string;
   /** Cropper UI copy - same shape as useAdminImagePicker labels. */
   imageEditor?: {
     title?: string;
@@ -97,6 +109,8 @@ export function BuildingExteriorEditor({
   const [persisting, setPersisting] = useState(false);
 
   const exteriorUrl = building.exteriorImageUrl ?? "";
+  const textLabels = building.textLabels ?? [];
+  const planLabels = usePlanTextLabels(textLabels, (next) => onChange({ textLabels: next }));
 
   useEffect(() => {
     if (floors.length === 0) {
@@ -226,7 +240,7 @@ export function BuildingExteriorEditor({
           editLabel={labels.editImage}
           onEdit={editExterior}
           onRemove={() => {
-            onChange({ exteriorImageUrl: "" });
+            onChange({ exteriorImageUrl: "", textLabels: [] });
             for (const f of building.floors ?? []) {
               if ((f.exteriorHotspot?.length ?? 0) > 0) {
                 onChangeFloor(f.id, { exteriorHotspot: [] });
@@ -264,7 +278,6 @@ export function BuildingExteriorEditor({
             polygons={floors
               .filter((f) => {
                 if ((f.exteriorHotspot?.length ?? 0) < 3) return false;
-                // Hide committed only while actively (re)drawing that floor.
                 if (f.id === selectedFloorId && draft.length > 0) return false;
                 return true;
               })
@@ -273,14 +286,26 @@ export function BuildingExteriorEditor({
                 points: f.exteriorHotspot as [number, number][],
                 active: f.id === selectedFloorId,
               }))}
-            draft={draft}
-            drawing={Boolean(selectedFloorId)}
-            onAddPoint={(pt) => setDraft((d) => [...d, pt])}
+            draft={planLabels.labelPlacementMode ? [] : draft}
+            drawing={Boolean(selectedFloorId) && !planLabels.labelPlacementMode}
+            onAddPoint={(pt) => {
+              if (planLabels.labelPlacementMode) return;
+              setDraft((d) => [...d, pt]);
+            }}
             onMovePoint={(index, pt) =>
               setDraft((d) => d.map((p, i) => (i === index ? pt : p)))
             }
             onSelectPolygon={(id) => selectFloor(id)}
             onFinishDraft={() => void finishBand()}
+            textLabels={planLabels.canvasTextLabels}
+            labelPlacementMode={planLabels.labelPlacementMode}
+            selectedLabelId={planLabels.selectedLabelId}
+            onPlaceLabel={(pt) => planLabels.placeLabel(pt)}
+            onMoveLabel={(id, pt) => planLabels.moveLabel(id, pt)}
+            onSelectLabel={(id) => {
+              planLabels.setSelectedLabelId(id);
+              planLabels.setLabelPlacementMode(false);
+            }}
             labels={{
               zoomIn: labels.zoomIn,
               zoomOut: labels.zoomOut,
@@ -289,12 +314,37 @@ export function BuildingExteriorEditor({
               drawMode: labels.drawMode,
             }}
           />
+          <PlanTextLabelSection
+            textLabels={textLabels}
+            selectedLabelId={planLabels.selectedLabelId}
+            labelPlacementMode={planLabels.labelPlacementMode}
+            onSelectLabel={(id) => {
+              planLabels.setSelectedLabelId(id);
+              planLabels.setLabelPlacementMode(false);
+            }}
+            onAddLabel={() => planLabels.addTextLabel()}
+            onUpdateLabel={planLabels.updateTextLabel}
+            onRemoveLabel={planLabels.removeTextLabel}
+            onStartPlacement={() => planLabels.setLabelPlacementMode(true)}
+            labels={{
+              title: labels.textLabelsTitle,
+              add: labels.textLabelAdd,
+              text: labels.textLabelText,
+              color: labels.textLabelColor,
+              bgColor: labels.textLabelBgColor,
+              size: labels.textLabelSize,
+              place: labels.textLabelPlace,
+              remove: labels.textLabelRemove,
+              count: labels.textLabelCount,
+              hint: labels.textLabelHint,
+            }}
+          />
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               className={cn(adminBtnSecondary, "h-9 text-xs")}
               onClick={() => void finishBand()}
-              disabled={draft.length < 3 || !selectedFloorId || persisting}
+              disabled={draft.length < 3 || !selectedFloorId || persisting || planLabels.labelPlacementMode}
             >
               {persisting ? "…" : labels.finishPolygon}
             </button>

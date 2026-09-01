@@ -109,6 +109,8 @@ model Building {
   kind             String         @default("building")
   /** Step-4 exterior render of the building. */
   exteriorImageUrl String         @default("")
+  /** Text labels on the building exterior image (% coords). */
+  textLabels       Json           @default("[]")
   landArea         Float?
   price            Int?
   images           Json           @default("[]")

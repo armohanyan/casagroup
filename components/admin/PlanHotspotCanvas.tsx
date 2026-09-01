@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Hand, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { planTextLabelStyle } from "@/lib/plan-text-labels";
 
 export type PlanPoint = [number, number];
 
@@ -18,6 +19,7 @@ export type PlanTextLabel = {
   text: string;
   color: string;
   backgroundColor?: string;
+  fontSize?: number;
   x: number;
   y: number;
   active?: boolean;
@@ -471,15 +473,14 @@ export function PlanHotspotCanvas({
             <div
               key={lbl.id}
               className={cn(
-                "absolute z-[6] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]",
+                "absolute z-[6] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide",
                 onMoveLabel && !panning ? "cursor-move" : "pointer-events-none",
                 lbl.active || selectedLabelId === lbl.id ? "ring-2 ring-[#c9a96e] ring-offset-1" : "",
               )}
               style={{
                 left: `${lbl.x}%`,
                 top: `${lbl.y}%`,
-                color: lbl.color,
-                backgroundColor: lbl.backgroundColor ?? "rgba(12, 20, 40, 0.7)",
+                ...planTextLabelStyle(lbl),
               }}
               onPointerDown={(e) => startLabelDrag(lbl.id, e)}
               onClick={(e) => {

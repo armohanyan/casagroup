@@ -1461,14 +1461,19 @@ export const hyTranslations: Translations = {
     textLabelText: "Տեքստ",
     textLabelColor: "Գույն",
     textLabelBgColor: "Ֆոն",
+    textLabelSize: "Չափ (px)",
     textLabelPlace: "Տեղադրել",
     textLabelRemove: "Ջնջել",
     textLabelCount: "{count} տեքստ",
     textLabelHint:
-      "Ավելացրեք տեքստ (օր. SOLD), ընտրեք գույնը, ապա սեղմեք «Տեղադրել» և կտտացրեք հատակագծի վրա։ Կարելի է քաշել տեղում։",
+      "Ավելացրեք տեքստ (օր. SOLD), ընտրեք չափն ու գույնը, ապա սեղմեք «Տեղադրել» և կտտացրեք հատակագծի վրա։ Կարելի է քաշել տեղում։",
+    buildingTextLabelsTitle: "Տեքստ շենքի նկարի վրա",
+    buildingTextLabelHint:
+      "Ավելացրեք տեքստ (օր. SOLD) շենքի արտաքին նկարի վրա։ Ընտրեք չափն ու գույնը, սեղմեք «Տեղադրել», ապա կտտացրեք նկարի վրա։",
     hotspotLabelText: "Գոտու պիտակ",
     hotspotLabelColor: "Տեքստի գույն",
     hotspotLabelBgColor: "Ֆոն",
+    hotspotLabelSize: "Չափ (px)",
     hotspotLabelPlace: "Տեղադրել",
     switchToNeighborhoodConfirm:
       "Անցնել թաղամասի՞։ Շենքերի հարկերն ու գոտիները կջնջվեն այս նախագծից։",

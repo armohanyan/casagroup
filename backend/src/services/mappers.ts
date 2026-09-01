@@ -87,12 +87,17 @@ function mapFloorHotspots(raw: unknown) {
           : undefined;
       const labelX = typeof item.labelX === "number" && Number.isFinite(item.labelX) ? item.labelX : undefined;
       const labelY = typeof item.labelY === "number" && Number.isFinite(item.labelY) ? item.labelY : undefined;
+      const labelFontSize =
+        typeof item.labelFontSize === "number" && Number.isFinite(item.labelFontSize) && item.labelFontSize > 0
+          ? item.labelFontSize
+          : undefined;
       return {
         apartmentId,
         points,
         ...(label ? { label } : {}),
         ...(labelColor ? { labelColor } : {}),
         ...(labelBgColor ? { labelBgColor } : {}),
+        ...(labelFontSize !== undefined ? { labelFontSize } : {}),
         ...(labelX !== undefined ? { labelX } : {}),
         ...(labelY !== undefined ? { labelY } : {}),
       };
@@ -100,7 +105,7 @@ function mapFloorHotspots(raw: unknown) {
     .filter((h): h is NonNullable<typeof h> => h !== null);
 }
 
-function mapFloorTextLabels(raw: unknown) {
+function mapPlanTextLabels(raw: unknown) {
   if (!Array.isArray(raw)) return [];
   return raw
     .map((item) => {
@@ -110,6 +115,7 @@ function mapFloorTextLabels(raw: unknown) {
       const text = typeof row.text === "string" ? row.text : "";
       const color = typeof row.color === "string" ? row.color : "#ffffff";
       const backgroundColor = typeof row.backgroundColor === "string" ? row.backgroundColor : undefined;
+      const fontSize = Number(row.fontSize);
       const x = Number(row.x);
       const y = Number(row.y);
       if (!id || !text.trim() || !Number.isFinite(x) || !Number.isFinite(y)) return null;
@@ -120,6 +126,7 @@ function mapFloorTextLabels(raw: unknown) {
         x,
         y,
         ...(backgroundColor ? { backgroundColor } : {}),
+        ...(Number.isFinite(fontSize) && fontSize > 0 ? { fontSize } : {}),
       };
     })
     .filter((l): l is NonNullable<typeof l> => l !== null);
@@ -134,7 +141,7 @@ export function mapBuildingFloor(floor: BuildingFloor) {
     sortOrder: floor.sortOrder,
     imageUrl: floor.imageUrl,
     hotspots: mapFloorHotspots(floor.hotspots),
-    textLabels: mapFloorTextLabels(floor.textLabels),
+    textLabels: mapPlanTextLabels(floor.textLabels),
     exteriorHotspot: exteriorHotspot.length >= 3 ? exteriorHotspot : undefined,
   };
 }
@@ -153,6 +160,7 @@ export function mapBuilding(building: BuildingWithFloors) {
     sortOrder: building.sortOrder,
     kind,
     exteriorImageUrl,
+    textLabels: mapPlanTextLabels(building.textLabels),
     landArea: building.landArea ?? undefined,
     price: building.price ?? undefined,
     images: images.length ? images : undefined,

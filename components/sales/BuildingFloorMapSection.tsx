@@ -14,6 +14,8 @@ import { Container } from "@/components/site/Container";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
+import { PlanTextLabelsOverlay } from "@/components/sales/PlanTextLabelsOverlay";
+import { planTextLabelStyle } from "@/lib/plan-text-labels";
 import { cn } from "@/lib/utils";
 import type { Apartment, Building, BuildingFloor, Project } from "@/types";
 
@@ -60,41 +62,32 @@ function FloorPlanTextLabels({
   aptById: Map<string, Apartment>;
   soldFallback: string;
 }) {
-  const labels: {
+  const hotspotLabels: {
     key: string;
     text: string;
     color: string;
     backgroundColor?: string;
+    fontSize?: number;
     x: number;
     y: number;
   }[] = [];
-
-  for (const lbl of floor.textLabels ?? []) {
-    labels.push({
-      key: lbl.id,
-      text: lbl.text,
-      color: lbl.color,
-      backgroundColor: lbl.backgroundColor,
-      x: lbl.x,
-      y: lbl.y,
-    });
-  }
 
   for (const h of floor.hotspots) {
     const apt = aptById.get(h.apartmentId);
     if (h.label?.trim()) {
       const pos = hotspotLabelPosition(h);
-      labels.push({
+      hotspotLabels.push({
         key: `hotspot-${h.apartmentId}`,
         text: h.label.trim(),
         color: h.labelColor ?? "#ffffff",
         backgroundColor: h.labelBgColor ?? "rgba(12, 20, 40, 0.7)",
+        fontSize: h.labelFontSize,
         x: pos.x,
         y: pos.y,
       });
     } else if (apt?.status === "Sold") {
       const pos = hotspotLabelPosition(h);
-      labels.push({
+      hotspotLabels.push({
         key: `sold-${h.apartmentId}`,
         text: soldFallback,
         color: "#ffffff",
@@ -107,15 +100,15 @@ function FloorPlanTextLabels({
 
   return (
     <>
-      {labels.map((lbl) => (
+      <PlanTextLabelsOverlay labels={floor.textLabels ?? []} />
+      {hotspotLabels.map((lbl) => (
         <span
           key={lbl.key}
-          className="pointer-events-none absolute z-[5] -translate-x-1/2 -translate-y-1/2 rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide sm:text-[10px]"
+          className="pointer-events-none absolute z-[5] -translate-x-1/2 -translate-y-1/2 rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide"
           style={{
             left: `${lbl.x}%`,
             top: `${lbl.y}%`,
-            color: lbl.color,
-            backgroundColor: lbl.backgroundColor ?? "rgba(12, 20, 40, 0.7)",
+            ...planTextLabelStyle(lbl),
           }}
         >
           {lbl.text}

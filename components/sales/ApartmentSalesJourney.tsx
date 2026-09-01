@@ -14,6 +14,7 @@ import { Container } from "@/components/site/Container";
 import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSection";
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { MapPinMarker } from "@/components/sales/MapPinMarker";
+import { PlanTextLabelsOverlay } from "@/components/sales/PlanTextLabelsOverlay";
 import {
   SalesJourneyBreadcrumb,
   type SalesJourneyCrumb,
@@ -422,6 +423,7 @@ function BuildingExteriorView({
             );
           })}
         </svg>
+        <PlanTextLabelsOverlay labels={building.textLabels ?? []} />
         {withBands.map((f) => {
           const pts = f.exteriorHotspot as [number, number][];
           const x = pts.reduce((s, p) => s + p[0], 0) / pts.length;
