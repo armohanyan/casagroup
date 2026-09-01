@@ -43,8 +43,14 @@ type Labels = {
   textLabelColor?: string;
   textLabelBgColor?: string;
   textLabelSize?: string;
+  textLabelRotation?: string;
   textLabelPlace?: string;
   textLabelRemove?: string;
+  textLabelDuplicate?: string;
+  textLabelPlaceholderHy?: string;
+  textLabelPlaceholderEn?: string;
+  textLabelPlaceholderRu?: string;
+  copyFromOther?: string;
   textLabelCount?: string;
   textLabelHint?: string;
   /** Cropper UI copy - same shape as useAdminImagePicker labels. */
@@ -325,6 +331,7 @@ export function BuildingExteriorEditor({
             onAddLabel={() => planLabels.addTextLabel()}
             onUpdateLabel={planLabels.updateTextLabel}
             onRemoveLabel={planLabels.removeTextLabel}
+            onDuplicateLabel={planLabels.duplicateTextLabel}
             onStartPlacement={() => planLabels.setLabelPlacementMode(true)}
             labels={{
               title: labels.textLabelsTitle,
@@ -333,10 +340,16 @@ export function BuildingExteriorEditor({
               color: labels.textLabelColor,
               bgColor: labels.textLabelBgColor,
               size: labels.textLabelSize,
+              rotation: labels.textLabelRotation,
               place: labels.textLabelPlace,
               remove: labels.textLabelRemove,
+              duplicate: labels.textLabelDuplicate,
               count: labels.textLabelCount,
               hint: labels.textLabelHint,
+              placeholderHy: labels.textLabelPlaceholderHy,
+              placeholderEn: labels.textLabelPlaceholderEn,
+              placeholderRu: labels.textLabelPlaceholderRu,
+              copyFromOther: labels.copyFromOther,
             }}
           />
           <div className="flex flex-wrap gap-2">

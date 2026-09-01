@@ -249,6 +249,7 @@ function MapStageView({
             );
           })}
         </svg>
+        <PlanTextLabelsOverlay labels={stage.textLabels ?? []} />
         {stage.hotspots.map((h) => {
           if (h.points.length < 3) return null;
           const m = markerPos(h);

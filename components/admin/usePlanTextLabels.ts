@@ -4,9 +4,8 @@ import { useState } from "react";
 import type { FloorTextLabel } from "@/types";
 import { generateId } from "@/lib/store";
 import {
-  DEFAULT_PLAN_TEXT_BG,
-  DEFAULT_PLAN_TEXT_COLOR,
-  DEFAULT_PLAN_TEXT_FONT_SIZE,
+  emptyPlanTextLabel,
+  resolvePlanText,
 } from "@/lib/plan-text-labels";
 
 export function usePlanTextLabels(
@@ -22,19 +21,29 @@ export function usePlanTextLabels(
     onChange(next);
   }
 
-  function addTextLabel(defaultText = "SOLD") {
+  function addTextLabel() {
     const id = generateId();
     const next: FloorTextLabel = {
+      ...emptyPlanTextLabel(),
       id,
-      text: defaultText,
-      color: DEFAULT_PLAN_TEXT_COLOR,
-      backgroundColor: DEFAULT_PLAN_TEXT_BG,
-      fontSize: DEFAULT_PLAN_TEXT_FONT_SIZE,
-      x: 50,
-      y: 50,
     };
     updateTextLabels([...textLabels, next]);
     setSelectedLabelId(id);
+    setLabelPlacementMode(true);
+  }
+
+  function duplicateTextLabel(id: string) {
+    const source = textLabels.find((l) => l.id === id);
+    if (!source) return;
+    const newId = generateId();
+    const next: FloorTextLabel = {
+      ...source,
+      id: newId,
+      x: Math.min(98, source.x + 3),
+      y: Math.min(98, source.y + 3),
+    };
+    updateTextLabels([...textLabels, next]);
+    setSelectedLabelId(newId);
     setLabelPlacementMode(true);
   }
 
@@ -60,10 +69,11 @@ export function usePlanTextLabels(
 
   const canvasTextLabels = textLabels.map((l) => ({
     id: l.id,
-    text: l.text,
+    text: resolvePlanText(l, "hy"),
     color: l.color,
     backgroundColor: l.backgroundColor,
     fontSize: l.fontSize,
+    rotation: l.rotation,
     x: l.x,
     y: l.y,
     active: l.id === selectedLabelId,
@@ -76,6 +86,7 @@ export function usePlanTextLabels(
     setLabelPlacementMode,
     selectedTextLabel,
     addTextLabel,
+    duplicateTextLabel,
     updateTextLabel,
     removeTextLabel,
     placeLabel,

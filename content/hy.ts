@@ -1365,6 +1365,9 @@ export const hyTranslations: Translations = {
     salesModeBuildings: "Մի քանի շենք",
     salesModeFloors: "Մեկ շենք",
     salesModePlans: "Միայն հատակագծեր",
+    mapTextLabelsTitle: "Տեքստ քարտեզի վրա",
+    mapTextLabelHint:
+      "Ավելացրեք տեքստ հայերեն, ռուսերեն և անգլերեն տարածքի քարտեզի վրա (օր. SOLD)։ Ընտրեք չափն ու գույնը, սեղմեք «Տեղադրել», ապա կտտացրեք նկարի վրա։",
     sectionSalesMaps: "Տարածքի քարտեզ (շենքեր)",
     salesMapsHint:
       "Օգտագործեք ՏԱՐԱԾՔԻ ՄԵԿ նկար։ Նշեք յուրաքանչյուր շենքը (Մասնաճյուղ 1, Մասնաճյուղ 2…), թիրախ = այդ շենքը։ Մի ավելացրեք երկրորդ քարտեզ - կայքում երևում է միայն առաջինը։",
@@ -1462,18 +1465,24 @@ export const hyTranslations: Translations = {
     textLabelColor: "Գույն",
     textLabelBgColor: "Ֆոն",
     textLabelSize: "Չափ (px)",
+    textLabelRotation: "Շրջադարձ (°)",
     textLabelPlace: "Տեղադրել",
     textLabelRemove: "Ջնջել",
+    textLabelDuplicate: "Կրկնօրինակել",
     textLabelCount: "{count} տեքստ",
     textLabelHint:
-      "Ավելացրեք տեքստ (օր. SOLD), ընտրեք չափն ու գույնը, ապա սեղմեք «Տեղադրել» և կտտացրեք հատակագծի վրա։ Կարելի է քաշել տեղում։",
+      "Ավելացրեք տեքստ հայերեն, ռուսերեն և անգլերեն (օր. SOLD), ընտրեք չափն ու գույնը, ապա սեղմեք «Տեղադրել» և կտտացրեք հատակագծի վրա։",
+    textLabelPlaceholderHy: "ՎԱՃԱՌՎԱԾ",
+    textLabelPlaceholderEn: "SOLD",
+    textLabelPlaceholderRu: "ПРОДАНО",
     buildingTextLabelsTitle: "Տեքստ շենքի նկարի վրա",
     buildingTextLabelHint:
-      "Ավելացրեք տեքստ (օր. SOLD) շենքի արտաքին նկարի վրա։ Ընտրեք չափն ու գույնը, սեղմեք «Տեղադրել», ապա կտտացրեք նկարի վրա։",
+      "Ավելացրեք տեքստ հայերեն, ռուսերեն և անգլերեն շենքի արտաքին նկարի վրա։ Ընտրեք չափն ու գույնը, սեղմեք «Տեղադրել», ապա կտտացրեք նկարի վրա։",
     hotspotLabelText: "Գոտու պիտակ",
     hotspotLabelColor: "Տեքստի գույն",
     hotspotLabelBgColor: "Ֆոն",
     hotspotLabelSize: "Չափ (px)",
+    hotspotLabelRotation: "Շրջադարձ (°)",
     hotspotLabelPlace: "Տեղադրել",
     switchToNeighborhoodConfirm:
       "Անցնել թաղամասի՞։ Շենքերի հարկերն ու գոտիները կջնջվեն այս նախագծից։",

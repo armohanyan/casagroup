@@ -20,6 +20,7 @@ export type PlanTextLabel = {
   color: string;
   backgroundColor?: string;
   fontSize?: number;
+  rotation?: number;
   x: number;
   y: number;
   active?: boolean;
@@ -87,6 +88,7 @@ export function PlanHotspotCanvas({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panMode, setPanMode] = useState(false);
   const [spaceHeld, setSpaceHeld] = useState(false);
+  const [ctrlHeld, setCtrlHeld] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [svgSize, setSvgSize] = useState({ w: 1, h: 1 });
   const dragRef = useRef<{ active: boolean; x: number; y: number }>({
@@ -106,25 +108,39 @@ export function PlanHotspotCanvas({
   } | null>(null);
   const suppressClickRef = useRef(false);
 
-  const panning = panMode || spaceHeld;
+  const panning = panMode || spaceHeld || ctrlHeld;
+
+  function isTypingTarget(target: EventTarget | null) {
+    const tag = (target as HTMLElement | null)?.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  }
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (isTypingTarget(e.target)) return;
       if (e.code === "Space" && !e.repeat) {
-        const tag = (e.target as HTMLElement | null)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
         e.preventDefault();
         setSpaceHeld(true);
+      }
+      if (e.key === "Control" && !e.repeat) {
+        setCtrlHeld(true);
       }
     }
     function onKeyUp(e: KeyboardEvent) {
       if (e.code === "Space") setSpaceHeld(false);
+      if (e.key === "Control") setCtrlHeld(false);
+    }
+    function onBlur() {
+      setSpaceHeld(false);
+      setCtrlHeld(false);
     }
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("blur", onBlur);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("blur", onBlur);
     };
   }, []);
 
@@ -216,7 +232,7 @@ export function PlanHotspotCanvas({
 
   function onPointerDown(e: React.PointerEvent) {
     if (pointDragRef.current || labelDragRef.current) return;
-    if (e.button === 1 || (e.button === 0 && panning)) {
+    if (e.button === 1 || (e.button === 0 && (panning || e.ctrlKey))) {
       e.preventDefault();
       dragRef.current = { active: true, x: e.clientX, y: e.clientY };
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -282,7 +298,7 @@ export function PlanHotspotCanvas({
   }
 
   function onSvgClick(e: React.MouseEvent<SVGSVGElement>) {
-    if (panning || dragRef.current.active || pointDragRef.current || labelDragRef.current) return;
+    if (panning || e.ctrlKey || dragRef.current.active || pointDragRef.current || labelDragRef.current) return;
     if (suppressClickRef.current) {
       suppressClickRef.current = false;
       return;
@@ -304,7 +320,7 @@ export function PlanHotspotCanvas({
   }
 
   function startLabelDrag(id: string, e: React.PointerEvent) {
-    if (panning || !onMoveLabel) return;
+    if (panning || e.ctrlKey || !onMoveLabel) return;
     e.preventDefault();
     e.stopPropagation();
     labelDragRef.current = { id, pointerId: e.pointerId, moved: false };
@@ -313,7 +329,7 @@ export function PlanHotspotCanvas({
   }
 
   function startPointDrag(index: number, e: React.PointerEvent) {
-    if (panning || !onMovePoint) return;
+    if (panning || e.ctrlKey || !onMovePoint) return;
     e.preventDefault();
     e.stopPropagation();
     pointDragRef.current = { index, pointerId: e.pointerId, moved: false };
@@ -473,7 +489,7 @@ export function PlanHotspotCanvas({
             <div
               key={lbl.id}
               className={cn(
-                "absolute z-[6] -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide",
+                "absolute z-[6] select-none whitespace-nowrap rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide",
                 onMoveLabel && !panning ? "cursor-move" : "pointer-events-none",
                 lbl.active || selectedLabelId === lbl.id ? "ring-2 ring-[#c9a96e] ring-offset-1" : "",
               )}

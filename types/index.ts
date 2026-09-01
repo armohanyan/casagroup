@@ -34,6 +34,8 @@ export interface ProjectMapStage {
   imageUrl: string;
   sortOrder: number;
   hotspots: MapStageHotspot[];
+  /** Free-floating text labels (e.g. SOLD) on the stage image. */
+  textLabels?: FloorTextLabel[];
 }
 
 export interface NearbyPlace {
@@ -62,9 +64,12 @@ export interface FloorHotspot {
   points: [number, number][];
   /** Optional label on the zone (e.g. SOLD). Position defaults to polygon centroid. */
   label?: string;
+  labelHy?: string;
+  labelRu?: string;
   labelColor?: string;
   labelBgColor?: string;
   labelFontSize?: number;
+  labelRotation?: number;
   labelX?: number;
   labelY?: number;
 }
@@ -72,11 +77,16 @@ export interface FloorHotspot {
 /** Free-floating text label on a plan image (% coords 0–100). */
 export interface FloorTextLabel {
   id: string;
+  /** English label text. */
   text: string;
+  textHy?: string;
+  textRu?: string;
   color: string;
   backgroundColor?: string;
   /** Font size in px (default 10). */
   fontSize?: number;
+  /** Rotation in degrees (default 0). */
+  rotation?: number;
   x: number;
   y: number;
 }

@@ -5,6 +5,8 @@ import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { AdminImageThumb } from "@/components/admin/AdminImageThumb";
 import { BilingualField } from "@/components/admin/BilingualField";
 import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
+import { PlanTextLabelSection, type PlanTextLabelSectionLabels } from "@/components/admin/PlanTextLabelSection";
+import { usePlanTextLabels } from "@/components/admin/usePlanTextLabels";
 import { useAdminImagePicker } from "@/components/admin/useAdminImagePicker";
 import {
   adminBtnSecondary,
@@ -70,6 +72,7 @@ export type SalesMapLabels = {
   zoomReset: string;
   panMode: string;
   drawMode: string;
+  textLabels: PlanTextLabelSectionLabels;
 };
 
 type HotspotMeta = { label: string; targetType: "stage" | "building"; targetId: string };
@@ -91,6 +94,201 @@ function centroid(points: [number, number][]): { x: number; y: number } {
   const sx = points.reduce((s, p) => s + p[0], 0);
   const sy = points.reduce((s, p) => s + p[1], 0);
   return { x: sx / points.length, y: sy / points.length };
+}
+
+function StageMapEditor({
+  stage,
+  mapStages,
+  buildings,
+  childStages,
+  draft,
+  meta,
+  persisting,
+  labels,
+  onDraftChange,
+  onMetaChange,
+  onFinishHotspot,
+  onRemoveHotspot,
+  onUpdate,
+}: {
+  stage: ProjectMapStage;
+  mapStages: ProjectMapStage[];
+  buildings: Building[];
+  childStages: ProjectMapStage[];
+  draft: [number, number][];
+  meta: HotspotMeta;
+  persisting?: boolean;
+  labels: SalesMapLabels;
+  onDraftChange: (draft: [number, number][]) => void;
+  onMetaChange: (meta: HotspotMeta) => void;
+  onFinishHotspot: () => void;
+  onRemoveHotspot: (id: string) => void;
+  onUpdate: (patch: Partial<ProjectMapStage>) => void;
+}) {
+  const textLabels = stage.textLabels ?? [];
+  const planLabels = usePlanTextLabels(textLabels, (next) => onUpdate({ textLabels: next }));
+  const placementActive = planLabels.labelPlacementMode;
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[#9CA3AF]">{labels.hotspots}</p>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <Field label={labels.hotspotLabel}>
+          <input
+            className={adminInputCls}
+            value={meta.label}
+            onChange={(e) => onMetaChange({ ...meta, label: e.target.value })}
+          />
+        </Field>
+        <Field label={labels.targetType}>
+          <select
+            className={adminSelectCls}
+            value={meta.targetType}
+            onChange={(e) => {
+              const targetType = e.target.value as "stage" | "building";
+              onMetaChange({
+                ...meta,
+                targetType,
+                targetId:
+                  targetType === "building"
+                    ? buildings[0]?.id ?? ""
+                    : childStages[0]?.id ??
+                      mapStages.find((s) => s.id !== stage.id)?.id ??
+                      "",
+              });
+            }}
+          >
+            <option value="building">{labels.targetBuilding}</option>
+            <option value="stage">{labels.targetStage}</option>
+          </select>
+        </Field>
+        <Field label={labels.selectTarget}>
+          <select
+            className={adminSelectCls}
+            value={meta.targetId}
+            onChange={(e) => onMetaChange({ ...meta, targetId: e.target.value })}
+          >
+            {meta.targetType === "building" ? (
+              buildings.filter((b) => b.name.trim()).length === 0 ? (
+                <option value="">{labels.noBuildings}</option>
+              ) : (
+                buildings
+                  .filter((b) => b.name.trim())
+                  .map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))
+              )
+            ) : mapStages.filter((s) => s.id !== stage.id).length === 0 ? (
+              <option value="">{labels.noStages}</option>
+            ) : (
+              mapStages
+                .filter((s) => s.id !== stage.id)
+                .map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label || s.id}
+                  </option>
+                ))
+            )}
+          </select>
+        </Field>
+      </div>
+      <p className="text-xs text-[#6B7280]">{labels.drawHint}</p>
+      <PlanHotspotCanvas
+        imageUrl={stage.imageUrl}
+        polygons={stage.hotspots.map((h) => ({
+          id: h.id,
+          points: h.points,
+          active: false,
+        }))}
+        draft={placementActive ? [] : draft}
+        drawing={!placementActive}
+        onAddPoint={(pt) => {
+          if (placementActive) return;
+          onDraftChange([...draft, pt]);
+        }}
+        onMovePoint={(index, pt) => onDraftChange(draft.map((p, i) => (i === index ? pt : p)))}
+        onSelectPolygon={onRemoveHotspot}
+        onFinishDraft={onFinishHotspot}
+        textLabels={planLabels.canvasTextLabels}
+        labelPlacementMode={placementActive}
+        selectedLabelId={planLabels.selectedLabelId}
+        onPlaceLabel={(pt) => planLabels.placeLabel(pt)}
+        onMoveLabel={(id, pt) => planLabels.moveLabel(id, pt)}
+        onSelectLabel={(id) => {
+          planLabels.setSelectedLabelId(id);
+          planLabels.setLabelPlacementMode(false);
+        }}
+        labels={{
+          zoomIn: labels.zoomIn,
+          zoomOut: labels.zoomOut,
+          zoomReset: labels.zoomReset,
+          panMode: labels.panMode,
+          drawMode: labels.drawMode,
+        }}
+      />
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className={cn(adminBtnSecondary, "h-9 text-xs")}
+          onClick={onFinishHotspot}
+          disabled={draft.length < 3 || !meta.targetId || persisting || placementActive}
+        >
+          {persisting ? "…" : labels.finishPolygon}
+        </button>
+        <button
+          type="button"
+          className={cn(adminBtnSecondary, "h-9 text-xs")}
+          onClick={() => onDraftChange(draft.slice(0, -1))}
+          disabled={placementActive}
+        >
+          {labels.undoPoint}
+        </button>
+        <button
+          type="button"
+          className={cn(adminBtnSecondary, "h-9 text-xs")}
+          onClick={() => onDraftChange([])}
+          disabled={placementActive}
+        >
+          {labels.clearDraft}
+        </button>
+      </div>
+      {stage.hotspots.length > 0 ? (
+        <ul className="space-y-1 text-xs text-[#6B7280]">
+          {stage.hotspots.map((h) => (
+            <li key={h.id} className="flex items-center justify-between gap-2">
+              <span>
+                {h.label || "-"} → {h.targetType}:{h.targetId.slice(0, 8)}
+              </span>
+              <button
+                type="button"
+                className="text-red-500 hover:underline"
+                onClick={() => onRemoveHotspot(h.id)}
+              >
+                {labels.removeHotspot}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <PlanTextLabelSection
+        textLabels={textLabels}
+        selectedLabelId={planLabels.selectedLabelId}
+        labelPlacementMode={planLabels.labelPlacementMode}
+        onSelectLabel={(id) => {
+          planLabels.setSelectedLabelId(id);
+          planLabels.setLabelPlacementMode(false);
+        }}
+        onAddLabel={() => planLabels.addTextLabel()}
+        onUpdateLabel={planLabels.updateTextLabel}
+        onRemoveLabel={planLabels.removeTextLabel}
+        onDuplicateLabel={planLabels.duplicateTextLabel}
+        onStartPlacement={() => planLabels.setLabelPlacementMode(true)}
+        labels={labels.textLabels}
+      />
+    </div>
+  );
 }
 
 function StageCard({
@@ -203,144 +401,26 @@ function StageCard({
               removeLabel="×"
               editLabel="Խմբագրել"
               onEdit={onEditClick}
-              onRemove={() => onUpdate({ imageUrl: "", hotspots: [] })}
+              onRemove={() => onUpdate({ imageUrl: "", hotspots: [], textLabels: [] })}
             />
           ) : null}
 
           {stage.imageUrl.trim() ? (
-            <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#9CA3AF]">
-                {labels.hotspots}
-              </p>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <Field label={labels.hotspotLabel}>
-                  <input
-                    className={adminInputCls}
-                    value={meta.label}
-                    onChange={(e) => onMetaChange({ ...meta, label: e.target.value })}
-                  />
-                </Field>
-                <Field label={labels.targetType}>
-                  <select
-                    className={adminSelectCls}
-                    value={meta.targetType}
-                    onChange={(e) => {
-                      const targetType = e.target.value as "stage" | "building";
-                      onMetaChange({
-                        ...meta,
-                        targetType,
-                        targetId:
-                          targetType === "building"
-                            ? buildings[0]?.id ?? ""
-                            : childStages[0]?.id ??
-                              mapStages.find((s) => s.id !== stage.id)?.id ??
-                              "",
-                      });
-                    }}
-                  >
-                    <option value="building">{labels.targetBuilding}</option>
-                    <option value="stage">{labels.targetStage}</option>
-                  </select>
-                </Field>
-                <Field label={labels.selectTarget}>
-                  <select
-                    className={adminSelectCls}
-                    value={meta.targetId}
-                    onChange={(e) => onMetaChange({ ...meta, targetId: e.target.value })}
-                  >
-                    {meta.targetType === "building" ? (
-                      buildings.filter((b) => b.name.trim()).length === 0 ? (
-                        <option value="">{labels.noBuildings}</option>
-                      ) : (
-                        buildings
-                          .filter((b) => b.name.trim())
-                          .map((b) => (
-                            <option key={b.id} value={b.id}>
-                              {b.name}
-                            </option>
-                          ))
-                      )
-                    ) : mapStages.filter((s) => s.id !== stage.id).length === 0 ? (
-                      <option value="">{labels.noStages}</option>
-                    ) : (
-                      mapStages
-                        .filter((s) => s.id !== stage.id)
-                        .map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.label || s.id}
-                          </option>
-                        ))
-                    )}
-                  </select>
-                </Field>
-              </div>
-              <p className="text-xs text-[#6B7280]">{labels.drawHint}</p>
-              <PlanHotspotCanvas
-                imageUrl={stage.imageUrl}
-                polygons={stage.hotspots.map((h) => ({
-                  id: h.id,
-                  points: h.points,
-                  active: false,
-                }))}
-                draft={draft}
-                drawing
-                onAddPoint={(pt) => onDraftChange([...draft, pt])}
-                onMovePoint={(index, pt) =>
-                  onDraftChange(draft.map((p, i) => (i === index ? pt : p)))
-                }
-                onSelectPolygon={onRemoveHotspot}
-                onFinishDraft={onFinishHotspot}
-                labels={{
-                  zoomIn: labels.zoomIn,
-                  zoomOut: labels.zoomOut,
-                  zoomReset: labels.zoomReset,
-                  panMode: labels.panMode,
-                  drawMode: labels.drawMode,
-                }}
-              />
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className={cn(adminBtnSecondary, "h-9 text-xs")}
-                  onClick={onFinishHotspot}
-                  disabled={draft.length < 3 || !meta.targetId || persisting}
-                >
-                  {persisting ? "…" : labels.finishPolygon}
-                </button>
-                <button
-                  type="button"
-                  className={cn(adminBtnSecondary, "h-9 text-xs")}
-                  onClick={() => onDraftChange(draft.slice(0, -1))}
-                >
-                  {labels.undoPoint}
-                </button>
-                <button
-                  type="button"
-                  className={cn(adminBtnSecondary, "h-9 text-xs")}
-                  onClick={() => onDraftChange([])}
-                >
-                  {labels.clearDraft}
-                </button>
-              </div>
-              {stage.hotspots.length > 0 ? (
-                <ul className="space-y-1 text-xs text-[#6B7280]">
-                  {stage.hotspots.map((h) => (
-                    <li key={h.id} className="flex items-center justify-between gap-2">
-                      <span>
-                        {h.label || "-"} → {h.targetType}:{h.targetId.slice(0, 8)}
-                      </span>
-                      <button
-                        type="button"
-                        className="text-red-500 hover:underline"
-                        onClick={() => onRemoveHotspot(h.id)}
-                      >
-                        {labels.removeHotspot}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
+            <StageMapEditor
+              stage={stage}
+              mapStages={mapStages}
+              buildings={buildings}
+              childStages={childStages}
+              draft={draft}
+              meta={meta}
+              persisting={persisting}
+              labels={labels}
+              onDraftChange={onDraftChange}
+              onMetaChange={onMetaChange}
+              onFinishHotspot={onFinishHotspot}
+              onRemoveHotspot={onRemoveHotspot}
+              onUpdate={onUpdate}
+            />
           ) : null}
 
           <div className="flex flex-wrap gap-2">

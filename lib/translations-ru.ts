@@ -1359,6 +1359,9 @@ export const ru: Translations = {
     salesModeBuildings: "Несколько зданий",
     salesModeFloors: "Одно здание",
     salesModePlans: "Только планировки",
+    mapTextLabelsTitle: "Текст на карте участка",
+    mapTextLabelHint:
+      "Добавьте текст на армянском, русском и английском на карте участка (напр. SOLD). Выберите размер и цвет, нажмите «Разместить» и кликните по изображению.",
     sectionSalesMaps: "Карта участка (здания)",
     salesMapsHint:
       "Используйте ОДНО изображение всего участка. Обведите каждое здание (Корпус 1, Корпус 2…), цель = это здание. Не добавляйте вторую карту - на сайте показывается только первая.",
@@ -1456,18 +1459,24 @@ export const ru: Translations = {
     textLabelColor: "Цвет",
     textLabelBgColor: "Фон",
     textLabelSize: "Размер (px)",
+    textLabelRotation: "Поворот (°)",
     textLabelPlace: "Разместить",
     textLabelRemove: "Удалить",
+    textLabelDuplicate: "Дублировать",
     textLabelCount: "{count} меток",
     textLabelHint:
-      "Добавьте текст (напр. SOLD), выберите размер и цвет, нажмите «Разместить» и кликните по плану. Можно перетаскивать.",
+      "Добавьте текст на армянском, русском и английском (напр. SOLD), выберите размер и цвет, нажмите «Разместить» и кликните по плану.",
+    textLabelPlaceholderHy: "ՎԱՃԱՌՎԱԾ",
+    textLabelPlaceholderEn: "SOLD",
+    textLabelPlaceholderRu: "ПРОДАНО",
     buildingTextLabelsTitle: "Текст на изображении корпуса",
     buildingTextLabelHint:
-      "Добавьте текст (напр. SOLD) на внешнее изображение корпуса. Выберите размер и цвет, нажмите «Разместить» и кликните по изображению.",
+      "Добавьте текст на армянском, русском и английском на внешнее изображение корпуса. Выберите размер и цвет, нажмите «Разместить» и кликните по изображению.",
     hotspotLabelText: "Метка зоны",
     hotspotLabelColor: "Цвет текста",
     hotspotLabelBgColor: "Фон",
     hotspotLabelSize: "Размер (px)",
+    hotspotLabelRotation: "Поворот (°)",
     hotspotLabelPlace: "Разместить",
     switchToNeighborhoodConfirm:
       "Переключить на квартал? Этажи корпуса и зоны на планах будут удалены из этого проекта.",

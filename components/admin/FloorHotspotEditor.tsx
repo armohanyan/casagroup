@@ -5,13 +5,19 @@ import type { Apartment, ApartmentStatus, BuildingFloor, FloorHotspot } from "@/
 import { adminSelectCls } from "@/components/admin/admin-config";
 import { PlanHotspotCanvas } from "@/components/admin/PlanHotspotCanvas";
 import { PlanTextLabelSection } from "@/components/admin/PlanTextLabelSection";
+import { BilingualField } from "@/components/admin/BilingualField";
 import { usePlanTextLabels } from "@/components/admin/usePlanTextLabels";
 import {
   DEFAULT_PLAN_TEXT_BG,
   DEFAULT_PLAN_TEXT_COLOR,
   MAX_PLAN_TEXT_FONT_SIZE,
+  MAX_PLAN_TEXT_ROTATION,
   MIN_PLAN_TEXT_FONT_SIZE,
+  MIN_PLAN_TEXT_ROTATION,
+  hasPlanText,
   planTextLabelFontSize,
+  planTextLabelRotation,
+  resolvePlanText,
 } from "@/lib/plan-text-labels";
 
 interface Props {
@@ -48,14 +54,21 @@ interface Props {
     textLabelColor?: string;
     textLabelBgColor?: string;
     textLabelSize?: string;
+    textLabelRotation?: string;
     textLabelPlace?: string;
     textLabelRemove?: string;
+    textLabelDuplicate?: string;
+    textLabelPlaceholderHy?: string;
+    textLabelPlaceholderEn?: string;
+    textLabelPlaceholderRu?: string;
+    copyFromOther?: string;
     textLabelCount?: string;
     textLabelHint?: string;
     hotspotLabelText?: string;
     hotspotLabelColor?: string;
     hotspotLabelBgColor?: string;
     hotspotLabelSize?: string;
+    hotspotLabelRotation?: string;
     hotspotLabelPlace?: string;
   };
 }
@@ -130,8 +143,12 @@ export function FloorHotspotEditor({
       apartmentId: selectedAptId,
       points,
       ...(existing?.label ? { label: existing.label } : {}),
+      ...(existing?.labelHy ? { labelHy: existing.labelHy } : {}),
+      ...(existing?.labelRu ? { labelRu: existing.labelRu } : {}),
       ...(existing?.labelColor ? { labelColor: existing.labelColor } : {}),
       ...(existing?.labelBgColor ? { labelBgColor: existing.labelBgColor } : {}),
+      ...(existing?.labelFontSize !== undefined ? { labelFontSize: existing.labelFontSize } : {}),
+      ...(existing?.labelRotation !== undefined ? { labelRotation: existing.labelRotation } : {}),
       ...(existing?.labelX !== undefined ? { labelX: existing.labelX } : {}),
       ...(existing?.labelY !== undefined ? { labelY: existing.labelY } : {}),
     };
@@ -211,15 +228,16 @@ export function FloorHotspotEditor({
   const canvasTextLabels = [
     ...planLabels.canvasTextLabels,
     ...floor.hotspots
-      .filter((h) => h.label?.trim())
+      .filter((h) => hasPlanText({ text: h.label, textHy: h.labelHy, textRu: h.labelRu }))
       .map((h) => {
         const pos = hotspotLabelPosition(h);
         return {
           id: `hotspot-${h.apartmentId}`,
-          text: h.label!.trim(),
+          text: resolvePlanText({ text: h.label, textHy: h.labelHy, textRu: h.labelRu }, "hy"),
           color: h.labelColor ?? DEFAULT_PLAN_TEXT_COLOR,
           backgroundColor: h.labelBgColor ?? DEFAULT_PLAN_TEXT_BG,
           fontSize: h.labelFontSize,
+          rotation: h.labelRotation,
           x: pos[0],
           y: pos[1],
           active: hotspotLabelPlacement && h.apartmentId === selectedAptId,
@@ -382,23 +400,24 @@ export function FloorHotspotEditor({
       />
 
       {selectedHotspot && !isSold ? (
-        <div className="space-y-2 rounded-[5px] border border-[#E8EAED] bg-[#FAFAF8] p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9CA3AF]">
-            {labels.hotspotLabelText ?? "Zone label"}
-          </p>
+        <div className="space-y-3 rounded-[5px] border border-[#E8EAED] bg-[#FAFAF8] p-3">
+          <BilingualField
+            label={labels.hotspotLabelText ?? "Zone label"}
+            hy={selectedHotspot.labelHy ?? ""}
+            ru={selectedHotspot.labelRu ?? ""}
+            en={selectedHotspot.label ?? ""}
+            onHy={(v) => updateHotspotLabel({ labelHy: v || undefined })}
+            onRu={(v) => updateHotspotLabel({ labelRu: v || undefined })}
+            onEn={(v) => updateHotspotLabel({ label: v || undefined })}
+            placeholderHy={labels.textLabelPlaceholderHy ?? "ՎԱՃԱՌՎԱԾ"}
+            placeholderRu={labels.textLabelPlaceholderRu ?? "ПРОДАНО"}
+            placeholderEn={labels.textLabelPlaceholderEn ?? "SOLD"}
+            copyHyLabel={labels.copyFromOther ?? "Copy"}
+            copyRuLabel={labels.copyFromOther ?? "Copy"}
+            copyEnLabel={labels.copyFromOther ?? "Copy"}
+            className="md:col-span-3"
+          />
           <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-[120px] flex-1">
-              <label className="mb-1 block text-xs text-[#6B7280]">{labels.hotspotLabelText ?? "Text"}</label>
-              <input
-                type="text"
-                className="h-9 w-full rounded-[5px] border border-[#E5E7EB] px-2 text-sm"
-                value={selectedHotspot.label ?? ""}
-                placeholder="SOLD"
-                onChange={(e) =>
-                  updateHotspotLabel({ label: e.target.value || undefined })
-                }
-              />
-            </div>
             <div>
               <label className="mb-1 block text-xs text-[#6B7280]">{labels.hotspotLabelColor ?? "Text color"}</label>
               <input
@@ -419,6 +438,21 @@ export function FloorHotspotEditor({
                 onChange={(e) =>
                   updateHotspotLabel({
                     labelFontSize: Number(e.target.value) || undefined,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-[#6B7280]">{labels.hotspotLabelRotation ?? "Rotation"}</label>
+              <input
+                type="number"
+                min={MIN_PLAN_TEXT_ROTATION}
+                max={MAX_PLAN_TEXT_ROTATION}
+                className="h-9 w-16 rounded-[5px] border border-[#E5E7EB] px-2 text-sm"
+                value={planTextLabelRotation({ rotation: selectedHotspot.labelRotation })}
+                onChange={(e) =>
+                  updateHotspotLabel({
+                    labelRotation: Number(e.target.value) || 0,
                   })
                 }
               />
@@ -469,6 +503,7 @@ export function FloorHotspotEditor({
         }}
         onUpdateLabel={planLabels.updateTextLabel}
         onRemoveLabel={planLabels.removeTextLabel}
+        onDuplicateLabel={planLabels.duplicateTextLabel}
         onStartPlacement={() => {
           planLabels.setLabelPlacementMode(true);
           setHotspotLabelPlacement(false);
@@ -480,10 +515,16 @@ export function FloorHotspotEditor({
           color: labels.textLabelColor,
           bgColor: labels.textLabelBgColor,
           size: labels.textLabelSize,
+          rotation: labels.textLabelRotation,
           place: labels.textLabelPlace,
           remove: labels.textLabelRemove,
+          duplicate: labels.textLabelDuplicate,
           count: labels.textLabelCount,
           hint: labels.textLabelHint,
+          placeholderHy: labels.textLabelPlaceholderHy,
+          placeholderEn: labels.textLabelPlaceholderEn,
+          placeholderRu: labels.textLabelPlaceholderRu,
+          copyFromOther: labels.copyFromOther,
         }}
       />
 
@@ -503,7 +544,9 @@ export function FloorHotspotEditor({
                 onClick={() => selectApartment(h.apartmentId)}
               >
                 {aptLabel(h.apartmentId)}
-                {h.label ? ` · "${h.label}"` : ""}
+                {hasPlanText({ text: h.label, textHy: h.labelHy, textRu: h.labelRu })
+                  ? ` · "${resolvePlanText({ text: h.label, textHy: h.labelHy, textRu: h.labelRu }, "hy")}"`
+                  : ""}
               </button>
               <button
                 type="button"

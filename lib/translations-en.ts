@@ -1357,6 +1357,9 @@ export const en = {
     salesModeBuildings: "Several buildings",
     salesModeFloors: "Single building",
     salesModePlans: "Apartment plans only",
+    mapTextLabelsTitle: "Text on site map",
+    mapTextLabelHint:
+      "Add text in Armenian, Russian, and English on the site map (e.g. SOLD). Pick size and colors, click Place on map, then click the image.",
     sectionSalesMaps: "Site map (buildings)",
     salesMapsHint:
       "Use ONE image of the whole site. Draw a zone on each building (Branch 1, Branch 2…), set Target = that building. Do not add a second map for this - only the first map is shown on the site.",
@@ -1454,18 +1457,24 @@ export const en = {
     textLabelColor: "Color",
     textLabelBgColor: "Background",
     textLabelSize: "Size (px)",
+    textLabelRotation: "Rotation (°)",
     textLabelPlace: "Place on map",
     textLabelRemove: "Remove",
+    textLabelDuplicate: "Duplicate",
     textLabelCount: "{count} labels",
     textLabelHint:
-      "Add text (e.g. SOLD), pick size and colors, click Place on map, then click the floor plan. Drag to reposition.",
+      "Add text in Armenian, Russian, and English (e.g. SOLD), pick size and colors, click Place on map, then click the floor plan.",
+    textLabelPlaceholderHy: "ՎԱՃԱՌՎԱԾ",
+    textLabelPlaceholderEn: "SOLD",
+    textLabelPlaceholderRu: "ПРОДАНО",
     buildingTextLabelsTitle: "Text on building image",
     buildingTextLabelHint:
-      "Add text (e.g. SOLD) on the building exterior image. Pick size and colors, click Place on map, then click the image.",
+      "Add text in Armenian, Russian, and English on the building exterior image. Pick size and colors, click Place on map, then click the image.",
     hotspotLabelText: "Zone label",
     hotspotLabelColor: "Text color",
     hotspotLabelBgColor: "Background",
     hotspotLabelSize: "Size (px)",
+    hotspotLabelRotation: "Rotation (°)",
     hotspotLabelPlace: "Place on map",
     switchToNeighborhoodConfirm:
       "Switch to Neighborhood? Building floors and mapped zones will be removed from this project.",

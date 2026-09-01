@@ -89,6 +89,8 @@ model ProjectMapStage {
   sortOrder Int               @default(0)
   /** Array of { id, label, points, markerX?, markerY?, targetType, targetId }. */
   hotspots  Json
+  /** Free-floating text labels on the stage image (% coords). */
+  textLabels Json     @default("[]")
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
   project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)

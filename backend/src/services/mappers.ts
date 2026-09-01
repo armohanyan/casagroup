@@ -79,6 +79,8 @@ function mapFloorHotspots(raw: unknown) {
       const points = parsePoints(item.points);
       if (points.length < 3) return null;
       const label = typeof item.label === "string" && item.label.trim() ? item.label.trim() : undefined;
+      const labelHy = typeof item.labelHy === "string" && item.labelHy.trim() ? item.labelHy.trim() : undefined;
+      const labelRu = typeof item.labelRu === "string" && item.labelRu.trim() ? item.labelRu.trim() : undefined;
       const labelColor =
         typeof item.labelColor === "string" && item.labelColor.trim() ? item.labelColor.trim() : undefined;
       const labelBgColor =
@@ -91,13 +93,20 @@ function mapFloorHotspots(raw: unknown) {
         typeof item.labelFontSize === "number" && Number.isFinite(item.labelFontSize) && item.labelFontSize > 0
           ? item.labelFontSize
           : undefined;
+      const labelRotation =
+        typeof item.labelRotation === "number" && Number.isFinite(item.labelRotation)
+          ? item.labelRotation
+          : undefined;
       return {
         apartmentId,
         points,
         ...(label ? { label } : {}),
+        ...(labelHy ? { labelHy } : {}),
+        ...(labelRu ? { labelRu } : {}),
         ...(labelColor ? { labelColor } : {}),
         ...(labelBgColor ? { labelBgColor } : {}),
         ...(labelFontSize !== undefined ? { labelFontSize } : {}),
+        ...(labelRotation !== undefined ? { labelRotation } : {}),
         ...(labelX !== undefined ? { labelX } : {}),
         ...(labelY !== undefined ? { labelY } : {}),
       };
@@ -112,21 +121,27 @@ function mapPlanTextLabels(raw: unknown) {
       if (!item || typeof item !== "object") return null;
       const row = item as Record<string, unknown>;
       const id = typeof row.id === "string" ? row.id : "";
-      const text = typeof row.text === "string" ? row.text : "";
+      const text = typeof row.text === "string" ? row.text.trim() : "";
+      const textHy = typeof row.textHy === "string" ? row.textHy.trim() : "";
+      const textRu = typeof row.textRu === "string" ? row.textRu.trim() : "";
       const color = typeof row.color === "string" ? row.color : "#ffffff";
       const backgroundColor = typeof row.backgroundColor === "string" ? row.backgroundColor : undefined;
       const fontSize = Number(row.fontSize);
+      const rotation = Number(row.rotation);
       const x = Number(row.x);
       const y = Number(row.y);
-      if (!id || !text.trim() || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+      if (!id || (!text && !textHy && !textRu) || !Number.isFinite(x) || !Number.isFinite(y)) return null;
       return {
         id,
-        text: text.trim(),
+        text: text || textHy || textRu,
+        ...(textHy ? { textHy } : {}),
+        ...(textRu ? { textRu } : {}),
         color,
         x,
         y,
         ...(backgroundColor ? { backgroundColor } : {}),
         ...(Number.isFinite(fontSize) && fontSize > 0 ? { fontSize } : {}),
+        ...(Number.isFinite(rotation) ? { rotation } : {}),
       };
     })
     .filter((l): l is NonNullable<typeof l> => l !== null);
@@ -192,6 +207,7 @@ export function mapMapStage(stage: ProjectMapStage) {
     imageUrl: stage.imageUrl,
     sortOrder: stage.sortOrder,
     hotspots: mapMapStageHotspots(stage.hotspots),
+    textLabels: mapPlanTextLabels(stage.textLabels),
   };
 }
 

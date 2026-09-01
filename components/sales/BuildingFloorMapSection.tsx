@@ -15,7 +15,7 @@ import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { PlanTextLabelsOverlay } from "@/components/sales/PlanTextLabelsOverlay";
-import { planTextLabelStyle } from "@/lib/plan-text-labels";
+import { planTextLabelStyle, hasPlanText, resolvePlanText } from "@/lib/plan-text-labels";
 import { cn } from "@/lib/utils";
 import type { Apartment, Building, BuildingFloor, Project } from "@/types";
 
@@ -62,26 +62,29 @@ function FloorPlanTextLabels({
   aptById: Map<string, Apartment>;
   soldFallback: string;
 }) {
+  const { lang } = useI18n();
   const hotspotLabels: {
     key: string;
     text: string;
     color: string;
     backgroundColor?: string;
     fontSize?: number;
+    rotation?: number;
     x: number;
     y: number;
   }[] = [];
 
   for (const h of floor.hotspots) {
     const apt = aptById.get(h.apartmentId);
-    if (h.label?.trim()) {
+    if (hasPlanText({ text: h.label, textHy: h.labelHy, textRu: h.labelRu })) {
       const pos = hotspotLabelPosition(h);
       hotspotLabels.push({
         key: `hotspot-${h.apartmentId}`,
-        text: h.label.trim(),
+        text: resolvePlanText({ text: h.label, textHy: h.labelHy, textRu: h.labelRu }, lang),
         color: h.labelColor ?? "#ffffff",
         backgroundColor: h.labelBgColor ?? "rgba(12, 20, 40, 0.7)",
         fontSize: h.labelFontSize,
+        rotation: h.labelRotation,
         x: pos.x,
         y: pos.y,
       });
@@ -104,7 +107,7 @@ function FloorPlanTextLabels({
       {hotspotLabels.map((lbl) => (
         <span
           key={lbl.key}
-          className="pointer-events-none absolute z-[5] -translate-x-1/2 -translate-y-1/2 rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide"
+          className="pointer-events-none absolute z-[5] rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide"
           style={{
             left: `${lbl.x}%`,
             top: `${lbl.y}%`,

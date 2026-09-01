@@ -68,6 +68,8 @@ function normalizeHotspots(raw: unknown) {
         : [];
       if (points.length < 3) return null;
       const label = typeof item.label === "string" && item.label.trim() ? item.label.trim() : undefined;
+      const labelHy = typeof item.labelHy === "string" && item.labelHy.trim() ? item.labelHy.trim() : undefined;
+      const labelRu = typeof item.labelRu === "string" && item.labelRu.trim() ? item.labelRu.trim() : undefined;
       const labelColor =
         typeof item.labelColor === "string" && item.labelColor.trim() ? item.labelColor.trim() : undefined;
       const labelBgColor =
@@ -80,13 +82,20 @@ function normalizeHotspots(raw: unknown) {
         typeof item.labelFontSize === "number" && Number.isFinite(item.labelFontSize) && item.labelFontSize > 0
           ? item.labelFontSize
           : undefined;
+      const labelRotation =
+        typeof item.labelRotation === "number" && Number.isFinite(item.labelRotation)
+          ? item.labelRotation
+          : undefined;
       return {
         apartmentId,
         points,
         ...(label ? { label } : {}),
+        ...(labelHy ? { labelHy } : {}),
+        ...(labelRu ? { labelRu } : {}),
         ...(labelColor ? { labelColor } : {}),
         ...(labelBgColor ? { labelBgColor } : {}),
         ...(labelFontSize !== undefined ? { labelFontSize } : {}),
+        ...(labelRotation !== undefined ? { labelRotation } : {}),
         ...(labelX !== undefined ? { labelX } : {}),
         ...(labelY !== undefined ? { labelY } : {}),
       };
@@ -101,7 +110,9 @@ function normalizeTextLabels(raw: unknown) {
       if (!item || typeof item !== "object") return null;
       const row = item as Record<string, unknown>;
       const id = typeof row.id === "string" && row.id.trim() ? row.id.trim() : "";
-      const text = typeof row.text === "string" ? row.text : "";
+      const text = typeof row.text === "string" ? row.text.trim() : "";
+      const textHy = typeof row.textHy === "string" ? row.textHy.trim() : "";
+      const textRu = typeof row.textRu === "string" ? row.textRu.trim() : "";
       const color = typeof row.color === "string" && row.color.trim() ? row.color.trim() : "#ffffff";
       const backgroundColor =
         typeof row.backgroundColor === "string" && row.backgroundColor.trim()
@@ -110,15 +121,19 @@ function normalizeTextLabels(raw: unknown) {
       const x = Number(row.x);
       const y = Number(row.y);
       const fontSize = Number(row.fontSize);
-      if (!id || !text.trim() || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+      const rotation = Number(row.rotation);
+      if (!id || (!text && !textHy && !textRu) || !Number.isFinite(x) || !Number.isFinite(y)) return null;
       return {
         id,
-        text: text.trim(),
+        text: text || textHy || textRu,
+        ...(textHy ? { textHy } : {}),
+        ...(textRu ? { textRu } : {}),
         color,
         x: Math.min(100, Math.max(0, x)),
         y: Math.min(100, Math.max(0, y)),
         ...(backgroundColor ? { backgroundColor } : {}),
         ...(Number.isFinite(fontSize) && fontSize > 0 ? { fontSize } : {}),
+        ...(Number.isFinite(rotation) ? { rotation } : {}),
       };
     })
     .filter((l): l is NonNullable<typeof l> => l !== null);
@@ -264,6 +279,7 @@ function mapStageCreateData(raw: Record<string, unknown>, sortOrder: number) {
     imageUrl: String(raw.imageUrl || ""),
     sortOrder: raw.sortOrder !== undefined ? Number(raw.sortOrder) : sortOrder,
     hotspots: normalizeMapStageHotspots(raw.hotspots),
+    textLabels: normalizeTextLabels(raw.textLabels),
   };
 }
 

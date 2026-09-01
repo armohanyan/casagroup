@@ -104,6 +104,7 @@ export function emptyMapStage(projectId: string, parentId?: string | null, sortO
     imageUrl: "",
     sortOrder,
     hotspots: [],
+    textLabels: [],
   };
 }
 
