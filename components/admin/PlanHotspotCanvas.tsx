@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Hand, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { planTextLabelStyle } from "@/lib/plan-text-labels";
+import { PLAN_TEXT_LABEL_CLASS, planTextLabelStyle } from "@/lib/plan-text-labels";
 
 export type PlanPoint = [number, number];
 
@@ -402,7 +402,7 @@ export function PlanHotspotCanvas({
         onPointerCancel={onPointerUp}
       >
         <div
-          className="absolute left-0 top-0 origin-top-left will-change-transform"
+          className="absolute left-0 top-0 origin-top-left will-change-transform [container-type:inline-size]"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             width: "100%",
@@ -489,7 +489,8 @@ export function PlanHotspotCanvas({
             <div
               key={lbl.id}
               className={cn(
-                "absolute z-[6] select-none whitespace-nowrap rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide",
+                PLAN_TEXT_LABEL_CLASS,
+                "z-[6]",
                 onMoveLabel && !panning ? "cursor-move" : "pointer-events-none",
                 lbl.active || selectedLabelId === lbl.id ? "ring-2 ring-[#c9a96e] ring-offset-1" : "",
               )}

@@ -60,7 +60,8 @@ export function PercentMapFrame({
       <div
         ref={frameRef}
         className={cn(
-          "relative max-w-full",
+          // inline-size container so plan text labels can use cqw (scale with map width)
+          "relative max-w-full [container-type:inline-size]",
           unconstrained || !fitted ? "w-full" : "[--map-max-h:52vh] sm:[--map-max-h:60vh] md:[--map-max-h:100dvh]",
         )}
         style={

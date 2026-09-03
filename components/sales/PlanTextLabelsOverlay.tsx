@@ -2,7 +2,11 @@
 
 import type { FloorTextLabel } from "@/types";
 import { useI18n } from "@/lib/i18n";
-import { planTextLabelStyle, resolvePlanText } from "@/lib/plan-text-labels";
+import {
+  PLAN_TEXT_LABEL_CLASS,
+  planTextLabelStyle,
+  resolvePlanText,
+} from "@/lib/plan-text-labels";
 
 export function PlanTextLabelsOverlay({ labels }: { labels: FloorTextLabel[] }) {
   const { lang } = useI18n();
@@ -15,7 +19,7 @@ export function PlanTextLabelsOverlay({ labels }: { labels: FloorTextLabel[] }) 
         return (
           <span
             key={lbl.id}
-            className="pointer-events-none absolute z-[5] rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide"
+            className={`pointer-events-none ${PLAN_TEXT_LABEL_CLASS}`}
             style={{
               left: `${lbl.x}%`,
               top: `${lbl.y}%`,

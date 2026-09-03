@@ -16,7 +16,12 @@ import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { PlanTextLabelsOverlay } from "@/components/sales/PlanTextLabelsOverlay";
 import { PercentMapFrame } from "@/components/sales/PercentMapFrame";
-import { planTextLabelStyle, hasPlanText, resolvePlanText } from "@/lib/plan-text-labels";
+import {
+  PLAN_TEXT_LABEL_CLASS,
+  planTextLabelStyle,
+  hasPlanText,
+  resolvePlanText,
+} from "@/lib/plan-text-labels";
 import { cn } from "@/lib/utils";
 import type { Apartment, Building, BuildingFloor, Project } from "@/types";
 
@@ -108,7 +113,7 @@ function FloorPlanTextLabels({
       {hotspotLabels.map((lbl) => (
         <span
           key={lbl.key}
-          className="pointer-events-none absolute z-[5] rounded-sm px-1.5 py-0.5 font-semibold uppercase tracking-wide"
+          className={`pointer-events-none ${PLAN_TEXT_LABEL_CLASS}`}
           style={{
             left: `${lbl.x}%`,
             top: `${lbl.y}%`,

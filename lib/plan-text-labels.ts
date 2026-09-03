@@ -8,6 +8,11 @@ export const MIN_PLAN_TEXT_FONT_SIZE = 8;
 export const MAX_PLAN_TEXT_FONT_SIZE = 32;
 export const MIN_PLAN_TEXT_ROTATION = -180;
 export const MAX_PLAN_TEXT_ROTATION = 180;
+/** Stored fontSize (px) matches this map width; smaller maps scale labels down. */
+export const PLAN_TEXT_SIZE_REFERENCE_WIDTH = 800;
+/** Shared overlay chrome; padding uses em so it tracks scaled font size. */
+export const PLAN_TEXT_LABEL_CLASS =
+  "absolute z-[5] select-none whitespace-nowrap rounded-sm px-[0.45em] py-[0.2em] font-semibold uppercase tracking-wide";
 
 export type PlanTextFields = {
   text?: string;
@@ -33,6 +38,11 @@ export function planTextLabelFontSize(label: { fontSize?: number }) {
   return Math.min(MAX_PLAN_TEXT_FONT_SIZE, Math.max(MIN_PLAN_TEXT_FONT_SIZE, size));
 }
 
+/** Font size as % of map container width (1cqw = 1% of container). */
+export function planTextLabelFontSizeCqw(label: { fontSize?: number }) {
+  return (planTextLabelFontSize(label) / PLAN_TEXT_SIZE_REFERENCE_WIDTH) * 100;
+}
+
 export function planTextLabelRotation(label: { rotation?: number }) {
   const deg = label.rotation ?? 0;
   return Math.min(MAX_PLAN_TEXT_ROTATION, Math.max(MIN_PLAN_TEXT_ROTATION, deg));
@@ -49,10 +59,13 @@ export function planTextLabelStyle(label: {
   fontSize?: number;
   rotation?: number;
 }) {
+  const px = planTextLabelFontSize(label);
+  const cqw = planTextLabelFontSizeCqw(label);
   return {
     color: label.color,
     backgroundColor: label.backgroundColor ?? DEFAULT_PLAN_TEXT_BG,
-    fontSize: `${planTextLabelFontSize(label)}px`,
+    // Cap at authored px on large maps; shrink with map width on mobile.
+    fontSize: `min(${px}px, ${cqw}cqw)`,
     transform: planTextLabelTransform(label),
   } as const;
 }
