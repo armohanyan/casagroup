@@ -90,7 +90,9 @@ export function FloorHotspotEditor({
   const [hotspotLabelPlacement, setHotspotLabelPlacement] = useState(false);
 
   const textLabels = floor.textLabels ?? [];
-  const planLabels = usePlanTextLabels(textLabels, (next) => onChange({ textLabels: next }));
+  const planLabels = usePlanTextLabels(textLabels, (next) =>
+    onChange(() => ({ textLabels: next })),
+  );
 
   useEffect(() => {
     if (apartments.length === 0) {

@@ -188,29 +188,44 @@ export function PlanTextLabelSection({
           ) : null}
           {textLabels.map((l) => (
             <li key={l.id}>
-              <button
-                type="button"
-                onClick={() => onSelectLabel(l.id)}
+              <div
                 className={
                   l.id === selectedLabelId
-                    ? "w-full rounded-[5px] border border-[#c9a96e] bg-white px-3 py-2 text-left text-xs text-[#0c1428]"
-                    : "w-full rounded-[5px] border border-[#E8EAED] bg-white px-3 py-2 text-left text-xs text-[#0c1428] hover:border-[#c9a96e]"
+                    ? "flex items-center gap-1 rounded-[5px] border border-[#c9a96e] bg-white"
+                    : "flex items-center gap-1 rounded-[5px] border border-[#E8EAED] bg-white hover:border-[#c9a96e]"
                 }
               >
-                <span
-                  style={{
-                    color: l.color,
-                    fontSize: `${planTextLabelFontSize(l)}px`,
-                    display: "inline-block",
-                    transform: `rotate(${planTextLabelRotation(l)}deg)`,
-                  }}
+                <button
+                  type="button"
+                  onClick={() => onSelectLabel(l.id)}
+                  className="min-w-0 flex-1 px-3 py-2 text-left text-xs text-[#0c1428]"
                 >
-                  {resolvePlanText(l, "hy")}
-                </span>
-                <span className="ml-2 text-[#9CA3AF]">
-                  ({Math.round(l.x)}%, {Math.round(l.y)}%)
-                </span>
-              </button>
+                  <span
+                    style={{
+                      color: l.color,
+                      fontSize: `${planTextLabelFontSize(l)}px`,
+                      display: "inline-block",
+                      transform: `rotate(${planTextLabelRotation(l)}deg)`,
+                    }}
+                  >
+                    {resolvePlanText(l, "hy")}
+                  </span>
+                  <span className="ml-2 text-[#9CA3AF]">
+                    ({Math.round(l.x)}%, {Math.round(l.y)}%)
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={labels.remove ?? "Remove"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveLabel(l.id);
+                  }}
+                  className="mr-1 shrink-0 rounded-[5px] px-2 py-2 text-xs font-semibold text-red-500 hover:bg-red-50"
+                >
+                  ×
+                </button>
+              </div>
             </li>
           ))}
         </ul>

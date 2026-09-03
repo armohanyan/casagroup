@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Container } from "@/components/site/Container";
+import { PercentMapFrame } from "@/components/sales/PercentMapFrame";
 import { useI18n } from "@/lib/i18n";
 import { hasApartmentNumber, apartmentDisplayNumber } from "@/lib/apartment-number";
 import type { Apartment, Building, BuildingFloor, FloorHotspot, Project } from "@/types";
@@ -62,14 +63,10 @@ export function ApartmentFloorLocationSection({ project, apartment }: Props) {
         </div>
 
         <div className="overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white p-3 shadow-sm sm:p-5">
-          <div className="relative w-full">
-            {/* Stretch like building maps so overlay % coords match the bitmap (no object-contain). */}
-            <img
-              src={floor.imageUrl}
-              alt={`${t.aptDetail.floorLocationTitle} - ${building.name}, ${floor.label}`}
-              className="h-auto w-full"
-              draggable={false}
-            />
+          <PercentMapFrame
+            imageUrl={floor.imageUrl}
+            alt={`${t.aptDetail.floorLocationTitle} - ${building.name}, ${floor.label}`}
+          >
             <svg
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
@@ -85,7 +82,7 @@ export function ApartmentFloorLocationSection({ project, apartment }: Props) {
                 }
               />
             </svg>
-          </div>
+          </PercentMapFrame>
         </div>
       </Container>
     </section>

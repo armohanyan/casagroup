@@ -6,6 +6,7 @@ import Link from "next/link";
 import { X, BedDouble, Maximize2, Layers } from "lucide-react";
 import { Container } from "@/components/site/Container";
 import { MapPinMarker } from "@/components/sales/MapPinMarker";
+import { PercentMapFrame } from "@/components/sales/PercentMapFrame";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { formatPrice } from "@/lib/format-price";
 import { getStatusLabel, useI18n } from "@/lib/i18n";
@@ -72,7 +73,7 @@ export function NeighborhoodSalesSection({ project }: Props) {
 
   return (
     <>
-      <section id="neighborhood-map" className="mapped-section relative hidden w-full bg-white md:block">
+      <section id="neighborhood-map" className="mapped-section relative w-full bg-white">
         {!imageUrl ? (
           <Container className="py-10 md:py-14">
             <h2 className="mb-3 text-2xl font-semibold leading-snug tracking-tight text-[#0c1428] sm:mb-4 sm:text-3xl">
@@ -83,15 +84,12 @@ export function NeighborhoodSalesSection({ project }: Props) {
           </Container>
         ) : (
           <>
-            <div className="map relative mb-1 h-full w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                id="mappedImage"
-                src={imageUrl}
-                alt={t.developerDetail.siteMapTitle}
-                className="w-full md:min-h-[80vh] h-auto max-h-screen"
-                decoding="async"
-              />
+            <PercentMapFrame
+              imageUrl={imageUrl}
+              alt={t.developerDetail.siteMapTitle}
+              imageId="mappedImage"
+              className="map mb-1"
+            >
               <svg
                 viewBox="0 0 100 100"
                 preserveAspectRatio="none"
@@ -144,7 +142,7 @@ export function NeighborhoodSalesSection({ project }: Props) {
                   </div>
                 </div>
               ) : null}
-            </div>
+            </PercentMapFrame>
             {plots.length > 0 ? (
               <div className="z-20 mb-4 hidden items-center justify-end lg:mr-10 lg:flex">
                 <div
@@ -179,14 +177,9 @@ export function NeighborhoodSalesSection({ project }: Props) {
         )}
       </section>
 
-      {/* Below md: Defanse hides the mapped image - show plot picker instead. */}
-      <section className="border-t border-[#E5E7EB] bg-white pt-header md:hidden">
-        <Container className="py-8">
-          <h2 className="mb-2 text-xl font-semibold text-[#0c1428]">{t.developerDetail.siteMapTitle}</h2>
-          <p className="mb-5 text-sm text-[#6B7280]">{t.developerDetail.plotMapHint}</p>
-          {!imageUrl ? (
-            <p className="text-sm text-[#9CA3AF]">{t.developerDetail.plotMapEmpty}</p>
-          ) : plots.length > 0 ? (
+      {imageUrl && plots.length > 0 ? (
+        <section className="border-t border-[#E5E7EB] bg-white lg:hidden">
+          <Container className="py-4">
             <div className="flex flex-wrap gap-2" role="list" aria-label={t.developerDetail.choosePlot}>
               {plots.map((plot) => (
                 <button
@@ -199,12 +192,9 @@ export function NeighborhoodSalesSection({ project }: Props) {
                 </button>
               ))}
             </div>
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt="" className="h-auto w-full max-h-[70vh] object-contain" />
-          )}
-        </Container>
-      </section>
+          </Container>
+        </section>
+      ) : null}
 
       {modalPlot ? (
         <PlotPlansModal

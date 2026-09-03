@@ -941,6 +941,7 @@ export function AdminProjectEditor({ projectId }: Props) {
         sortOrder: i,
         kind: "building" as const,
         exteriorImageUrl: (b.exteriorImageUrl ?? "").trim(),
+        textLabels: b.textLabels ?? [],
         landArea: undefined,
         price: undefined,
         images: [],
@@ -951,6 +952,7 @@ export function AdminProjectEditor({ projectId }: Props) {
           imageUrl: f.imageUrl.trim(),
           hotspots: f.hotspots ?? [],
           exteriorHotspot: f.exteriorHotspot ?? [],
+          textLabels: f.textLabels ?? [],
         })),
       }))
       .filter((b) => b.name.length > 0);
@@ -973,6 +975,7 @@ export function AdminProjectEditor({ projectId }: Props) {
         sortOrder: i,
         imageUrl: (s.imageUrl ?? "").trim(),
         hotspots: s.hotspots ?? [],
+        textLabels: s.textLabels ?? [],
       }))
       .filter((s) => s.label.length > 0 || s.imageUrl.length > 0 || (s.hotspots?.length ?? 0) > 0);
     const salesMode = kind === "neighborhood" ? "plans" : parseSalesMode(latest.salesMode);

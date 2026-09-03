@@ -15,6 +15,7 @@ import { getStatusLabel, useI18n } from "@/lib/i18n";
 import { formatPrice } from "@/lib/format-price";
 import { apartmentDisplayNumber, hasApartmentNumber } from "@/lib/apartment-number";
 import { PlanTextLabelsOverlay } from "@/components/sales/PlanTextLabelsOverlay";
+import { PercentMapFrame } from "@/components/sales/PercentMapFrame";
 import { planTextLabelStyle, hasPlanText, resolvePlanText } from "@/lib/plan-text-labels";
 import { cn } from "@/lib/utils";
 import type { Apartment, Building, BuildingFloor, Project } from "@/types";
@@ -189,22 +190,15 @@ function FloorPlanCanvas({
   }
 
   return (
-    <div className={cn("map relative h-full w-full", !expanded && "mb-1")}>
-      <div
-        ref={frameRef}
-        className={cn("relative h-full w-full", onBackgroundClick && "cursor-zoom-in")}
+    <div className={cn("map relative w-full", !expanded && "mb-1")}>
+      <PercentMapFrame
+        frameRef={frameRef}
+        imageUrl={floor.imageUrl}
+        alt={`${title} - ${floor.label}`}
+        unconstrained={expanded}
+        className={onBackgroundClick ? "cursor-zoom-in" : undefined}
         onClick={onBackgroundClick}
       >
-        {/* Match building/exterior maps: stretch image to the frame so % hotspots stay aligned (no object-contain). */}
-        <img
-          src={floor.imageUrl}
-          alt={`${title} - ${floor.label}`}
-          className={cn(
-            "pointer-events-none block w-full select-none",
-            expanded ? "h-auto w-full" : "h-auto max-h-[52vh] object-contain sm:max-h-[60vh] md:max-h-screen md:min-h-[80vh] md:object-cover",
-          )}
-          draggable={false}
-        />
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
@@ -266,7 +260,7 @@ function FloorPlanCanvas({
         {tooltip && hoveredApt && hoveredApt.status !== "Sold" && (
           <HotspotTooltip apartment={hoveredApt} x={tooltip.x} y={tooltip.y} />
         )}
-      </div>
+      </PercentMapFrame>
       {showExpandHint && onBackgroundClick ? (
         <button
           type="button"

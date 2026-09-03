@@ -15,6 +15,7 @@ import { BuildingFloorMapSection } from "@/components/sales/BuildingFloorMapSect
 import { DeveloperFloorPlanSection } from "@/components/sales/DeveloperFloorPlanSection";
 import { MapPinMarker } from "@/components/sales/MapPinMarker";
 import { PlanTextLabelsOverlay } from "@/components/sales/PlanTextLabelsOverlay";
+import { PercentMapFrame } from "@/components/sales/PercentMapFrame";
 import {
   SalesJourneyBreadcrumb,
   type SalesJourneyCrumb,
@@ -38,10 +39,6 @@ type TipPos = { x: number; y: number };
 
 /** Defanse-style map shell (visibility controlled by page wrappers). */
 const MAPPED_SECTION = "mapped-section relative w-full";
-const MAP_FRAME = "map relative mb-1 h-full w-full";
-/** Exact Defanse image classes — capped height on phones so maps stay readable. */
-const MAP_IMG =
-  "h-auto w-full max-h-[52vh] object-contain sm:max-h-[60vh] md:max-h-screen md:min-h-[80vh] md:object-cover";
 const MAP_SVG = "absolute left-0 top-0 z-10 h-full w-full";
 
 function stageLabel(stage: ProjectMapStage, lang: Lang): string {
@@ -202,23 +199,20 @@ function MapStageView({
 
   return (
     <section id="sales-journey" className={MAPPED_SECTION}>
-      <div
-        ref={frameRef}
-        className={MAP_FRAME}
-        onMouseLeave={() => {
-          setHoveredId(null);
-          setTip(null);
-        }}
+      <PercentMapFrame
+        frameRef={frameRef}
+        imageUrl={stage.imageUrl}
+        alt={stage.label}
+        imageId="mappedImage"
+        className="map mb-1"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          id="mappedImage"
-          src={stage.imageUrl}
-          alt={stage.label}
-          className={MAP_IMG}
-          draggable={false}
-          decoding="async"
-        />
+        <div
+          className="absolute inset-0"
+          onMouseLeave={() => {
+            setHoveredId(null);
+            setTip(null);
+          }}
+        >
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
@@ -273,7 +267,8 @@ function MapStageView({
             />
           </div>
         ) : null}
-      </div>
+        </div>
+      </PercentMapFrame>
       {stripHotspots.length > 0 ? (
         <div className="border-t border-[#E5E7EB] bg-white px-4 py-3 md:hidden">
           <p className="mb-2 text-xs font-medium text-[#6B7280]">{buildingsLabel}</p>
@@ -383,23 +378,20 @@ function BuildingExteriorView({
 
   return (
     <section id="sales-journey" className={MAPPED_SECTION}>
-      <div
-        ref={frameRef}
-        className={MAP_FRAME}
-        onMouseLeave={() => {
-          setHoveredId(null);
-          setTip(null);
-        }}
+      <PercentMapFrame
+        frameRef={frameRef}
+        imageUrl={exterior}
+        alt={building.name}
+        imageId="mappedImage"
+        className="map mb-1"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          id="mappedImage"
-          src={exterior}
-          alt={building.name}
-          className={MAP_IMG}
-          draggable={false}
-          decoding="async"
-        />
+        <div
+          className="absolute inset-0"
+          onMouseLeave={() => {
+            setHoveredId(null);
+            setTip(null);
+          }}
+        >
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" className={MAP_SVG}>
           {withBands.map((f) => {
             const pts = f.exteriorHotspot as [number, number][];
@@ -449,7 +441,8 @@ function BuildingExteriorView({
             />
           </div>
         ) : null}
-      </div>
+        </div>
+      </PercentMapFrame>
       {floors.length > 0 ? (
         <div className="border-t border-[#E5E7EB] bg-white px-4 py-3 lg:hidden">
           <p className="mb-2 text-xs font-medium text-[#6B7280]">{floorsLabel}</p>

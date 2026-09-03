@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FloorTextLabel } from "@/types";
 import { generateId } from "@/lib/store";
 import {
@@ -14,10 +14,27 @@ export function usePlanTextLabels(
 ) {
   const [selectedLabelId, setSelectedLabelId] = useState<string | null>(null);
   const [labelPlacementMode, setLabelPlacementMode] = useState(false);
+  const textLabelsRef = useRef(textLabels);
+  textLabelsRef.current = textLabels;
 
   const selectedTextLabel = textLabels.find((l) => l.id === selectedLabelId) ?? null;
 
-  function updateTextLabels(next: FloorTextLabel[]) {
+  useEffect(() => {
+    if (textLabels.length === 0) {
+      if (selectedLabelId !== null) setSelectedLabelId(null);
+      return;
+    }
+    if (!selectedLabelId || !textLabels.some((l) => l.id === selectedLabelId)) {
+      setSelectedLabelId(textLabels[0].id);
+    }
+  }, [textLabels, selectedLabelId]);
+
+  function applyTextLabels(
+    updater: FloorTextLabel[] | ((prev: FloorTextLabel[]) => FloorTextLabel[]),
+  ) {
+    const prev = textLabelsRef.current;
+    const next = typeof updater === "function" ? updater(prev) : updater;
+    textLabelsRef.current = next;
     onChange(next);
   }
 
@@ -27,13 +44,13 @@ export function usePlanTextLabels(
       ...emptyPlanTextLabel(),
       id,
     };
-    updateTextLabels([...textLabels, next]);
+    applyTextLabels((prev) => [...prev, next]);
     setSelectedLabelId(id);
     setLabelPlacementMode(true);
   }
 
   function duplicateTextLabel(id: string) {
-    const source = textLabels.find((l) => l.id === id);
+    const source = textLabelsRef.current.find((l) => l.id === id);
     if (!source) return;
     const newId = generateId();
     const next: FloorTextLabel = {
@@ -42,18 +59,21 @@ export function usePlanTextLabels(
       x: Math.min(98, source.x + 3),
       y: Math.min(98, source.y + 3),
     };
-    updateTextLabels([...textLabels, next]);
+    applyTextLabels((prev) => [...prev, next]);
     setSelectedLabelId(newId);
     setLabelPlacementMode(true);
   }
 
   function updateTextLabel(id: string, patch: Partial<FloorTextLabel>) {
-    updateTextLabels(textLabels.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+    applyTextLabels((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   }
 
   function removeTextLabel(id: string) {
-    updateTextLabels(textLabels.filter((l) => l.id !== id));
-    if (selectedLabelId === id) setSelectedLabelId(null);
+    applyTextLabels((prev) => prev.filter((l) => l.id !== id));
+    if (selectedLabelId === id) {
+      const remaining = textLabelsRef.current;
+      setSelectedLabelId(remaining.length > 0 ? remaining[0].id : null);
+    }
     setLabelPlacementMode(false);
   }
 
